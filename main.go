@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 
@@ -90,37 +91,6 @@ type ArchiveGridRecords struct {
 	Record_links_contact_information AGRecordLinksContactInformation
 }
 
-/*
-div.searchresult
-	div #rec_x .record
-		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"
-		div itemprop="name" .record_title
-			h3
-				a
-				href="/archivegrid/collection/data/same"
-					$here text collection data title
-				/a
-
-		div itemprop="author" .record_author
-			span itemprop="name"
-				$here text author
-
-		div itemprop="contributor" .record_archive
-			span itemprop="name"
-				$here text archive name
-
-		div .record_summary
-			$here text summary
-
-		div .record_links
-			a href="/archivegrid/contact-information/nnn" title="$here text about archive org"
-
-
-			a href="/archivegrid/collection/data/samennnnn" <-- ignoring this one for now
-
-
-*/
-
 func main() {
 	// c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS[0]))
 
@@ -144,33 +114,72 @@ func main() {
 	writer := csv.NewWriter(outFile)
 	defer writer.Flush()
 
-	// 	//
-	// 	var _AGDomPathsDefinitions_ = AGDomPaths{
-	// 		Record: "",
-	// 		Record_title:"",
-	// 		Record_author: "",
-	// 		Record_archive: "" ,
-	// 		Record_summary: "",
-	// 		Record_links_contact_information: "",
+	/*
+	   div.searchresult
+	   	div #rec_x .record
+	   		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"
+	   		div itemprop="name" .record_title
+	   			h3
+	   				a
+	   				href="/archivegrid/collection/data/same"
+	   					$here text collection data title
+	   				/a
 
-	// }
+	   		div itemprop="author" .record_author
+	   			span itemprop="name"
+	   				$here text author
 
-	type ArchiveGridRecords struct {
-		RecId                            int
-		Record                           AGRecord
-		Record_title                     AGRecordTitle
-		Record_author                    AGRecordAuthor
-		Record_archive                   AGRecordArchive
-		Record_summary                   AGRecordSummary
-		Record_links_contact_information AGRecordLinksContactInformation
+	   		div itemprop="contributor" .record_archive
+	   			span itemprop="name"
+	   				$here text archive name
+
+	   		div .record_summary
+	   			$here text summary
+
+	   		div .record_links
+	   			a href="/archivegrid/contact-information/nnn" title="$here text about archive org"
+
+
+	   			a href="/archivegrid/collection/data/samennnnn" <-- ignoring this one for now
+
+
+	*/
+
+	//
+	var AGDomPathsDefinition = AGDomPaths{
+		Record:                           "div.record",                // container
+		Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+		Record_author:                    "div.record_author",         // span THEN $inner_text
+		Record_archive:                   "div.record_archive",        // span THEN $inner_text
+		Record_summary:                   "div.record_summary",        // THEN $inner_text
+		Record_links_contact_information: "div.record_links",          // a href ANDALSO title
 	}
+
+	// type ArchiveGridRecords struct {
+	// 	RecId                            int
+	// 	Record                           AGRecord
+	// 	Record_title                     AGRecordTitle
+	// 	Record_author                    AGRecordAuthor
+	// 	Record_archive                   AGRecordArchive
+	// 	Record_summary                   AGRecordSummary
+	// 	Record_links_contact_information AGRecordLinksContactInformation
+	// }
 
 	//
 
-	c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS...))
+	c := colly.NewCollector(
+		colly.AllowedDomains(ALLOWED_DOMAINS...),
+		colly.MaxDepth(1),
+	)
 
-	c.OnHTML("div.record", func(h *colly.HTMLElement) {
+	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+		fmt.Println(record_title)
 
 	})
+
+	person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+
+	c.Visit(person_url)
 
 }
