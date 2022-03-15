@@ -10,8 +10,13 @@ import (
 )
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
+
+// var ARCHIVE_GRID_URL_PATTERNS []string = []string{
+// 	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+// }
+
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
-	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
 // https://archives.chadwyck.com/marketing/index.jsp
@@ -172,13 +177,17 @@ func main() {
 		colly.MaxDepth(1),
 	)
 
+	fmt.Printf("DEBUG: c.OnHtml\n\n")
 	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
 		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+		// writer.Write({record_title})
 		fmt.Println(record_title)
 
 	})
 
-	person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+	person_url := ARCHIVE_GRID_URL_PATTERNS[0]
+	fmt.Printf("DEBUG %s\n\n", person_url)
 
 	c.Visit(person_url)
 
