@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/gocolly/colly"
@@ -15,88 +16,92 @@ var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chad
 // 	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
 // }
 
-var ARCHIVE_GRID_URL_PATTERNS []string = []string{
-	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
-}
-
-// https://archives.chadwyck.com/marketing/index.jsp
-// https://www.newspapers.com/
-// https://researchworks.oclc.org/archivegrid/
-// https://en.wikipedia.org/wiki/Names_of_the_American_Civil_Warhttps://researchworks.oclc.org/archivegrid/
-//
-//	"https://researchworks.oclc.org/archivegrid/?q=Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29&limit=100"
-// Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29
-//
-// Good samples
-// https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22
-// using person.name and `AND` :
-// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert++AND+person.name%3AQuincy&limit=100
-// also George Bowen, also Christian Abraham Fleetwood
-// https://researchworks.oclc.org/archivegrid/?p=1&q=event.name%3A%22american+civil+war%22
-//
-// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
-
-type AGOrganization struct {
-	orgId               int
-	name                string
-	contact_information string
-}
-
-type AGDomPaths struct {
-	Record                           string // AGRecord.Dom
-	Record_title                     string // AGRecordTitle.Dom
-	Record_author                    string // AGRecordAuthor.Dom
-	Record_archive                   string // AGRecordArchive.Dom
-	Record_summary                   string // AGRecordSummary.Dom
-	Record_links_contact_information string // AGRecordLinksContactInformation.Dom
-}
-
-type AGRecord struct {
-	Dom       string
-	URL_rec_x string
-}
-
-type AGRecordTitle struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordAuthor struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordArchive struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordSummary struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordLinksContactInformation struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type ArchiveGridRecords struct {
-	RecId                            int
-	Record                           AGRecord
-	Record_title                     AGRecordTitle
-	Record_author                    AGRecordAuthor
-	Record_archive                   AGRecordArchive
-	Record_summary                   AGRecordSummary
-	Record_links_contact_information AGRecordLinksContactInformation
-}
-
 func main() {
+
+	var ARCHIVE_GRID_URL_PATTERNS []string = []string{
+		"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
+	}
+	var ARCHIVE_GRID_BASE_URL = "https://researchworks.oclc.org/archivegrid"
+	var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
+	log.Printf("INFO: %v", AG_BASE_URL)
+
+	// https://archives.chadwyck.com/marketing/index.jsp
+	// https://www.newspapers.com/
+	// https://researchworks.oclc.org/archivegrid/
+	// https://en.wikipedia.org/wiki/Names_of_the_American_Civil_Warhttps://researchworks.oclc.org/archivegrid/
+	//
+	//	"https://researchworks.oclc.org/archivegrid/?q=Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29&limit=100"
+	// Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29
+	//
+	// Good samples
+	// https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22
+	// using person.name and `AND` :
+	// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert++AND+person.name%3AQuincy&limit=100
+	// also George Bowen, also Christian Abraham Fleetwood
+	// https://researchworks.oclc.org/archivegrid/?p=1&q=event.name%3A%22american+civil+war%22
+	//
+	// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
+
+	type AGOrganization struct {
+		orgId               int
+		name                string
+		contact_information string
+	}
+
+	type AGDomPaths struct {
+		Record                           string // AGRecord.Dom
+		Record_title                     string // AGRecordTitle.Dom
+		Record_author                    string // AGRecordAuthor.Dom
+		Record_archive                   string // AGRecordArchive.Dom
+		Record_summary                   string // AGRecordSummary.Dom
+		Record_links_contact_information string // AGRecordLinksContactInformation.Dom
+	}
+
+	type AGRecord struct {
+		Dom       string
+		URL_rec_x string
+	}
+
+	type AGRecordTitle struct {
+		Dom         string
+		href        string
+		description string
+	}
+
+	type AGRecordAuthor struct {
+		Dom         string
+		href        string
+		description string
+	}
+
+	type AGRecordArchive struct {
+		Dom         string
+		href        string
+		description string
+	}
+
+	type AGRecordSummary struct {
+		Dom         string
+		href        string
+		description string
+	}
+
+	type AGRecordLinksContactInformation struct {
+		Dom         string
+		href        string
+		description string
+	}
+
+	type ArchiveGridRecords struct {
+		RecId                            int
+		Record                           AGRecord
+		Record_title                     AGRecordTitle
+		Record_author                    AGRecordAuthor
+		Record_archive                   AGRecordArchive
+		Record_summary                   AGRecordSummary
+		Record_links_contact_information AGRecordLinksContactInformation
+	}
+
 	// c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS[0]))
 
 	// c.OnHTML("div", func(h *colly.HTMLElement) {
