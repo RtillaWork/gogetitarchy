@@ -17,7 +17,7 @@ func BuildQueries(ms MusiciansMap) MusiciansQueries {
 
 	for _, m := range ms {
 		query := BuildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], MusicianNamesVariation(FIRSTNAMELASTNAME))
-		mq[m.id] = []MusicianQuery{query}
+		mq[m.Id] = []MusicianQuery{query}
 	}
 
 	return mq

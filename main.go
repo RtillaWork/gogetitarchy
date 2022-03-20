@@ -29,7 +29,11 @@ const inFileName = "../inFile.txt"
 
 func main() {
 	musicians := ReadMusicianData(inFileName)
-	musiciansQueries := BuildQueries(musicians)
-	musiciansResponseData := ScanArchive(musiciansQueries)
+	//musiciansQueries := BuildQueries(musicians)
+	//musiciansResponseData := ScanArchive(musiciansQueries)
+
+	for k, m := range musicians {
+		log.Printf("{KEY: %s ,,,, VALUE: %s}", k, m)
+	}
 
 }
