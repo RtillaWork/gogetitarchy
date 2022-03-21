@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"strings"
 )
@@ -17,9 +18,18 @@ func ReadMusicianData(inFileName string) MusiciansMap {
 	musicians := make(map[HashSum]Musician)
 
 	s := bufio.NewScanner(inFile)
-	scanline := s.Text()
-	aMusician := NewMusician(scanline)
-	musicians[aMusician.Hash()] = aMusician
+	for line := ""; s.Scan(); {
+		line = s.Text()
+		log.Printf("SCANNING line: %s\n", line)
+		aMusician, ok := NewMusician(line)
+		if !ok {
+			continue
+			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
+		}
+
+		musicians[aMusician.Hash()] = aMusician
+		log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+	}
 	return musicians
 
 }

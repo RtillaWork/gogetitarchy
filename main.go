@@ -32,8 +32,10 @@ func main() {
 	//musiciansQueries := BuildQueries(musicians)
 	//musiciansResponseData := ScanArchive(musiciansQueries)
 
+	counter := 0
 	for k, m := range musicians {
-		log.Printf("{KEY: %s ,,,, VALUE: %s}", k, m)
+		log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
+		counter++
 	}
-
+	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
 }

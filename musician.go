@@ -3,12 +3,13 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"io"
 	"time"
 )
 
 //const INT64_NULL = 9223372036854775807 // Max int64
 const AGE_NULL = 0
-const STRING_NULL = "STRING_NULL"
+const STRING_NULL = "STRINGNULL"
 const NAMES_DEFAULT_SEP = " "
 const LAST_NAME_SEP = ","
 const INITIALS_SEP = ". " // I.N.I.T._NAMES
@@ -137,15 +138,20 @@ func (h HashSum) String() string {
 func (m Musician) Hash() HashSum {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
-	hashsum := hashfunc.Sum([]byte(m.String()))
-	return HashSum(hashsum)
+	data := m.String()
+	io.WriteString(hashfunc, data)
+	hashsum := hashfunc.Sum(nil)
+	return HashSum(fmt.Sprintf("%x", hashsum))
 }
 
-func NewMusician(data string) Musician {
+func NewMusician(data string) (Musician, bool) {
 	aMusician := Musician{}
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
-	FailNotOK(okmore, "NewMusician Try to ExctractNotes( FAILED TO FIND NAMES")
+	//FailNotOK(okmore, "NewMusician Try to ExctractNotes( FAILED TO FIND NAMES")
+	if !okmore {
+		return aMusician, false
+	}
 
 	if oknotes {
 		aMusician.Notes = notes
@@ -159,5 +165,5 @@ func NewMusician(data string) Musician {
 	aMusician.LastName = lastname
 	aMusician.Id = aMusician.Hash()
 
-	return aMusician
+	return aMusician, true
 }
