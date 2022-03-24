@@ -58,6 +58,11 @@ func (m Musician) String() string {
 	return fmt.Sprintf("%s_%s_%s", first, middle, last)
 }
 
+func (m Musician) PrimaryKey() string {
+	first, _, middle, _, last, _ := m.FullNameTuple()
+	return fmt.Sprintf("PRIMARYKEY=%s%s%s", first, middle, last)
+}
+
 func (m Musician) ToCsv() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	id := m.Id
@@ -162,13 +167,14 @@ type HashSum string
 func (h HashSum) String() string {
 	return string(h)
 }
+
 func (m Musician) Hash() HashSum {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
-	data := m.String()
+	data := m.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return HashSum(fmt.Sprintf("%X", hashsum))
+	return HashSum(fmt.Sprintf("%x", hashsum))
 }
 
 func NewMusician(data string) (aMusician Musician, ok bool) {

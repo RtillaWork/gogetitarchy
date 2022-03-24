@@ -31,9 +31,9 @@ func main() {
 	musicians := ReadMusicianData(inFileName)
 	//printAllMusicians(musicians)
 	musiciansQueries := BuildQueries(musicians)
-	printAllqueries(musicians, musiciansQueries)
+	//printAllqueries(musicians, musiciansQueries)
 
-	//musiciansResponseData := ScanArchive(musiciansQueries)
+	musiciansResponseData := ScanArchiveGridAll(musiciansQueries)
 
 }
 

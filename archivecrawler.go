@@ -4,12 +4,12 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/gocolly/colly"
+	"io"
 	"log"
 	"net/url"
 )
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
-
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
@@ -64,6 +64,8 @@ type AGRecordLinksContactInformation struct {
 	description string
 }
 
+const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
+
 type ArchiveGridRecord struct {
 	Id                               HashSum                         `json:"id"`
 	MusicianId                       HashSum                         `json:"musician_id"`
@@ -76,17 +78,145 @@ type ArchiveGridRecord struct {
 	Record_links_contact_information AGRecordLinksContactInformation `json:"record_links_contact_information"`
 }
 
+func (agr ArchiveGridRecord) PrimaryKey() string {
+	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
+}
+
 func (agr ArchiveGridRecord) String() string {
-	return fmt.Sprintf("{ %s | %s | %s }", agr.MusicianId, agr.Query, agr.Record)
+	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+}
+
+func (agr ArchiveGridRecord) ToJson() string {
+	return fmt.Sprintf("{\"ag_record_id\": %s, \n\"musician_id\": %s, \n\"query\": %s, \n}", agr.Id, agr.MusicianId, agr.Query)
+}
+
+func (agr ArchiveGridRecord) ToCsv() string {
+	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
 }
 
 func (agr ArchiveGridRecord) Hash() HashSum {
 	hashfunc := md5.New()
-	hashsum := hashfunc.Sum([]byte(agr.String()))
-	return HashSum(hashsum)
+	data := agr.PrimaryKey()
+	io.WriteString(hashfunc, data)
+	hashsum := hashfunc.Sum(nil)
+	return HashSum(fmt.Sprintf("%x", hashsum))
+}
+
+func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridRecord ArchiveGridRecord) {
+	archiveGridRecord = ArchiveGridRecord{
+		MusicianId: musicianId,
+		Query:      query,
+		//Record:                           ArchiveGridRecordSTRINGNULL,
+		//Record_title:                     AGRecordTitle,
+		//Record_author:                    AGRecordAuthor,
+		//Record_archive:                   AGRecordArchive,
+		//Record_summary:                   AGRecordSummary,
+		//Record_links_contact_information: AGRecordLinksContactInformation,
+	}
+
+	archiveGridRecord.Id = archiveGridRecord.Hash()
+	return archiveGridRecord
 }
 
 type MusiciansData map[HashSum]ArchiveGridRecord
+
+func ScanArchiveGridAll(mqs MusiciansQueries) {
+
+	//
+	var AGDomPathsDefinition = AGDomPaths{
+		Record:                           "div.record",                // container
+		Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+		Record_author:                    "div.record_author",         // span THEN $inner_text
+		Record_archive:                   "div.record_archive",        // span THEN $inner_text
+		Record_summary:                   "div.record_summary",        // THEN $inner_text
+		Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+	}
+
+	//
+
+	var ARCHIVE_GRID_BASE_URL = "https://researchworks.oclc.org/archivegrid"
+	var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
+	log.Printf("INFO: %v", AG_BASE_URL)
+
+	// type ArchiveGridRecord struct {
+	// 	RecId                            int
+	// 	Record                           AGRecord
+	// 	Record_title                     AGRecordTitle
+	// 	Record_author                    AGRecordAuthor
+	// 	Record_archive                   AGRecordArchive
+	// 	Record_summary                   AGRecordSummary
+	// 	Record_links_contact_information AGRecordLinksContactInformation
+	// }
+
+	//
+
+	c := colly.NewCollector(
+		colly.AllowedDomains(ALLOWED_DOMAINS...),
+		colly.MaxDepth(1),
+	)
+
+	log.Printf("DEBUG: c.OnHtml\n\n")
+	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+		// writer.Write({record_title})
+		log.Println(record_title)
+
+	})
+
+	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+	musician_url := ARCHIVE_GRID_URL_PATTERNS[0]
+	//musician_url := musiciansQueries.first()
+	log.Printf("DEBUG %s\n\n", musician_url)
+
+	c.Visit(musician_url)
+
+}
+
+func ScanArchiveGrid(mq MusicianQuery) (agRecords []ArchiveGridRecord) {
+	agRecords = []ArchiveGridRecord{}
+	agrecord = NewAGRecord()
+
+	//
+	var AGDomPathsDefinition = AGDomPaths{
+		Record:                           "div.record",                // container
+		Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+		Record_author:                    "div.record_author",         // span THEN $inner_text
+		Record_archive:                   "div.record_archive",        // span THEN $inner_text
+		Record_summary:                   "div.record_summary",        // THEN $inner_text
+		Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+	}
+
+	// type ArchiveGridRecord struct {
+	// 	RecId                            int
+	// 	Record                           AGRecord
+	// 	Record_title                     AGRecordTitle
+	// 	Record_author                    AGRecordAuthor
+	// 	Record_archive                   AGRecordArchive
+	// 	Record_summary                   AGRecordSummary
+	// 	Record_links_contact_information AGRecordLinksContactInformation
+	// }
+
+	//
+
+	c := colly.NewCollector(
+		colly.AllowedDomains(ALLOWED_DOMAINS...),
+		colly.MaxDepth(1),
+	)
+
+	log.Printf("DEBUG: c.OnHtml\n\n")
+	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+		// writer.Write({record_title})
+		log.Println(record_title)
+
+	})
+
+	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+	log.Printf("\n\nDEBUG QUERY %s\n", mq)
+
+	c.Visit(mq.String())
+
+}
 
 func ScanArchive(musiciansQueries MusiciansQueries) {
 
@@ -152,6 +282,13 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 //////////////////////////////////////
 
 /*
+
+div.results
+	div.alertresult
+	div
+		text " No ArchiveGrid collection descriptions match this search:"
+
+div.results
    div.searchresult
    	div #rec_x .record
    		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"

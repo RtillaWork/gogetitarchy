@@ -11,6 +11,10 @@ var ARCHIVE_GRID_URL_TEMPLATE []string = []string{
 
 type MusicianQuery string
 
+func (mq MusicianQuery) String() string {
+	return string(mq)
+}
+
 //type MusiciansQueries map[HashSum][]MusicianQuery
 type MusiciansQueries map[HashSum]MusicianQuery
 
