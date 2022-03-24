@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/gocolly/colly"
 	"log"
@@ -54,6 +55,50 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 		Delay:       3 * time.Second,
 	})
 
+	c.OnHTML(AGResultsDefinition.Results, func(results *colly.HTMLElement) {
+		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
+		if resultsSize == 0 || err != nil {
+			agrecord := NewArchiveGridRecord(m.Id, mq)
+			agrecord.found = false
+			agRecords = append(agRecords, agrecord)
+			return
+		} else if resultsSize > 3 {
+			// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
+			agrecord := NewArchiveGridRecord(m.Id, mq)
+			agrecord.found = true
+			agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+			agRecords = append(agRecords, agrecord)
+		} else {
+			results.ForEach(AGDomPathsDefinition.Record, func(_ int, record *colly.HTMLElement) {
+				title := record.ChildText(AGDomPathsDefinition.Record_title)
+				author := record.ChildText(AGDomPathsDefinition.Record_author)
+				archive := record.ChildText(AGDomPathsDefinition.Record_archive)
+				summary := record.ChildText(AGDomPathsDefinition.Record_summary)
+				contact := record.ChildAttr(AGDomPathsDefinition.Record_links_contact_information, "title")
+				link := record.ChildAttr(AGDomPathsDefinition.Record_links_contact_information, "href")
+				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
+					title, author, archive, summary, contact, link)
+				agrecord := NewArchiveGridRecord(m.Id, mq)
+				agrecord.found = true
+				agrecord.set(title, author, archive, summary, contact)
+
+				agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+				agRecords = append(agRecords, agrecord)
+
+			})
+
+			//c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+			//	record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+			//	// writer.Write({record_title})
+			//	log.Println(record_title)
+			//
+			//})
+			//agrecord := NewArchiveGridRecord(m.Id, mq)
+			//agrecord.found = true
+			//agRecords = append(agRecords, agrecord)
+		}
+	})
+
 	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
 	//	log.Printf("NOT FOUND")
 	//	return
@@ -65,41 +110,6 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 	//	agRecords = append(agRecords, agrecord)
 	//	return
 	//})
-
-	c.OnHTML(AGResultsDefinition.ResultsSizeMessage, func(e *colly.HTMLElement) {
-		log.Printf("ELEMENT %#v", e.Text) // e.ChildText(AGResultsDefinition.ResultsSize))
-		resultsSize, _ := myAtoi(e.Text)
-		log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
-		switch {
-		case resultsSize > 5:
-			// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
-			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.found = true
-			agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
-			agRecords = append(agRecords, agrecord)
-			break
-		case resultsSize > 0:
-			// crawl each result and add
-			c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-				record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
-				// writer.Write({record_title})
-				log.Println(record_title)
-
-			})
-			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.found = true
-			agRecords = append(agRecords, agrecord)
-			break
-		case resultsSize == 0:
-			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.found = false
-			agRecords = append(agRecords, agrecord)
-			break
-
-		}
-
-		return
-	})
 
 	//log.Printf("DEBUG: c.OnHtml\n\n")
 	//c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
@@ -116,6 +126,42 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 
 	return agRecords
 }
+
+//c.OnHTML(AGResultsDefinition.ResultsSizeMessage, func(e *colly.HTMLElement) {
+//	log.Printf("ELEMENT %#v", e.Text) // e.ChildText(AGResultsDefinition.ResultsSize))
+//	resultsSize, _ := myAtoi(e.Text)
+//	log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
+//	switch {
+//	case resultsSize > 5:
+//		// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
+//		agrecord := NewArchiveGridRecord(m.Id, mq)
+//		agrecord.found = true
+//		agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+//		agRecords = append(agRecords, agrecord)
+//		break
+//	case resultsSize > 0:
+//		// crawl each result and add
+//
+//		c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+//			record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+//			// writer.Write({record_title})
+//			log.Println(record_title)
+//
+//		})
+//		agrecord := NewArchiveGridRecord(m.Id, mq)
+//		agrecord.found = true
+//		agRecords = append(agRecords, agrecord)
+//		break
+//	case resultsSize == 0:
+//		agrecord := NewArchiveGridRecord(m.Id, mq)
+//		agrecord.found = false
+//		agRecords = append(agRecords, agrecord)
+//		break
+//
+//	}
+//
+//	return
+//})
 
 func ScanArchive(musiciansQueries MusiciansQueries) {
 
@@ -173,13 +219,17 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 
 // like Atoi but cleanes the string out of any non digit characters like comma before the conversion
 func myAtoi(s string) (n int, err error) {
-	text := strings.Fields(s)
-	sint := text[len(text)-1]
-	text = strings.Split(sint, ",")
-	sint = strings.Join(text, "")
-	n, err = strconv.Atoi(sint)
-	FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-	return n, err
+	if s == "" {
+		return 0, errors.New("myAtoi got empty string probably because no css selector matched OnHtml")
+	} else {
+		text := strings.Fields(s)
+		sint := text[len(text)-1]
+		text = strings.Split(sint, ",")
+		sint = strings.Join(text, "")
+		n, err = strconv.Atoi(sint)
+		FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		return n, err
+	}
 }
 
 // c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS[0]))

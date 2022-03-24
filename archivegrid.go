@@ -111,6 +111,10 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 	return archiveGridRecord
 }
 
+func (arg ArchiveGridRecord) Set() {
+
+}
+
 //
 
 type AGDomPaths struct {
@@ -132,6 +136,7 @@ var AGDomPathsDefinition = AGDomPaths{
 }
 
 type AGResults struct {
+	Results            string
 	ResultsNotEmpty    string //div.results > div.searchresults
 	ResultsEmpty       string // div.results > div.alertresult
 	ResultsSize        string // span#resultsize
@@ -140,6 +145,7 @@ type AGResults struct {
 }
 
 var AGResultsDefinition = AGResults{
+	Results:            "div.results",
 	ResultsNotEmpty:    "div.results > div.searchresult",
 	ResultsEmpty:       "div.results > div.alertresult",
 	ResultsSize:        "main > h2", // "main h2 > span#resultsize"
