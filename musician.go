@@ -114,27 +114,34 @@ func (m Musician) FullName() string {
 type MusicianNamesVariation int
 
 const (
-	FULLNAME MusicianNamesVariation = iota
-	LASTNAME
-	FIRSTNAMELASTNAME
-	LASTNAMEFIRSTNAMEMIDDLENAME
+	FULL MusicianNamesVariation = iota
+	LAST
+	FIRSTLAST
+	LASTFIRSTMIDDLE
 )
 
 func (m Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 	formattedName = ""
 	switch v {
-	case MusicianNamesVariation(FULLNAME):
-		formattedName = m.FullName()
-	case MusicianNamesVariation(LASTNAME):
+	case MusicianNamesVariation(FULL):
+		first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
+		if !isFirstPresent {
+			first = ""
+		}
+		if !isMiddlePresent {
+			middle = ""
+		}
+		formattedName = fmt.Sprintf("%s %s %s", first, middle, last)
+	case MusicianNamesVariation(LAST):
 		_, _, _, _, last, _ := m.FullNameTuple()
 		formattedName = fmt.Sprintf("%s", last)
-	case MusicianNamesVariation(FIRSTNAMELASTNAME):
+	case MusicianNamesVariation(FIRSTLAST):
 		first, isFirstPresent, _, _, last, _ := m.FullNameTuple()
 		if !isFirstPresent {
 			first = ""
 		}
 		formattedName = fmt.Sprintf("%s %s", first, last)
-	case MusicianNamesVariation(LASTNAMEFIRSTNAMEMIDDLENAME):
+	case MusicianNamesVariation(LASTFIRSTMIDDLE):
 		first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
 		if !isFirstPresent {
 			first = ""

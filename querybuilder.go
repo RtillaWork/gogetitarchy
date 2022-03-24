@@ -10,22 +10,24 @@ var ARCHIVE_GRID_URL_TEMPLATE []string = []string{
 }
 
 type MusicianQuery string
-type MusiciansQueries map[HashSum][]MusicianQuery
+
+//type MusiciansQueries map[HashSum][]MusicianQuery
+type MusiciansQueries map[HashSum]MusicianQuery
 
 func BuildQueries(ms MusiciansMap) MusiciansQueries {
 	mq := MusiciansQueries{}
 
 	for _, m := range ms {
-		query := BuildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], MusicianNamesVariation(FIRSTNAMELASTNAME))
-		mq[m.Id] = []MusicianQuery{query}
+		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], MusicianNamesVariation(FULL))
+		mq[m.Id] = MusicianQuery(query)
 	}
 
 	return mq
 }
 
-func BuildQuery(m Musician, template string, variation MusicianNamesVariation) MusicianQuery {
-	querydata := m.NameFmt(variation)
-	fullquery := url.QueryEscape(fmt.Sprintf(template, querydata))
+func buildQuery(m Musician, template string, variation MusicianNamesVariation) MusicianQuery {
+	querydata := url.QueryEscape(m.NameFmt(variation))
+	fullquery := fmt.Sprintf(template, querydata)
 	return MusicianQuery(fullquery)
 }
 

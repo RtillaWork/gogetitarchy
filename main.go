@@ -29,13 +29,28 @@ const inFileName = "../inFile.txt"
 
 func main() {
 	musicians := ReadMusicianData(inFileName)
-	//musiciansQueries := BuildQueries(musicians)
+	//printAllMusicians(musicians)
+	musiciansQueries := BuildQueries(musicians)
+	printAllqueries(musicians, musiciansQueries)
+
 	//musiciansResponseData := ScanArchive(musiciansQueries)
 
+}
+
+func printAllMusicians(musicians MusiciansMap) {
 	counter := 0
 	for _, m := range musicians {
 		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
-		log.Println(m.ToJson())
+		log.Println(m.ToCsv())
+		counter++
+	}
+	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
+}
+
+func printAllqueries(ms MusiciansMap, mqs MusiciansQueries) {
+	counter := 0
+	for m, mq := range mqs {
+		log.Printf("\n COUNTER: %d Musician{%s}\nQuery{%s}\n\n", counter, ms[m], mq)
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
