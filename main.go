@@ -33,8 +33,9 @@ func main() {
 	//musiciansResponseData := ScanArchive(musiciansQueries)
 
 	counter := 0
-	for k, m := range musicians {
-		log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
+	for _, m := range musicians {
+		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
+		log.Println(m.ToJson())
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)

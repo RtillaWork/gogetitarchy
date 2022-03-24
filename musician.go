@@ -19,7 +19,7 @@ const NOTES_SEP_CLOSE = ")"
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
 
-type Musician struct { // nils, 0s or  mean no information
+type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	// MD5 on aMusician.String()
 	Id         HashSum `json:"id"`
@@ -58,14 +58,33 @@ func (m Musician) String() string {
 	return fmt.Sprintf("%s_%s_%s", first, middle, last)
 }
 
-func (m Musician) FullNameTuple() (string, bool, string, bool, string, bool) { //  firstname, middlename, lastname
-	firstname := STRING_NULL
-	middlename := STRING_NULL
-	lastname := STRING_NULL
+func (m Musician) ToCsv() string {
+	first, _, middle, _, last, _ := m.FullNameTuple()
+	id := m.Id
+	return fmt.Sprintf("%q; %q; %q; %q", id, first, middle, last)
+}
 
-	isFirstNamePresent := m.FirstName != STRING_NULL
-	isMiddleNamePresent := m.MiddleName != STRING_NULL
-	isLastNamePresent := m.LastName != STRING_NULL
+func (m Musician) ToJson() string {
+	first, _, middle, _, last, _ := m.FullNameTuple()
+	id := m.Id
+	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
+}
+
+//
+func (m Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, middlename string, isMiddleNamePresent bool, lastname string, isLastNamePresent bool) { //  firstname, middlename, lastname
+	//firstname := STRING_NULL
+	//middlename := STRING_NULL
+	//lastname := STRING_NULL
+
+	firstname = STRING_NULL
+	middlename = STRING_NULL
+	lastname = STRING_NULL
+	//isFirstNamePresent := m.FirstName != STRING_NULL
+	//isMiddleNamePresent := m.MiddleName != STRING_NULL
+	//isLastNamePresent := m.LastName != STRING_NULL
+	isFirstNamePresent = m.FirstName != STRING_NULL
+	isMiddleNamePresent = m.MiddleName != STRING_NULL
+	isLastNamePresent = m.LastName != STRING_NULL
 	FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
 	lastname = m.LastName
 
@@ -79,6 +98,7 @@ func (m Musician) FullNameTuple() (string, bool, string, bool, string, bool) { /
 	return firstname, isFirstNamePresent, middlename, isMiddleNamePresent, lastname, isLastNamePresent
 }
 
+//
 func (m Musician) FullName() string {
 	first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
 	if isFirstPresent {
@@ -100,8 +120,8 @@ const (
 	LASTNAMEFIRSTNAMEMIDDLENAME
 )
 
-func (m Musician) NameFmt(v MusicianNamesVariation) string {
-	formattedName := ""
+func (m Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
+	formattedName = ""
 	switch v {
 	case MusicianNamesVariation(FULLNAME):
 		formattedName = m.FullName()
@@ -141,11 +161,13 @@ func (m Musician) Hash() HashSum {
 	data := m.String()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return HashSum(fmt.Sprintf("%x", hashsum))
+	return HashSum(fmt.Sprintf("%X", hashsum))
 }
 
-func NewMusician(data string) (Musician, bool) {
-	aMusician := Musician{}
+func NewMusician(data string) (aMusician Musician, ok bool) {
+	//aMusician := Musician{}
+	aMusician = MusicianNULL
+	ok = false
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
 	//FailNotOK(okmore, "NewMusician Try to ExctractNotes( FAILED TO FIND NAMES")
@@ -164,6 +186,7 @@ func NewMusician(data string) (Musician, bool) {
 	aMusician.MiddleName = middlename
 	aMusician.LastName = lastname
 	aMusician.Id = aMusician.Hash()
+	ok = true
 
-	return aMusician, true
+	return aMusician, ok
 }

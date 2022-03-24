@@ -34,12 +34,19 @@ func ReadMusicianData(inFileName string) MusiciansMap {
 
 }
 
-func ExtractNotes(data string) (string, bool, string, bool) {
+// TODO: replace by regex
+
+func ExtractNotes(data string) (notes string, foundnotes bool, rest string, foundmore bool) {
 	// returns (notes if any, truncated data without notes if any, oknotes, okmore)
-	notes := STRING_NULL
-	foundnotes := false
-	rest := data
-	foundmore := false
+	//notes := STRING_NULL
+	//foundnotes := false
+	//rest := data
+	//foundmore := false
+
+	notes = STRING_NULL
+	foundnotes = false
+	rest = data
+	foundmore = false
 
 	fields := strings.Fields(data)
 	switch len(fields) {
@@ -122,12 +129,18 @@ func ExtractNotes(data string) (string, bool, string, bool) {
 	return notes, foundnotes, rest, foundmore
 }
 
-func ExtractNames(data string) (string, string, string, bool) {
+func ExtractNames(data string) (firstname string, middlename string, lastname string, ok bool) {
 	// returns (firstname if any, middlename if any, lastname if any, ok)
-	firstname := STRING_NULL
-	middlename := STRING_NULL
-	lastname := STRING_NULL
-	ok := false
+	//firstname := STRING_NULL
+	//middlename := STRING_NULL
+	//lastname := STRING_NULL
+	//ok := false
+	////rest := data
+
+	firstname = STRING_NULL
+	middlename = STRING_NULL
+	lastname = STRING_NULL
+	ok = false
 	//rest := data
 
 	fields := strings.Fields(data)
