@@ -33,7 +33,8 @@ func main() {
 	musiciansQueries := BuildQueries(musicians)
 	//printAllqueries(musicians, musiciansQueries)
 
-	musiciansResponseData := ScanArchiveGridAll(musiciansQueries)
+	musiciansResponseData := ScanArchiveGridAll(musicians, musiciansQueries)
+	printAllResponseData(musicians, musiciansResponseData)
 
 }
 
@@ -54,4 +55,14 @@ func printAllqueries(ms MusiciansMap, mqs MusiciansQueries) {
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
+}
+
+func printAllResponseData(ms MusiciansMap, mrd MusiciansData) {
+	counter := 0
+	for k, _ := range mrd {
+		counter++
+		log.Printf("%s\n", ms[k].ToCsv())
+	}
+
+	log.Printf("TOTAL DATA FOUND ABOUT ALL MUSICANS: %d\n", counter)
 }

@@ -6,19 +6,17 @@ import (
 	"io"
 )
 
+type AGDEBUG int
+
+const (
+	EMPTY AGDEBUG = iota
+	TOOMANYRECORDS
+)
+
 type AGOrganization struct {
 	orgId               int
 	name                string
 	contact_information string
-}
-
-type AGDomPaths struct {
-	Record                           string // AGRecord.Dom
-	Record_title                     string // AGRecordTitle.Dom
-	Record_author                    string // AGRecordAuthor.Dom
-	Record_archive                   string // AGRecordArchive.Dom
-	Record_summary                   string // AGRecordSummary.Dom
-	Record_links_contact_information string // AGRecordLinksContactInformation.Dom
 }
 
 type AGRecord struct {
@@ -62,12 +60,14 @@ type ArchiveGridRecord struct {
 	Id                               HashSum                         `json:"id"`
 	MusicianId                       HashSum                         `json:"musician_id"`
 	Query                            MusicianQuery                   `json:"musician_query"`
+	found                            bool                            `json:"is_found"`
 	Record                           AGRecord                        `json:"record"`
 	Record_title                     AGRecordTitle                   `json:"record_title"`
 	Record_author                    AGRecordAuthor                  `json:"record_author"`
 	Record_archive                   AGRecordArchive                 `json:"record_archive"`
 	Record_summary                   AGRecordSummary                 `json:"record_summary"`
 	Record_links_contact_information AGRecordLinksContactInformation `json:"record_links_contact_information"`
+	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
 }
 
 func (agr ArchiveGridRecord) PrimaryKey() string {
@@ -98,6 +98,7 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 	archiveGridRecord = ArchiveGridRecord{
 		MusicianId: musicianId,
 		Query:      query,
+		found:      false,
 		//Record:                           ArchiveGridRecordSTRINGNULL,
 		//Record_title:                     AGRecordTitle,
 		//Record_author:                    AGRecordAuthor,
@@ -111,6 +112,16 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 }
 
 //
+
+type AGDomPaths struct {
+	Record                           string // AGRecord.Dom
+	Record_title                     string // AGRecordTitle.Dom
+	Record_author                    string // AGRecordAuthor.Dom
+	Record_archive                   string // AGRecordArchive.Dom
+	Record_summary                   string // AGRecordSummary.Dom
+	Record_links_contact_information string // AGRecordLinksContactInformation.Dom
+}
+
 var AGDomPathsDefinition = AGDomPaths{
 	Record:                           "div.record",                // container
 	Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
@@ -118,6 +129,22 @@ var AGDomPathsDefinition = AGDomPaths{
 	Record_archive:                   "div.record_archive",        // span THEN $inner_text
 	Record_summary:                   "div.record_summary",        // THEN $inner_text
 	Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+}
+
+type AGResults struct {
+	ResultsNotEmpty    string //div.results > div.searchresults
+	ResultsEmpty       string // div.results > div.alertresult
+	ResultsSize        string // span#resultsize
+	ResultsSizeMessage string
+	ResultsNext        string
+}
+
+var AGResultsDefinition = AGResults{
+	ResultsNotEmpty:    "div.results > div.searchresult",
+	ResultsEmpty:       "div.results > div.alertresult",
+	ResultsSize:        "main > h2", // "main h2 > span#resultsize"
+	ResultsSizeMessage: ".navrow span",
+	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 }
 
 // type ArchiveGridRecord struct {
@@ -131,3 +158,75 @@ var AGDomPathsDefinition = AGDomPaths{
 // }
 
 //
+
+/*
+
+main
+	...
+	span#resultsize
+		$text
+
+div.results
+	div.alertresult
+	div
+		text " No ArchiveGrid collection descriptions match this search:"
+
+div.results
+   div.searchresult
+   	div #rec_x .record
+   		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"
+   		div itemprop="name" .record_title
+   			h3
+   				a
+   				href="/archivegrid/collection/data/same"
+   					$here text collection data title
+   				/a
+
+   		div itemprop="author" .record_author
+   			span itemprop="name"
+   				$here text author
+
+   		div itemprop="contributor" .record_archive
+   			span itemprop="name"
+   				$here text archive name
+
+   		div .record_summary
+   			$here text summary
+
+   		div .record_links
+   			a href="/archivegrid/contact-information/nnn" title="$here text about archive org"
+
+
+   			a href="/archivegrid/collection/data/samennnnn" <-- ignoring this one for now
+
+
+*/
+
+//
+////
+//var AGDomPathsDefinition = AGDomPaths{
+//	Record:                           "div.record",                // container
+//	Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+//	Record_author:                    "div.record_author",         // span THEN $inner_text
+//	Record_archive:                   "div.record_archive",        // span THEN $inner_text
+//	Record_summary:                   "div.record_summary",        // THEN $inner_text
+//	Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+//}
+//
+////
+//
+//var ARCHIVE_GRID_BASE_URL = "https://researchworks.oclc.org/archivegrid"
+//var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
+//log.Printf("INFO: %v", AG_BASE_URL)
+//
+//// type ArchiveGridRecord struct {
+//// 	RecId                            int
+//// 	Record                           AGRecord
+//// 	Record_title                     AGRecordTitle
+//// 	Record_author                    AGRecordAuthor
+//// 	Record_archive                   AGRecordArchive
+//// 	Record_summary                   AGRecordSummary
+//// 	Record_links_contact_information AGRecordLinksContactInformation
+//// }
+//
+////

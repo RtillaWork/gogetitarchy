@@ -6,7 +6,8 @@ import (
 )
 
 var ARCHIVE_GRID_URL_TEMPLATE []string = []string{
-	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+	//"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=10",
 }
 
 type MusicianQuery string

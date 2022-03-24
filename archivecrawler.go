@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/gocolly/colly"
 	"log"
 	"net/url"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
@@ -11,82 +17,104 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[HashSum]ArchiveGridRecord
+type MusiciansData map[HashSum][]ArchiveGridRecord
 
-func ScanArchiveGridAll(mqs MusiciansQueries) {
+func ScanArchiveGridAll(ms MusiciansMap, mqs MusiciansQueries) (musiciansData MusiciansData) {
+	const oneSecond = 1_000_000_000 // nanoseconds
+	musiciansData = MusiciansData{}
 
-	//
-	var AGDomPathsDefinition = AGDomPaths{
-		Record:                           "div.record",                // container
-		Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
-		Record_author:                    "div.record_author",         // span THEN $inner_text
-		Record_archive:                   "div.record_archive",        // span THEN $inner_text
-		Record_summary:                   "div.record_summary",        // THEN $inner_text
-		Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+	for mhash, mq := range mqs {
+		log.Printf("\nScanArchiveGridAll DEBUG: QUERY %s\n FOR MUSICIAN %s \n\n", mq, ms[mhash].ToCsv())
+		musiciansData[mhash] = scanArchiveGrid(ms[mhash], mq)
+
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("press key... ")
+		presskey, _ := reader.ReadString('\n')
+		fmt.Println(presskey)
+		//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
+		//time.Sleep(delay)
+		//log.Printf("DELAY %d", delay)
+
 	}
-
-	//
-
-	var ARCHIVE_GRID_BASE_URL = "https://researchworks.oclc.org/archivegrid"
-	var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
-	log.Printf("INFO: %v", AG_BASE_URL)
-
-	// type ArchiveGridRecord struct {
-	// 	RecId                            int
-	// 	Record                           AGRecord
-	// 	Record_title                     AGRecordTitle
-	// 	Record_author                    AGRecordAuthor
-	// 	Record_archive                   AGRecordArchive
-	// 	Record_summary                   AGRecordSummary
-	// 	Record_links_contact_information AGRecordLinksContactInformation
-	// }
-
-	//
-
-	c := colly.NewCollector(
-		colly.AllowedDomains(ALLOWED_DOMAINS...),
-		colly.MaxDepth(1),
-	)
-
-	log.Printf("DEBUG: c.OnHtml\n\n")
-	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
-		// writer.Write({record_title})
-		log.Println(record_title)
-
-	})
-
-	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
-	musician_url := ARCHIVE_GRID_URL_PATTERNS[0]
-	//musician_url := musiciansQueries.first()
-	log.Printf("DEBUG %s\n\n", musician_url)
-
-	c.Visit(musician_url)
+	return musiciansData
 
 }
 
 func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
 	agRecords = []ArchiveGridRecord{}
-	agrecord := NewArchiveGridRecord(m.Id, mq)
 
 	c := colly.NewCollector(
 		colly.AllowedDomains(ALLOWED_DOMAINS...),
 		colly.MaxDepth(1),
 	)
 
-	log.Printf("DEBUG: c.OnHtml\n\n")
-	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
-		// writer.Write({record_title})
-		log.Println(record_title)
-
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*",
+		Parallelism: 1,
+		Delay:       3 * time.Second,
 	})
 
+	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
+	//	log.Printf("NOT FOUND")
+	//	return
+	//})
+	//
+	//c.OnHTML(AGResultsDefinition.ResultsNotEmpty, func(rec *colly.HTMLElement) {
+	//	log.Printf("################## FOUND")
+	//	agrecord := NewArchiveGridRecord(m.Id, mq)
+	//	agRecords = append(agRecords, agrecord)
+	//	return
+	//})
+
+	c.OnHTML(AGResultsDefinition.ResultsSizeMessage, func(e *colly.HTMLElement) {
+		log.Printf("ELEMENT %#v", e.Text) // e.ChildText(AGResultsDefinition.ResultsSize))
+		resultsSize, _ := myAtoi(e.Text)
+		log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
+		switch {
+		case resultsSize > 5:
+			// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
+			agrecord := NewArchiveGridRecord(m.Id, mq)
+			agrecord.found = true
+			agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+			agRecords = append(agRecords, agrecord)
+			break
+		case resultsSize > 0:
+			// crawl each result and add
+			c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+				record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+				// writer.Write({record_title})
+				log.Println(record_title)
+
+			})
+			agrecord := NewArchiveGridRecord(m.Id, mq)
+			agrecord.found = true
+			agRecords = append(agRecords, agrecord)
+			break
+		case resultsSize == 0:
+			agrecord := NewArchiveGridRecord(m.Id, mq)
+			agrecord.found = false
+			agRecords = append(agRecords, agrecord)
+			break
+
+		}
+
+		return
+	})
+
+	//log.Printf("DEBUG: c.OnHtml\n\n")
+	//c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+	//	record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+	//	// writer.Write({record_title})
+	//	log.Println(record_title)
+	//
+	//})
+
 	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
-	log.Printf("\n\nDEBUG QUERY %s\n", mq)
+	log.Printf("\n\nscanArchiveGrid DEBUG QUERY %s\n", mq)
 
 	c.Visit(mq.String())
 
+	return agRecords
 }
 
 func ScanArchive(musiciansQueries MusiciansQueries) {
@@ -141,6 +169,19 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 
 }
 
+// Helpers
+
+// like Atoi but cleanes the string out of any non digit characters like comma before the conversion
+func myAtoi(s string) (n int, err error) {
+	text := strings.Fields(s)
+	sint := text[len(text)-1]
+	text = strings.Split(sint, ",")
+	sint = strings.Join(text, "")
+	n, err = strconv.Atoi(sint)
+	FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+	return n, err
+}
+
 // c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS[0]))
 
 // c.OnHTML("div", func(h *colly.HTMLElement) {
@@ -151,44 +192,6 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 // c.Visit(ARCHIVE_GRID_URL_PATTERNS[0])
 
 //////////////////////////////////////
-
-/*
-
-div.results
-	div.alertresult
-	div
-		text " No ArchiveGrid collection descriptions match this search:"
-
-div.results
-   div.searchresult
-   	div #rec_x .record
-   		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"
-   		div itemprop="name" .record_title
-   			h3
-   				a
-   				href="/archivegrid/collection/data/same"
-   					$here text collection data title
-   				/a
-
-   		div itemprop="author" .record_author
-   			span itemprop="name"
-   				$here text author
-
-   		div itemprop="contributor" .record_archive
-   			span itemprop="name"
-   				$here text archive name
-
-   		div .record_summary
-   			$here text summary
-
-   		div .record_links
-   			a href="/archivegrid/contact-information/nnn" title="$here text about archive org"
-
-
-   			a href="/archivegrid/collection/data/samennnnn" <-- ignoring this one for now
-
-
-*/
 
 //type ArchiveData struct {
 //	Person
