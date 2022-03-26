@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"strings"
 )
 
 type AGDEBUG int
@@ -184,6 +185,32 @@ func (agr *ArchiveGridRecord) Set(record, title, author, archive, summary, link,
 	agr.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
 }
 
+func (agr *ArchiveGridRecord) ContainsAnyFolded(phrases []string) (matches int) {
+	if len(phrases) < 1 {
+		return -1
+	}
+
+	for _, phrase := range phrases {
+		p := strings.ToLower(phrase)
+		if strings.Contains(strings.ToLower(agr.Title), p) {
+			matches++
+		}
+		if strings.Contains(strings.ToLower(agr.Author), p) {
+			matches++
+		}
+		if strings.Contains(strings.ToLower(agr.Archive), p) {
+			matches++
+		}
+		if strings.Contains(strings.ToLower(agr.Summary), p) {
+			matches++
+		}
+		if strings.Contains(strings.ToLower(agr.ContactInformation), p) {
+			matches++
+		}
+	}
+	return matches
+}
+
 //
 
 type AGDomPaths struct {
@@ -216,7 +243,7 @@ var AGDomPathsDefinition = AGDomPaths{
 	ResultsNotEmpty:          "div.results div.searchresult",
 	ResultsEmpty:             "div.results div.alertresult",
 	ResultsSize:              "main > h2", // "main h2 > span#resultsize"
-	ResultsSizeMessage:       ".navrow span",
+	ResultsSizeMessage:       "div.navrow div.navrowright span",
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
@@ -31,6 +32,8 @@ func FailNotOK(ok bool, desc string) {
 const inFileName = "../inFile.txt"
 
 func main() {
+
+	// archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 	musicians := ReadMusicianData(inFileName)
 	//if len(os.Args) == 2 {
 	//	exportAllMusicians(musicians, os.Args[1])
@@ -40,13 +43,39 @@ func main() {
 	musiciansQueries := BuildQueries(musicians)
 	//exportAllqueries(musicians, musiciansQueries, "")
 
-	musiciansResponseData, ok := CrawlArchiveGrid(musicians, musiciansQueries, 5)
+	var phrases []string = nil
+	if len(os.Args) == 2 {
+		phrases = importPhrases(os.Args[1])
+	} else { // DEBUG TEMPORARY
+		phrases = importPhrases("./phrases.csv")
+	}
+	musiciansResponseData, ok := CrawlArchiveGrid(musicians, musiciansQueries, 10, phrases)
 	if ok {
 		exportAllResponseData(musicians, musiciansResponseData, "")
 	} else {
 		log.Println("CrawlArchiveGrid returned not ok")
 	}
 
+}
+
+func importPhrases(filename string) (phrases []string) {
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		return nil
+	}
+
+	r := bufio.NewScanner(f)
+
+	for r.Scan() {
+		phrases = append(phrases, r.Text())
+
+	}
+	for i, phrase := range phrases {
+		log.Printf("Phrase #%d: %s\n", i, phrase)
+	}
+	WaitForKeypress()
+	return phrases
 }
 
 func exportAllMusicians(musicians MusiciansMap, filename string) {
@@ -118,4 +147,12 @@ func exportAllResponseData(ms MusiciansMap, mrd MusiciansData, filename string) 
 	}
 
 	log.Printf("TOTAL DATA FOUND ABOUT ALL MUSICANS: %d\n", counter)
+}
+
+func WaitForKeypress() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("press key... ")
+	_, err := reader.ReadString('\n')
+	FailOn(err, "WaitForKeypress Failed")
+	fmt.Println("RESUMING...")
 }

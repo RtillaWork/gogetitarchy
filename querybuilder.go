@@ -25,6 +25,7 @@ type MusicianQuery struct {
 	Url        string     `json:"url"`
 	Timestamp  time.Time  `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
 	ResultSize int        `json:"result_size"` // should be initialized to a NEVERQUERIED value
+	Matches    int        `json:"Matches"`
 	DebugNotes QUERYDEBUG `json:"debug_notes"`
 }
 
@@ -40,6 +41,7 @@ func NewMusicianQuery(id HashSum, url string) (newMusicianQuery *MusicianQuery) 
 		Url: url,
 		// Timestamp should be initialized to a NEVERQUERIED value
 		ResultSize: -1, //should be initialized to a NEVERQUERIED value
+		Matches:    -1,
 	}
 
 	return newMusicianQuery

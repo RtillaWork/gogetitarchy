@@ -1,19 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"errors"
-	"fmt"
 	"github.com/gocolly/colly"
 	"log"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-const TOOMANYRESULTSVALUE int = 10000
+const TOOMANYRESULTSVALUE int = 15000
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
@@ -22,7 +19,7 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 
 type MusiciansData map[HashSum][]*ArchiveGridRecord
 
-func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musiciansData MusiciansData, ok bool) {
+func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
@@ -38,12 +35,9 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musician
 				break
 			}
 			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n  \n\n", mq)
-			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq)...)
+			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq, phrases)...)
 
-			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("press key... ")
-			presskey, _ := reader.ReadString('\n')
-			fmt.Println(presskey)
+			WaitForKeypress()
 			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
 			//time.Sleep(delay)
 			//log.Printf("DELAY %d", delay)
@@ -54,7 +48,7 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musician
 	return musiciansData, true
 }
 
-func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRecord) {
+func ScanArchiveGrid(m *Musician, mq *MusicianQuery, phrases []string) (agRecords []*ArchiveGridRecord) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
 	agRecords = []*ArchiveGridRecord{}
 
@@ -66,7 +60,7 @@ func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRe
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 1,
-		Delay:       3 * time.Second,
+		Delay:       7 * time.Second,
 	})
 
 	c.OnRequest(func(request *colly.Request) {
@@ -118,7 +112,7 @@ func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRe
 		if mq.ResultSize < 1 {
 			return
 		}
-		//agrecord := NewArchiveGridRecord(m.Id, *mq)
+		agrecord := NewArchiveGridRecord(m.Id, *mq)
 		record := rec.ChildAttr(AGDomPathsDefinition.RecordCollectionDataPath, "value")
 		title := rec.ChildText(AGDomPathsDefinition.Title)
 		//title := rec.DOM.Find(AGDomPathsDefinition.Title).Text()
@@ -136,11 +130,20 @@ func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRe
 		//.DOM.Find(AGDomPathsDefinition.ContactInformation).Attr("title")
 		//rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
 
-		log.Printf("\n\n RECORDOBJECT: %s\nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
-			rec, record, title, author, archive, summary, contact, link)
+		agrecord.Set(record, title, author, archive, summary, link, contact)
 
-		//agrecord.Set(record, title, author, archive, summary, link, contact)
-		//agRecords = append(agRecords, agrecord)
+		if matches := agrecord.ContainsAnyFolded(phrases); matches > 0 || phrases == nil {
+			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+				record, title, author, archive, summary, contact, link)
+			log.Printf("FILTERED IN matches = %d", matches)
+			agrecord.DebugNotes = AGDEBUG(FOUNDANDVALIDATED)
+			agrecord.IsMatch = true
+			mq.Matches = matches
+			agRecords = append(agRecords, agrecord)
+		} else {
+			log.Printf("FILTERED OUT matches = %d", matches)
+		}
+
 	})
 
 	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
@@ -276,8 +279,13 @@ func myAtoi(s string) (n int, err error) {
 		return 0, errors.New("myAtoi got empty string probably because no css selector matched OnHtml")
 	} else {
 		text := strings.Fields(s)
+		log.Printf("\nTEXT: %v\n", text)
 		sint := text[len(text)-1]
+		log.Printf("SINT: %v\n", sint)
+		sint = sint[:len(sint)-1]
+		log.Printf("SINT: %v\n", sint)
 		text = strings.Split(sint, ",")
+		log.Printf("\nTEXT: %v\n", text)
 		n, err = strconv.Atoi(strings.Join(text, ""))
 		sint, text = "", nil
 		FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
