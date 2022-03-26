@@ -56,34 +56,68 @@ type AGRecordLinksContactInformation struct {
 
 const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 
+//type ArchiveGridRecord struct {
+//	Id                               HashSum                         `json:"id"`
+//	MusicianId                       HashSum                         `json:"musician_id"`
+//	Query                            MusicianQuery                   `json:"musician_query"`
+//	found                            bool                            `json:"is_found"`
+//	Record                           AGRecord                        `json:"record"`
+//	Record_title                     AGRecordTitle                   `json:"record_title"`
+//	Record_author                    AGRecordAuthor                  `json:"record_author"`
+//	Record_archive                   AGRecordArchive                 `json:"record_archive"`
+//	Record_summary                   AGRecordSummary                 `json:"record_summary"`
+//	Record_links_contact_information AGRecordLinksContactInformation `json:"record_links_contact_information"`
+//	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
+//}
+
 type ArchiveGridRecord struct {
-	Id                               HashSum                         `json:"id"`
-	MusicianId                       HashSum                         `json:"musician_id"`
-	Query                            MusicianQuery                   `json:"musician_query"`
-	found                            bool                            `json:"is_found"`
-	Record                           AGRecord                        `json:"record"`
-	Record_title                     AGRecordTitle                   `json:"record_title"`
-	Record_author                    AGRecordAuthor                  `json:"record_author"`
-	Record_archive                   AGRecordArchive                 `json:"record_archive"`
-	Record_summary                   AGRecordSummary                 `json:"record_summary"`
-	Record_links_contact_information AGRecordLinksContactInformation `json:"record_links_contact_information"`
-	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
+	Id                               HashSum       `json:"id"`
+	MusicianId                       HashSum       `json:"musician_id"`
+	Query                            MusicianQuery `json:"musician_query"`
+	found                            bool          `json:"is_found"`
+	Record                           string        `json:"record"`
+	Record_title                     string        `json:"record_title"`
+	Record_author                    string        `json:"record_author"`
+	Record_archive                   string        `json:"record_archive"`
+	Record_summary                   string        `json:"record_summary"`
+	Record_links_contact_information string        `json:"record_links_contact_information"`
+	DebugNotes                       AGDEBUG       `json:"debug_notes"`
 }
 
 func (agr ArchiveGridRecord) PrimaryKey() string {
 	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
 }
 
+//func (agr ArchiveGridRecord) String() string {
+//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+//}
+
 func (agr ArchiveGridRecord) String() string {
-	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive)
 }
 
 func (agr ArchiveGridRecord) ToJson() string {
-	return fmt.Sprintf("{\"ag_record_id\": %s, \n\"musician_id\": %s, \n\"query\": %s, \n}", agr.Id, agr.MusicianId, agr.Query)
+	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
+		agr.Id, agr.MusicianId, agr.Query)
 }
 
+//func (agr ArchiveGridRecord) ToCsv() string {
+//	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+//}
+
 func (agr ArchiveGridRecord) ToCsv() string {
-	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+	return fmt.Sprintf("%q; %q; %q; %q; %q; %q; %q; %q; %q; %q; %q\n",
+		agr.Id,
+		agr.MusicianId,
+		agr.Query,
+		agr.found,
+		agr.Record,
+		agr.Record_title,
+		agr.Record_author,
+		agr.Record_archive,
+		agr.Record_summary,
+		agr.Record_links_contact_information,
+		agr.DebugNotes)
 }
 
 func (agr ArchiveGridRecord) Hash() HashSum {
@@ -111,7 +145,7 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 	return archiveGridRecord
 }
 
-func (arg ArchiveGridRecord) Set() {
+func (agr ArchiveGridRecord) Set() {
 
 }
 
