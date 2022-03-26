@@ -20,7 +20,7 @@ func ReadMusicianData(inFileName string) MusiciansMap {
 	s := bufio.NewScanner(inFile)
 	for line := ""; s.Scan(); {
 		line = s.Text()
-		log.Printf("SCANNING line: %s\n", line)
+		//log.Printf("SCANNING line: %s\n", line)
 		aMusician, ok := NewMusician(line)
 		if !ok {
 			continue
@@ -28,7 +28,7 @@ func ReadMusicianData(inFileName string) MusiciansMap {
 		}
 
 		musicians[aMusician.Hash()] = aMusician
-		log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 	}
 	return musicians
 

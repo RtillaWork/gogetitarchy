@@ -10,9 +10,13 @@ type AGDEBUG int
 
 const (
 	EMPTY AGDEBUG = iota
-	TOOMANYRESULTS
-	NORESULTS
-	ACCEPTABLERESULTS
+	INPROGRESS
+	FOUNDNOTVALIDATEDYET
+	FOUNDANDNOTVALIDATED
+	FOUNDANDVALIDATED
+	//TOOMANYRESULTS
+	//NORESULTS
+	//ACCEPTABLERESULTS
 )
 
 type AGOrganization struct {
@@ -62,7 +66,7 @@ const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 //	Id                               HashSum                         `json:"id"`
 //	MusicianId                       HashSum                         `json:"musician_id"`
 //	Query                            MusicianQuery                   `json:"musician_query"`
-//	ResultCount                            bool                            `json:"is_found"`
+//	ResultSize                            bool                            `json:"is_found"`
 //	RecordCollectionDataPath                           AGRecord                        `json:"record"`
 //	Title                     AGRecordTitle                   `json:"record_title"`
 //	Author                    AGRecordAuthor                  `json:"record_author"`
@@ -150,8 +154,33 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 	return archiveGridRecord
 }
 
-func (agr ArchiveGridRecord) Set() {
+func (agr *ArchiveGridRecord) Destroy() {
+	agr.Id = ""
+	agr.MusicianId = ""
+	agr.Query = MusicianQuery{}
+	agr.ResultCount = 0
+	agr.IsMatch = false
+	agr.RecordCollectionDataPath = ""
+	agr.Title = ""
+	agr.Author = ""
+	agr.Archive = ""
+	agr.Summary = ""
+	agr.LinksContactInformation = ""
+	agr.ContactInformation = ""
+	agr.DebugNotes = AGDEBUG(0)
+	return
+}
 
+func (agr ArchiveGridRecord) Set(record, title, author, archive, summary, link, contact string) {
+	agr.IsMatch = false
+	agr.RecordCollectionDataPath = record
+	agr.Title = title
+	agr.Author = author
+	agr.Archive = archive
+	agr.Summary = summary
+	agr.LinksContactInformation = link
+	agr.ContactInformation = contact
+	agr.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
 }
 
 //

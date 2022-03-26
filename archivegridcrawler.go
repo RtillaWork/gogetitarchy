@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+const TOOMANYRESULTSVALUE int = 3
+
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
@@ -66,52 +68,67 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 		Delay:       3 * time.Second,
 	})
 
-	agrecord := NewArchiveGridRecord(m.Id, mq)
+	c.OnRequest(func(request *colly.Request) {
+		log.Printf("\nSTARTING NEW REQUEST TIME: %v\n", time.Now())
+		log.Printf("\nscanArchiveGrid YOUR QUERY %s\n", mq)
+		log.Printf("\nscanArchiveGrid REQUEST: %s\n\n", request.URL)
+
+	})
+
+	c.OnError(func(response *colly.Response, err error) {
+		log.Printf("\nERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
+
+	})
 
 	c.OnHTML(AGDomPathsDefinition.Results, func(results *colly.HTMLElement) {
 		resultsSize, err := myAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
 		if resultsSize == 0 || err != nil {
-			agrecord.ResultCount = 0
-			agrecord.IsMatch = true
-			agrecord.DebugNotes = AGDEBUG(NORESULTS)
-			agRecords = append(agRecords, agrecord)
+			mq.SetResultCount(0)
+			mq.DebugNotes = QUERYDEBUG(NORESULTS)
+
+			//agrecord.ResultCount = -1
+			//agrecord.IsMatch = true
+			//agrecord.DebugNotes = AGDEBUG(NORESULTS)
+			//agRecords = append(agRecords, agrecord)
 			return
-		} else if resultsSize > 3 {
-			// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
-			agrecord.ResultCount = resultsSize
-			agrecord.IsMatch = false
-			agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
-			agRecords = append(agRecords, agrecord)
+		} else if resultsSize > TOOMANYRESULTSVALUE {
+			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
+			mq.SetResultCount(0)
+			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
+			//agrecord.ResultCount = resultsSize
+			//agrecord.IsMatch = false
+			//agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+			//agRecords = append(agRecords, agrecord)
 		} else {
-			agrecord.ResultCount = resultsSize
+			mq.SetResultCount(resultsSize)
+			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
+			//agrecord.ResultCount = resultsSize
 			//agrecord.set(title, author, archive, summary, contact)
-			agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
+			//agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
 		}
 	})
 
+	c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
 
-	c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func( rec *colly.HTMLElement) {
-//if sanity check
+		// exit this OnHtml if there is nothing to search for or sanity doesn't check
+		if mq.ResultSize < 1 {
+			return
+		}
 		agrecord := NewArchiveGridRecord(m.Id, mq)
-		agrecord.ResultCount = true
-		agrecord.set(title, author, archive, summary, contact)
-
-
 		record := rec.Attr("id")
 		title := rec.ChildText(AGDomPathsDefinition.Title)
 		author := rec.ChildText(AGDomPathsDefinition.Author)
 		archive := rec.ChildText(AGDomPathsDefinition.Archive)
 		summary := rec.ChildText(AGDomPathsDefinition.Summary)
-		contact := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "title")
 		link := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+		contact := rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
 
 		log.Printf("\n\n BEGINRECORD: %q\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
 			record, title, author, archive, summary, contact, link)
 
-
-		agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+		agrecord.Set(record, title, author, archive, summary, link, contact)
 		agRecords = append(agRecords, agrecord)
-		)}
+	})
 
 	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
 	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
@@ -120,10 +137,8 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 	//
 	//})
 	//agrecord := NewArchiveGridRecord(m.Id, mq)
-	//agrecord.ResultCount = true
+	//agrecord.ResultSize = true
 	//agRecords = append(agRecords, agrecord)
-
-
 
 	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
 	//	log.Printf("NOT FOUND")
@@ -146,7 +161,6 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 	//})
 
 	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
-	log.Printf("\n\nscanArchiveGrid DEBUG QUERY %s\n", mq)
 
 	c.Visit(mq.String())
 
@@ -159,9 +173,9 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 //	log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
 //	switch {
 //	case resultsSize > 5:
-//		// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
+//		// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultCount = true
+//		agrecord.ResultSize = true
 //		agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 //		agRecords = append(agRecords, agrecord)
 //		break
@@ -175,12 +189,12 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 //
 //		})
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultCount = true
+//		agrecord.ResultSize = true
 //		agRecords = append(agRecords, agrecord)
 //		break
 //	case resultsSize == 0:
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultCount = false
+//		agrecord.ResultSize = false
 //		agRecords = append(agRecords, agrecord)
 //		break
 //
@@ -315,13 +329,13 @@ func myAtoi(s string) (n int, err error) {
 //		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
 //		if resultsSize == 0 || err != nil {
 //			agrecord := NewArchiveGridRecord(m.Id, mq)
-//			agrecord.ResultCount = false
+//			agrecord.ResultSize = false
 //			agRecords = append(agRecords, agrecord)
 //			return
 //		} else if resultsSize > 3 {
-//			// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
+//			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 //			agrecord := NewArchiveGridRecord(m.Id, mq)
-//			agrecord.ResultCount = true
+//			agrecord.ResultSize = true
 //			agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 //			agRecords = append(agRecords, agrecord)
 //		} else {
@@ -335,7 +349,7 @@ func myAtoi(s string) (n int, err error) {
 //				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
 //					title, author, archive, summary, contact, link)
 //				agrecord := NewArchiveGridRecord(m.Id, mq)
-//				agrecord.ResultCount = true
+//				agrecord.ResultSize = true
 //				agrecord.set(title, author, archive, summary, contact)
 //
 //				agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
@@ -350,7 +364,7 @@ func myAtoi(s string) (n int, err error) {
 //			//
 //			//})
 //			//agrecord := NewArchiveGridRecord(m.Id, mq)
-//			//agrecord.ResultCount = true
+//			//agrecord.ResultSize = true
 //			//agRecords = append(agRecords, agrecord)
 //		}
 //	})

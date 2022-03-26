@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -11,20 +12,20 @@ import (
 func FailOn(err error, desc string) {
 	const SEP = "\n\n"
 	if err != nil {
-		log.Printf(SEP+"ERR: %s"+SEP, err)
+		//log.Printf(SEP+"ERR: %s"+SEP, err)
 		panic(err)
 	} else {
-		log.Printf(SEP+"INFO: %s"+SEP, desc)
+		//log.Printf(SEP+"INFO: %s"+SEP, desc)
 	}
 }
 
 func FailNotOK(ok bool, desc string) {
 	const SEP = "\n\n"
 	if !ok {
-		log.Printf(SEP+"ERR: FAILED ON NOT OK: %s"+SEP, desc)
+		//log.Printf(SEP+"ERR: FAILED ON NOT OK: %s"+SEP, desc)
 		panic(errors.New(desc))
 	} else {
-		log.Printf(SEP+"INFO: OK'ed %s"+SEP, desc)
+		//log.Printf(SEP+"INFO: OK'ed %s"+SEP, desc)
 	}
 }
 
@@ -36,8 +37,12 @@ func main() {
 	musiciansQueries := BuildQueries(musicians)
 	//exportAllqueries(musicians, musiciansQueries, "")
 
-	musiciansResponseData := CrawlArchiveGrid(musicians, musiciansQueries)
-	exportAllResponseData(musicians, musiciansResponseData, "")
+	musiciansResponseData, ok := CrawlArchiveGrid(musicians, musiciansQueries, 4)
+	if ok {
+		exportAllResponseData(musicians, musiciansResponseData, "")
+	} else {
+		log.Println("CrawlArchiveGrid returned not ok")
+	}
 
 }
 
@@ -91,11 +96,16 @@ func exportAllResponseData(ms MusiciansMap, mrd MusiciansData, filename string) 
 		outfile = h
 	}
 	counter := 1
-	for k, _ := range mrd {
+	for h, records := range mrd {
 
 		//log.Printf("%s\n", ms[k].ToCsv())
-		fmt.Fprintf(outfile, "%d; %q", counter, ms[k].ToCsv())
+		fmt.Fprintf(outfile, "\n\n======================================\n%d; %q\n", counter, ms[h].ToCsv())
 		counter++
+		for hh, record := range records {
+			//fmt.Fprintf(outfile, "%s >> %q\n", hh, record.ToCsv())
+			j, _ := json.Marshal(record)
+			fmt.Fprintf(outfile, "%s >> %q\n", hh, j)
+		}
 	}
 
 	log.Printf("TOTAL DATA FOUND ABOUT ALL MUSICANS: %d\n", counter)
