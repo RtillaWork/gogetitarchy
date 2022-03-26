@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -33,11 +32,15 @@ const inFileName = "../inFile.txt"
 
 func main() {
 	musicians := ReadMusicianData(inFileName)
-	//exportAllMusicians(musicians, "")
+	//if len(os.Args) == 2 {
+	//	exportAllMusicians(musicians, os.Args[1])
+	//} else {
+	//	exportAllMusicians(musicians, "")
+	//}
 	musiciansQueries := BuildQueries(musicians)
 	//exportAllqueries(musicians, musiciansQueries, "")
 
-	musiciansResponseData, ok := CrawlArchiveGrid(musicians, musiciansQueries, 4)
+	musiciansResponseData, ok := CrawlArchiveGrid(musicians, musiciansQueries, 5)
 	if ok {
 		exportAllResponseData(musicians, musiciansResponseData, "")
 	} else {
@@ -50,8 +53,8 @@ func exportAllMusicians(musicians MusiciansMap, filename string) {
 	var outfile *os.File
 	if filename == "" || !strings.HasSuffix(filename, ".csv") {
 		outfile = os.Stdout
-	} else if h, err := os.Open(filename); err != nil {
-		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
+	} else if h, err := os.Open("OUT_MUSICIANS_" + filename); err != nil {
+		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
 		outfile = h
@@ -60,7 +63,10 @@ func exportAllMusicians(musicians MusiciansMap, filename string) {
 	for _, m := range musicians {
 		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
 		//log.Println(m.ToCsv())
-		fmt.Fprintf(outfile, "%d; %s", counter, m.ToCsv())
+		if outfile == os.Stdout {
+			fmt.Fprintf(outfile, "\n===================")
+		}
+		fmt.Fprintf(outfile, "\n%d; %s\n", counter, m.ToCsv())
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
@@ -70,8 +76,8 @@ func exportAllqueries(ms MusiciansMap, mqs MusiciansQueries, filename string) {
 	var outfile *os.File
 	if filename == "" || !strings.HasSuffix(filename, ".csv") {
 		outfile = os.Stdout
-	} else if h, err := os.Open(filename); err != nil {
-		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
+	} else if h, err := os.Open("OUT_QUERIES_" + filename); err != nil {
+		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
 		outfile = h
@@ -79,7 +85,10 @@ func exportAllqueries(ms MusiciansMap, mqs MusiciansQueries, filename string) {
 	counter := 1
 	for m, mq := range mqs {
 		//log.Printf("\n COUNTER: %d Musician{%s}\nQuery{%s}\n\n", counter, ms[m], mq)
-		fmt.Fprintf(outfile, "%d; %q; %q", counter, ms[m], mq)
+		if outfile == os.Stdout {
+			fmt.Fprintf(outfile, "\n===================")
+		}
+		fmt.Fprintf(outfile, "\n%d; %q; %q\n", counter, ms[m], mq)
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
@@ -103,8 +112,8 @@ func exportAllResponseData(ms MusiciansMap, mrd MusiciansData, filename string) 
 		counter++
 		for hh, record := range records {
 			//fmt.Fprintf(outfile, "%s >> %q\n", hh, record.ToCsv())
-			j, _ := json.Marshal(record)
-			fmt.Fprintf(outfile, "%s >> %q\n", hh, j)
+
+			fmt.Fprintf(outfile, "%s >> %q\n", hh, record.ToCsv())
 		}
 	}
 

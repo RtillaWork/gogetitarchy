@@ -92,7 +92,7 @@ type ArchiveGridRecord struct {
 	DebugNotes               AGDEBUG       `json:"debug_notes"`
 }
 
-func (agr ArchiveGridRecord) PrimaryKey() string {
+func (agr *ArchiveGridRecord) PrimaryKey() string {
 	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
 }
 
@@ -100,11 +100,11 @@ func (agr ArchiveGridRecord) PrimaryKey() string {
 //	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
-func (agr ArchiveGridRecord) String() string {
+func (agr *ArchiveGridRecord) String() string {
 	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive)
 }
 
-func (agr ArchiveGridRecord) ToJson() string {
+func (agr *ArchiveGridRecord) ToJson() string {
 	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
 		agr.Id, agr.MusicianId, agr.Query)
 }
@@ -113,7 +113,7 @@ func (agr ArchiveGridRecord) ToJson() string {
 //	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
-func (agr ArchiveGridRecord) ToCsv() string {
+func (agr *ArchiveGridRecord) ToCsv() string {
 	return fmt.Sprintf("%q; %q; %q; %d; %q; %q; %q; %q; %q; %q; %q; %q\n",
 		agr.Id,
 		agr.MusicianId,
@@ -137,8 +137,9 @@ func (agr ArchiveGridRecord) Hash() HashSum {
 	return HashSum(fmt.Sprintf("%x", hashsum))
 }
 
-func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridRecord ArchiveGridRecord) {
-	archiveGridRecord = ArchiveGridRecord{
+func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridRecord *ArchiveGridRecord) {
+	archiveGridRecord = new(ArchiveGridRecord)
+	archiveGridRecord = &ArchiveGridRecord{
 		MusicianId:  musicianId,
 		Query:       query,
 		ResultCount: -1,
@@ -171,7 +172,7 @@ func (agr *ArchiveGridRecord) Destroy() {
 	return
 }
 
-func (agr ArchiveGridRecord) Set(record, title, author, archive, summary, link, contact string) {
+func (agr *ArchiveGridRecord) Set(record, title, author, archive, summary, link, contact string) {
 	agr.IsMatch = false
 	agr.RecordCollectionDataPath = record
 	agr.Title = title
@@ -202,16 +203,16 @@ type AGDomPaths struct {
 }
 
 var AGDomPathsDefinition = AGDomPaths{
-	RecordCollectionDataPath: "div.record input[value]",     // container->archivegrid collection data path
-	Title:                    "div.record_title > h3 > a",   // h3>a href THEN $inner_text
-	Author:                   "div.record_author > span",    // span[itemprop="name"] THEN $inner_text
-	Archive:                  "div.record_archive > span ",  // span[itemprop="name"] THEN $inner_text
-	Summary:                  "div.record_summary",          // THEN $inner_text
-	LinksContactInformation:  "div.record_links > a[href]",  // a href ANDALSO title
-	ContactInformation:       "div.record_links > a[title]", // a href ANDALSO title
+	RecordCollectionDataPath: "div.record > input[value]", // container->archivegrid collection data path
+	Title:                    ".record_title > h3 > a",    // h3>a href THEN $inner_text "div.record_title > h3 > a[title]"
+	Author:                   ".record_author > span",     // span[itemprop="name"] THEN $inner_text "div.record_author span[itemprop]"
+	Archive:                  ".record_archive > span",    // span[itemprop="name"] THEN $inner_text  "div.record_archive span[itemprop]"
+	Summary:                  ".record_summary",           // THEN $inner_text
+	LinksContactInformation:  ".record_links > a",         // a href ANDALSO title   "div.record_links > a[href]"
+	ContactInformation:       ".record_links > a",         // a href ANDALSO title   "div.record_links > a[title]"
 	Results:                  "div.results",
-	ResultsNotEmpty:          "div.results > div.searchresult",
-	ResultsEmpty:             "div.results > div.alertresult",
+	ResultsNotEmpty:          "div.results div.searchresult",
+	ResultsEmpty:             "div.results div.alertresult",
 	ResultsSize:              "main > h2", // "main h2 > span#resultsize"
 	ResultsSizeMessage:       ".navrow span",
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href

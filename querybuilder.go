@@ -7,8 +7,8 @@ import (
 )
 
 var ARCHIVE_GRID_URL_TEMPLATE []string = []string{
-	//"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
-	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=10",
+	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+	//"https://researchworks.oclc.org/archivegrid/?q=%s&limit=10",
 }
 
 type QUERYDEBUG int
@@ -32,15 +32,25 @@ func (mq *MusicianQuery) String() string {
 	return string(mq.Url)
 }
 
-func NewMusicianQuery(id HashSum, url string) *MusicianQuery {
-
-	return &MusicianQuery{
+func NewMusicianQuery(id HashSum, url string) (newMusicianQuery *MusicianQuery) {
+	newMusicianQuery = new(MusicianQuery)
+	newMusicianQuery = &MusicianQuery{
 		Id: id,
 		//MusicianId: m.Id,
 		Url: url,
 		// Timestamp should be initialized to a NEVERQUERIED value
 		ResultSize: -1, //should be initialized to a NEVERQUERIED value
 	}
+
+	return newMusicianQuery
+
+	//return &MusicianQuery{
+	//	Id: id,
+	//	//MusicianId: m.Id,
+	//	Url: url,
+	//	// Timestamp should be initialized to a NEVERQUERIED value
+	//	ResultSize: -1, //should be initialized to a NEVERQUERIED value
+	//}
 }
 
 func (mq *MusicianQuery) SetResultCount(count int) {
@@ -59,20 +69,20 @@ func (mq *MusicianQuery) Destroy() {
 }
 
 //type MusiciansQueries map[HashSum][]MusicianQuery
-type MusiciansQueries map[HashSum]MusicianQuery
+type MusiciansQueries map[HashSum]*MusicianQuery
 
-func BuildQueries(ms MusiciansMap) *MusiciansQueries {
-	mq := MusiciansQueries{}
+func BuildQueries(ms MusiciansMap) (mq MusiciansQueries) {
+	mq = MusiciansQueries{}
 
 	for _, m := range ms {
 		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], MusicianNamesVariation(FULL))
-		mq[m.Id] = *query
+		mq[m.Id] = query
 	}
 
-	return &mq
+	return mq
 }
 
-func buildQuery(m Musician, template string, variation MusicianNamesVariation) *MusicianQuery {
+func buildQuery(m *Musician, template string, variation MusicianNamesVariation) *MusicianQuery {
 	querydata := url.QueryEscape(m.NameFmt(variation))
 	fullquery := fmt.Sprintf(template, querydata)
 

@@ -13,14 +13,14 @@ import (
 	"time"
 )
 
-const TOOMANYRESULTSVALUE int = 3
+const TOOMANYRESULTSVALUE int = 5000
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[HashSum][]ArchiveGridRecord
+type MusiciansData map[HashSum][]*ArchiveGridRecord
 
 func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
@@ -28,6 +28,7 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musician
 
 	if lenms, lenmqs := len(ms), len(mqs); lenms == 0 || lenmqs == 0 || size < 1 {
 		return nil, false
+		log.Println("CrawlArchiveGrid Parameter(s) Error. Returned prematurely")
 	} else {
 		log.Printf("Processing %d queries for a MusiciansMap size of %d and a MusiciansQueries size of %d",
 			size, lenms, lenmqs)
@@ -36,7 +37,7 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musician
 			if size == 0 {
 				break
 			}
-			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n FOR MUSICIAN %s \n\n", mq, ms[mhash].ToCsv())
+			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n  \n\n", mq)
 			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq)...)
 
 			reader := bufio.NewReader(os.Stdin)
@@ -48,14 +49,14 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musician
 			//log.Printf("DELAY %d", delay)
 			size--
 		}
-		return musiciansData, true
-	}
 
+	}
+	return musiciansData, true
 }
 
-func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
+func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRecord) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
-	agRecords = []ArchiveGridRecord{}
+	agRecords = []*ArchiveGridRecord{}
 
 	c := colly.NewCollector(
 		colly.AllowedDomains(ALLOWED_DOMAINS...),
@@ -86,12 +87,14 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 			mq.SetResultCount(0)
 			mq.DebugNotes = QUERYDEBUG(NORESULTS)
 
+			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
 			//agrecord.ResultCount = -1
 			//agrecord.IsMatch = true
 			//agrecord.DebugNotes = AGDEBUG(NORESULTS)
 			//agRecords = append(agRecords, agrecord)
 			return
 		} else if resultsSize > TOOMANYRESULTSVALUE {
+			log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsSize)
 			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 			mq.SetResultCount(0)
 			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
@@ -100,6 +103,7 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 			//agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 			//agRecords = append(agRecords, agrecord)
 		} else {
+			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
 			mq.SetResultCount(resultsSize)
 			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
 			//agrecord.ResultCount = resultsSize
@@ -114,20 +118,23 @@ func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 		if mq.ResultSize < 1 {
 			return
 		}
-		agrecord := NewArchiveGridRecord(m.Id, mq)
-		record := rec.Attr("id")
-		title := rec.ChildText(AGDomPathsDefinition.Title)
-		author := rec.ChildText(AGDomPathsDefinition.Author)
-		archive := rec.ChildText(AGDomPathsDefinition.Archive)
-		summary := rec.ChildText(AGDomPathsDefinition.Summary)
-		link := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
-		contact := rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
+		agrecord := NewArchiveGridRecord(m.Id, *mq)
+		record := rec.Attr("value")
+		title := rec.DOM.Find(AGDomPathsDefinition.Title).Text()
+		//.ChildText(AGDomPathsDefinition.Title)
+		author := rec.DOM.Find(AGDomPathsDefinition.Author).Text()
+		archive := rec.DOM.Find(AGDomPathsDefinition.Archive).Text()
+		summary := rec.DOM.Find(AGDomPathsDefinition.Summary).Text()
+		link, _ := rec.DOM.Find(AGDomPathsDefinition.LinksContactInformation).Attr("href")
+		//ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+		contact, _ := rec.DOM.Find(AGDomPathsDefinition.ContactInformation).Attr("title")
+		//rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
 
-		log.Printf("\n\n BEGINRECORD: %q\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
+		log.Printf("\n\n BEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
 			record, title, author, archive, summary, contact, link)
 
 		agrecord.Set(record, title, author, archive, summary, link, contact)
-		agRecords = append(agRecords, agrecord)
+		//agRecords = append(agRecords, agrecord)
 	})
 
 	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
@@ -265,10 +272,10 @@ func myAtoi(s string) (n int, err error) {
 		text := strings.Fields(s)
 		sint := text[len(text)-1]
 		text = strings.Split(sint, ",")
-		sint = strings.Join(text, "")
-		n, err = strconv.Atoi(sint)
+		n, err = strconv.Atoi(strings.Join(text, ""))
+		sint, text = "", nil
 		FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-		return n, err
+		return n / 10, err
 	}
 }
 

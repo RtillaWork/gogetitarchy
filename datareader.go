@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type MusiciansMap map[HashSum]Musician
+type MusiciansMap map[HashSum]*Musician
 
 func ReadMusicianData(inFileName string) MusiciansMap {
 
@@ -15,7 +15,7 @@ func ReadMusicianData(inFileName string) MusiciansMap {
 	FailOn(err, "opening inFile for reading...")
 	defer inFile.Close()
 
-	musicians := make(map[HashSum]Musician)
+	musicians := make(map[HashSum]*Musician)
 
 	s := bufio.NewScanner(inFile)
 	for line := ""; s.Scan(); {

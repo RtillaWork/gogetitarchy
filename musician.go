@@ -37,46 +37,46 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	// Rank string
 }
 
-var MusicianNULL = Musician{
-	"NULL_HASH",
-	STRING_NULL,
-	STRING_NULL,
-	STRING_NULL,
-	STRING_NULL,
-	//TIME_NULL,
-	//TIME_NULL,
-	//STRING_NULL,
-	//STRING_NULL,
-	//AGE_NULL,
-	//STRING_NULL,
-	// Army string
-	// Rank string
-}
+//var MusicianNULL = Musician{
+//	"NULL_HASH",
+//	STRING_NULL,
+//	STRING_NULL,
+//	STRING_NULL,
+//	STRING_NULL,
+//	//TIME_NULL,
+//	//TIME_NULL,
+//	//STRING_NULL,
+//	//STRING_NULL,
+//	//AGE_NULL,
+//	//STRING_NULL,
+//	// Army string
+//	// Rank string
+//}
 
-func (m Musician) String() string {
+func (m *Musician) String() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	return fmt.Sprintf("%s_%s_%s", first, middle, last)
 }
 
-func (m Musician) PrimaryKey() string {
+func (m *Musician) PrimaryKey() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	return fmt.Sprintf("PRIMARYKEY=%s%s%s", first, middle, last)
 }
 
-func (m Musician) ToCsv() string {
+func (m *Musician) ToCsv() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	id := m.Id
 	return fmt.Sprintf("%q; %q; %q; %q", id, first, middle, last)
 }
 
-func (m Musician) ToJson() string {
+func (m *Musician) ToJson() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	id := m.Id
 	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
 }
 
 //
-func (m Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, middlename string, isMiddleNamePresent bool, lastname string, isLastNamePresent bool) { //  firstname, middlename, lastname
+func (m *Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, middlename string, isMiddleNamePresent bool, lastname string, isLastNamePresent bool) { //  firstname, middlename, lastname
 	//firstname := STRING_NULL
 	//middlename := STRING_NULL
 	//lastname := STRING_NULL
@@ -104,7 +104,7 @@ func (m Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, mi
 }
 
 //
-func (m Musician) FullName() string {
+func (m *Musician) FullName() string {
 	first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
 	if isFirstPresent {
 		first = first + NAMES_DEFAULT_SEP
@@ -125,7 +125,7 @@ const (
 	LASTFIRSTMIDDLE
 )
 
-func (m Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
+func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 	formattedName = ""
 	switch v {
 	case MusicianNamesVariation(FULL):
@@ -168,7 +168,7 @@ func (h HashSum) String() string {
 	return string(h)
 }
 
-func (m Musician) Hash() HashSum {
+func (m *Musician) Hash() HashSum {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
 	data := m.PrimaryKey()
@@ -177,29 +177,33 @@ func (m Musician) Hash() HashSum {
 	return HashSum(fmt.Sprintf("%x", hashsum))
 }
 
-func NewMusician(data string) (aMusician Musician, ok bool) {
-	//aMusician := Musician{}
-	aMusician = MusicianNULL
+func NewMusician(data string) (newMusician *Musician, ok bool) {
+	newMusician = new(Musician)
+	newMusician.Id = HashSum(STRING_NULL)
+	newMusician.FirstName = STRING_NULL
+	newMusician.MiddleName = STRING_NULL
+	newMusician.LastName = STRING_NULL
+	newMusician.Notes = STRING_NULL
 	ok = false
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
 	//FailNotOK(okmore, "NewMusician Try to ExctractNotes( FAILED TO FIND NAMES")
 	if !okmore {
-		return aMusician, false
+		return newMusician, false
 	}
 
 	if oknotes {
-		aMusician.Notes = notes
+		newMusician.Notes = notes
 	}
 
 	firstname, middlename, lastname, ok := ExtractNames(names)
 	FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 
-	aMusician.FirstName = firstname
-	aMusician.MiddleName = middlename
-	aMusician.LastName = lastname
-	aMusician.Id = aMusician.Hash()
+	newMusician.FirstName = firstname
+	newMusician.MiddleName = middlename
+	newMusician.LastName = lastname
+	newMusician.Id = newMusician.Hash()
 	ok = true
 
-	return aMusician, ok
+	return newMusician, ok
 }
