@@ -68,7 +68,7 @@ func importPhrases(filename string) (phrases []string) {
 	r := bufio.NewScanner(f)
 
 	for r.Scan() {
-		phrases = append(phrases, r.Text())
+		phrases = append(phrases, strings.Trim(r.Text(), "\" "))
 
 	}
 	for i, phrase := range phrases {

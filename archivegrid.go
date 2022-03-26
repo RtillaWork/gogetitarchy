@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
@@ -194,31 +193,31 @@ func (agr *ArchiveGridRecord) ContainsAnyFolded(phrases []string) (matches int) 
 	for _, phrase := range phrases {
 
 		p := strings.ToLower(phrase)
-		log.Printf("A PHRASE %s", p)
+		//log.Printf("A PHRASE %s", p)
 		//WaitForKeypress()
 		if strings.Contains(strings.ToLower(agr.Title), p) {
 			matches++
-			WaitForKeypress()
+			//WaitForKeypress()
 
 		}
 		if strings.Contains(strings.ToLower(agr.Author), p) {
 			matches++
-			WaitForKeypress()
+			//WaitForKeypress()
 
 		}
 		if strings.Contains(strings.ToLower(agr.Archive), p) {
 			matches++
-			WaitForKeypress()
+			//WaitForKeypress()
 
 		}
 		if strings.Contains(strings.ToLower(agr.Summary), p) {
 			matches++
-			WaitForKeypress()
+			//WaitForKeypress()
 
 		}
 		if strings.Contains(strings.ToLower(agr.ContactInformation), p) {
 			matches++
-			WaitForKeypress()
+			//WaitForKeypress()
 
 		}
 	}
