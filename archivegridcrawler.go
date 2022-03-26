@@ -20,7 +20,7 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 
 type MusiciansData map[HashSum][]ArchiveGridRecord
 
-func ScanArchiveGridAll(ms MusiciansMap, mqs MusiciansQueries) (musiciansData MusiciansData) {
+func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries) (musiciansData MusiciansData) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 

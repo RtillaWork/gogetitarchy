@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"os"
+	"strings"
 )
 
 func FailOn(err error, desc string) {
@@ -29,39 +32,70 @@ const inFileName = "../inFile.txt"
 
 func main() {
 	musicians := ReadMusicianData(inFileName)
-	//printAllMusicians(musicians)
+	//exportAllMusicians(musicians, "")
 	musiciansQueries := BuildQueries(musicians)
-	//printAllqueries(musicians, musiciansQueries)
+	//exportAllqueries(musicians, musiciansQueries, "")
 
-	musiciansResponseData := ScanArchiveGridAll(musicians, musiciansQueries)
-	printAllResponseData(musicians, musiciansResponseData)
+	musiciansResponseData := CrawlArchiveGrid(musicians, musiciansQueries)
+	exportAllResponseData(musicians, musiciansResponseData, "")
 
 }
 
-func printAllMusicians(musicians MusiciansMap) {
-	counter := 0
+func exportAllMusicians(musicians MusiciansMap, filename string) {
+	var outfile *os.File
+	if filename == "" || !strings.HasSuffix(filename, ".csv") {
+		outfile = os.Stdout
+	} else if h, err := os.Open(filename); err != nil {
+		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
+		outfile = os.Stdout
+	} else {
+		outfile = h
+	}
+	counter := 1
 	for _, m := range musicians {
 		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
-		log.Println(m.ToCsv())
+		//log.Println(m.ToCsv())
+		fmt.Fprintf(outfile, "%d; %s", counter, m.ToCsv())
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
 }
 
-func printAllqueries(ms MusiciansMap, mqs MusiciansQueries) {
-	counter := 0
+func exportAllqueries(ms MusiciansMap, mqs MusiciansQueries, filename string) {
+	var outfile *os.File
+	if filename == "" || !strings.HasSuffix(filename, ".csv") {
+		outfile = os.Stdout
+	} else if h, err := os.Open(filename); err != nil {
+		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
+		outfile = os.Stdout
+	} else {
+		outfile = h
+	}
+	counter := 1
 	for m, mq := range mqs {
-		log.Printf("\n COUNTER: %d Musician{%s}\nQuery{%s}\n\n", counter, ms[m], mq)
+		//log.Printf("\n COUNTER: %d Musician{%s}\nQuery{%s}\n\n", counter, ms[m], mq)
+		fmt.Fprintf(outfile, "%d; %q; %q", counter, ms[m], mq)
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
 }
 
-func printAllResponseData(ms MusiciansMap, mrd MusiciansData) {
-	counter := 0
+func exportAllResponseData(ms MusiciansMap, mrd MusiciansData, filename string) {
+	var outfile *os.File
+	if filename == "" || !strings.HasSuffix(filename, ".csv") {
+		outfile = os.Stdout
+	} else if h, err := os.Open(filename); err != nil {
+		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
+		outfile = os.Stdout
+	} else {
+		outfile = h
+	}
+	counter := 1
 	for k, _ := range mrd {
+
+		//log.Printf("%s\n", ms[k].ToCsv())
+		fmt.Fprintf(outfile, "%d; %q", counter, ms[k].ToCsv())
 		counter++
-		log.Printf("%s\n", ms[k].ToCsv())
 	}
 
 	log.Printf("TOTAL DATA FOUND ABOUT ALL MUSICANS: %d\n", counter)
