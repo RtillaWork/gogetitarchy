@@ -158,6 +158,12 @@ type AGDomPaths struct {
 	Record_archive                   string // AGRecordArchive.Dom
 	Record_summary                   string // AGRecordSummary.Dom
 	Record_links_contact_information string // AGRecordLinksContactInformation.Dom
+	Results                          string
+	ResultsNotEmpty                  string
+	ResultsEmpty                     string
+	ResultsSize                      string
+	ResultsSizeMessage               string
+	ResultsNext                      string
 }
 
 var AGDomPathsDefinition = AGDomPaths{
@@ -167,25 +173,32 @@ var AGDomPathsDefinition = AGDomPaths{
 	Record_archive:                   "div.record_archive",        // span THEN $inner_text
 	Record_summary:                   "div.record_summary",        // THEN $inner_text
 	Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+	Results:                          "div.results",
+	ResultsNotEmpty:                  "div.results > div.searchresult",
+	ResultsEmpty:                     "div.results > div.alertresult",
+	ResultsSize:                      "main > h2", // "main h2 > span#resultsize"
+	ResultsSizeMessage:               ".navrow span",
+	ResultsNext:                      ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
+
 }
 
-type AGResults struct {
-	Results            string
-	ResultsNotEmpty    string //div.results > div.searchresults
-	ResultsEmpty       string // div.results > div.alertresult
-	ResultsSize        string // span#resultsize
-	ResultsSizeMessage string
-	ResultsNext        string
-}
+//type AGResults struct {
+//	Results            string
+//	ResultsNotEmpty    string //div.results > div.searchresults
+//	ResultsEmpty       string // div.results > div.alertresult
+//	ResultsSize        string // span#resultsize
+//	ResultsSizeMessage string
+//	ResultsNext        string
+//}
 
-var AGResultsDefinition = AGResults{
-	Results:            "div.results",
-	ResultsNotEmpty:    "div.results > div.searchresult",
-	ResultsEmpty:       "div.results > div.alertresult",
-	ResultsSize:        "main > h2", // "main h2 > span#resultsize"
-	ResultsSizeMessage: ".navrow span",
-	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
-}
+//var AGResultsDefinition = AGResults{
+//	Results:            "div.results",
+//	ResultsNotEmpty:    "div.results > div.searchresult",
+//	ResultsEmpty:       "div.results > div.alertresult",
+//	ResultsSize:        "main > h2", // "main h2 > span#resultsize"
+//	ResultsSizeMessage: ".navrow span",
+//	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
+//}
 
 // type ArchiveGridRecord struct {
 // 	RecId                            int
