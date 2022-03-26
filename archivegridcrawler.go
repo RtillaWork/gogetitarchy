@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const TOOMANYRESULTSVALUE int = 5000
+const TOOMANYRESULTSVALUE int = 10000
 
 var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
 var ARCHIVE_GRID_URL_PATTERNS []string = []string{
@@ -112,28 +112,34 @@ func ScanArchiveGrid(m *Musician, mq *MusicianQuery) (agRecords []*ArchiveGridRe
 		}
 	})
 
-	c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
 
 		// exit this OnHtml if there is nothing to search for or sanity doesn't check
 		if mq.ResultSize < 1 {
 			return
 		}
-		agrecord := NewArchiveGridRecord(m.Id, *mq)
-		record := rec.Attr("value")
-		title := rec.DOM.Find(AGDomPathsDefinition.Title).Text()
+		//agrecord := NewArchiveGridRecord(m.Id, *mq)
+		record := rec.ChildAttr(AGDomPathsDefinition.RecordCollectionDataPath, "value")
+		title := rec.ChildText(AGDomPathsDefinition.Title)
+		//title := rec.DOM.Find(AGDomPathsDefinition.Title).Text()
 		//.ChildText(AGDomPathsDefinition.Title)
-		author := rec.DOM.Find(AGDomPathsDefinition.Author).Text()
-		archive := rec.DOM.Find(AGDomPathsDefinition.Archive).Text()
-		summary := rec.DOM.Find(AGDomPathsDefinition.Summary).Text()
-		link, _ := rec.DOM.Find(AGDomPathsDefinition.LinksContactInformation).Attr("href")
+		author := rec.ChildText(AGDomPathsDefinition.Author)
+		//.DOM.Find(AGDomPathsDefinition.Author).Text()
+		archive := rec.ChildText(AGDomPathsDefinition.Archive)
+		//.DOM.Find(AGDomPathsDefinition.Archive).Text()
+		summary := rec.ChildText(AGDomPathsDefinition.Summary)
+		//.DOM.Find(AGDomPathsDefinition.Summary).Text()
+		link := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+		//.DOM.Find(AGDomPathsDefinition.LinksContactInformation).Attr("href")
 		//ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
-		contact, _ := rec.DOM.Find(AGDomPathsDefinition.ContactInformation).Attr("title")
+		contact := rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
+		//.DOM.Find(AGDomPathsDefinition.ContactInformation).Attr("title")
 		//rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
 
-		log.Printf("\n\n BEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
-			record, title, author, archive, summary, contact, link)
+		log.Printf("\n\n RECORDOBJECT: %s\nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+			rec, record, title, author, archive, summary, contact, link)
 
-		agrecord.Set(record, title, author, archive, summary, link, contact)
+		//agrecord.Set(record, title, author, archive, summary, link, contact)
 		//agRecords = append(agRecords, agrecord)
 	})
 
@@ -275,7 +281,7 @@ func myAtoi(s string) (n int, err error) {
 		n, err = strconv.Atoi(strings.Join(text, ""))
 		sint, text = "", nil
 		FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-		return n / 10, err
+		return n, err
 	}
 }
 

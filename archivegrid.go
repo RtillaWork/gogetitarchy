@@ -187,6 +187,7 @@ func (agr *ArchiveGridRecord) Set(record, title, author, archive, summary, link,
 //
 
 type AGDomPaths struct {
+	Record                   string
 	RecordCollectionDataPath string // AGRecord.Dom
 	Title                    string // AGRecordTitle.Dom
 	Author                   string // AGRecordAuthor.Dom
@@ -203,13 +204,14 @@ type AGDomPaths struct {
 }
 
 var AGDomPathsDefinition = AGDomPaths{
-	RecordCollectionDataPath: "div.record > input[value]", // container->archivegrid collection data path
-	Title:                    ".record_title > h3 > a",    // h3>a href THEN $inner_text "div.record_title > h3 > a[title]"
-	Author:                   ".record_author > span",     // span[itemprop="name"] THEN $inner_text "div.record_author span[itemprop]"
-	Archive:                  ".record_archive > span",    // span[itemprop="name"] THEN $inner_text  "div.record_archive span[itemprop]"
-	Summary:                  ".record_summary",           // THEN $inner_text
-	LinksContactInformation:  ".record_links > a",         // a href ANDALSO title   "div.record_links > a[href]"
-	ContactInformation:       ".record_links > a",         // a href ANDALSO title   "div.record_links > a[title]"
+	Record:                   "div.record",
+	RecordCollectionDataPath: "input[value]",                      // container->archivegrid collection data path  "div.record > input[value]",
+	Title:                    "div.record_title > h3 > a[title]",  // h3>a href THEN $inner_text "div.record_title > h3 > a[title]"
+	Author:                   "div.record_author span[itemprop]",  // span[itemprop="name"] THEN $inner_text "div.record_author span[itemprop]"
+	Archive:                  "div.record_archive span[itemprop]", // span[itemprop="name"] THEN $inner_text  "div.record_archive span[itemprop]"
+	Summary:                  "div.record_summary",                // THEN $inner_text
+	LinksContactInformation:  "div.record_links > a[href]",        // a href ANDALSO    "div.record_links > a[href]"
+	ContactInformation:       "div.record_links > a[title]",       // a  ANDALSO title   "div.record_links > a[title]"
 	Results:                  "div.results",
 	ResultsNotEmpty:          "div.results div.searchresult",
 	ResultsEmpty:             "div.results div.alertresult",
