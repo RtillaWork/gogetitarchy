@@ -75,6 +75,15 @@ func (m *Musician) ToJson() string {
 	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
 }
 
+func (m *Musician) QueryFragment(v MusicianNamesVariation) string {
+	notes := ""
+	if m.Notes != STRING_NULL {
+		notes = m.Notes
+	}
+	return fmt.Sprintf("%s %s", m.NameFmt(v), notes)
+
+}
+
 //
 func (m *Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, middlename string, isMiddleNamePresent bool, lastname string, isLastNamePresent bool) { //  firstname, middlename, lastname
 	//firstname := STRING_NULL

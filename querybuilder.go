@@ -85,7 +85,7 @@ func BuildQueries(ms MusiciansMap) (mq MusiciansQueries) {
 }
 
 func buildQuery(m *Musician, template string, variation MusicianNamesVariation) *MusicianQuery {
-	querydata := url.QueryEscape(m.NameFmt(variation))
+	querydata := url.QueryEscape(m.QueryFragment(variation))
 	fullquery := fmt.Sprintf(template, querydata)
 
 	return NewMusicianQuery(m.Id, fullquery)

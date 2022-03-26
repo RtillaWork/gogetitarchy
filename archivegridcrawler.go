@@ -131,6 +131,8 @@ func ScanArchiveGrid(m *Musician, mq *MusicianQuery, phrases []string) (agRecord
 		//rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
 
 		agrecord.Set(record, title, author, archive, summary, link, contact)
+		log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+			record, title, author, archive, summary, contact, link)
 
 		if matches := agrecord.ContainsAnyFolded(phrases); matches > 0 || phrases == nil {
 			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",

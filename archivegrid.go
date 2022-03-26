@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -191,21 +192,34 @@ func (agr *ArchiveGridRecord) ContainsAnyFolded(phrases []string) (matches int) 
 	}
 
 	for _, phrase := range phrases {
+
 		p := strings.ToLower(phrase)
+		log.Printf("A PHRASE %s", p)
+		//WaitForKeypress()
 		if strings.Contains(strings.ToLower(agr.Title), p) {
 			matches++
+			WaitForKeypress()
+
 		}
 		if strings.Contains(strings.ToLower(agr.Author), p) {
 			matches++
+			WaitForKeypress()
+
 		}
 		if strings.Contains(strings.ToLower(agr.Archive), p) {
 			matches++
+			WaitForKeypress()
+
 		}
 		if strings.Contains(strings.ToLower(agr.Summary), p) {
 			matches++
+			WaitForKeypress()
+
 		}
 		if strings.Contains(strings.ToLower(agr.ContactInformation), p) {
 			matches++
+			WaitForKeypress()
+
 		}
 	}
 	return matches
@@ -242,8 +256,8 @@ var AGDomPathsDefinition = AGDomPaths{
 	Results:                  "div.results",
 	ResultsNotEmpty:          "div.results div.searchresult",
 	ResultsEmpty:             "div.results div.alertresult",
-	ResultsSize:              "main > h2", // "main h2 > span#resultsize"
-	ResultsSizeMessage:       "div.navrow div.navrowright span",
+	ResultsSize:              "resultsize", // "main h2 > span[id=resultsize]", // "main > h2", // "main h2 > span#resultsize"
+	ResultsSizeMessage:       "div.navtable > div.navrow > div.navrowright > span",
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }
