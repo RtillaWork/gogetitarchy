@@ -10,7 +10,9 @@ type AGDEBUG int
 
 const (
 	EMPTY AGDEBUG = iota
-	TOOMANYRECORDS
+	TOOMANYRESULTS
+	NORESULTS
+	ACCEPTABLERESULTS
 )
 
 type AGOrganization struct {
@@ -60,29 +62,30 @@ const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 //	Id                               HashSum                         `json:"id"`
 //	MusicianId                       HashSum                         `json:"musician_id"`
 //	Query                            MusicianQuery                   `json:"musician_query"`
-//	IsFound                            bool                            `json:"is_found"`
-//	Record                           AGRecord                        `json:"record"`
-//	Record_title                     AGRecordTitle                   `json:"record_title"`
-//	Record_author                    AGRecordAuthor                  `json:"record_author"`
-//	Record_archive                   AGRecordArchive                 `json:"record_archive"`
-//	Record_summary                   AGRecordSummary                 `json:"record_summary"`
-//	Record_links_contact_information AGRecordLinksContactInformation `json:"record_links_contact_information"`
+//	ResultCount                            bool                            `json:"is_found"`
+//	RecordCollectionDataPath                           AGRecord                        `json:"record"`
+//	Title                     AGRecordTitle                   `json:"record_title"`
+//	Author                    AGRecordAuthor                  `json:"record_author"`
+//	Archive                   AGRecordArchive                 `json:"record_archive"`
+//	Summary                   AGRecordSummary                 `json:"record_summary"`
+//	LinksContactInformation AGRecordLinksContactInformation `json:"record_links_contact_information"`
 //	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
 //}
 
 type ArchiveGridRecord struct {
-	Id                               HashSum       `json:"id"`
-	MusicianId                       HashSum       `json:"musician_id"`
-	Query                            MusicianQuery `json:"musician_query"`
-	IsFound                          bool          `json:"is_found"`
-	IsMatch                          bool          `json:"is_match"`
-	Record                           string        `json:"record"`
-	Record_title                     string        `json:"record_title"`
-	Record_author                    string        `json:"record_author"`
-	Record_archive                   string        `json:"record_archive"`
-	Record_summary                   string        `json:"record_summary"`
-	Record_links_contact_information string        `json:"record_links_contact_information"`
-	DebugNotes                       AGDEBUG       `json:"debug_notes"`
+	Id                       HashSum       `json:"id"`
+	MusicianId               HashSum       `json:"musician_id"`
+	Query                    MusicianQuery `json:"musician_query"`
+	ResultCount              int           `json:"result_count"`
+	IsMatch                  bool          `json:"is_match"`
+	RecordCollectionDataPath string        `json:"record_collection_datapath"`
+	Title                    string        `json:"record_title"`
+	Author                   string        `json:"record_author"`
+	Archive                  string        `json:"record_archive"`
+	Summary                  string        `json:"record_summary"`
+	LinksContactInformation  string        `json:"links_contact_information"`
+	ContactInformation       string        `json:"contact_information"`
+	DebugNotes               AGDEBUG       `json:"debug_notes"`
 }
 
 func (agr ArchiveGridRecord) PrimaryKey() string {
@@ -90,11 +93,11 @@ func (agr ArchiveGridRecord) PrimaryKey() string {
 }
 
 //func (agr ArchiveGridRecord) String() string {
-//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
 func (agr ArchiveGridRecord) String() string {
-	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive)
+	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive)
 }
 
 func (agr ArchiveGridRecord) ToJson() string {
@@ -103,21 +106,22 @@ func (agr ArchiveGridRecord) ToJson() string {
 }
 
 //func (agr ArchiveGridRecord) ToCsv() string {
-//	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Record_archive.href)
+//	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
 func (agr ArchiveGridRecord) ToCsv() string {
-	return fmt.Sprintf("%q; %q; %q; %q; %q; %q; %q; %q; %q; %q; %q\n",
+	return fmt.Sprintf("%q; %q; %q; %d; %q; %q; %q; %q; %q; %q; %q; %q\n",
 		agr.Id,
 		agr.MusicianId,
 		agr.Query,
-		agr.IsFound,
-		agr.Record,
-		agr.Record_title,
-		agr.Record_author,
-		agr.Record_archive,
-		agr.Record_summary,
-		agr.Record_links_contact_information,
+		agr.ResultCount,
+		agr.RecordCollectionDataPath,
+		agr.Title,
+		agr.Author,
+		agr.Archive,
+		agr.Summary,
+		agr.LinksContactInformation,
+		agr.ContactInformation,
 		agr.DebugNotes)
 }
 
@@ -131,15 +135,15 @@ func (agr ArchiveGridRecord) Hash() HashSum {
 
 func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridRecord ArchiveGridRecord) {
 	archiveGridRecord = ArchiveGridRecord{
-		MusicianId: musicianId,
-		Query:      query,
-		IsFound:    false,
-		//Record:                           ArchiveGridRecordSTRINGNULL,
-		//Record_title:                     AGRecordTitle,
-		//Record_author:                    AGRecordAuthor,
-		//Record_archive:                   AGRecordArchive,
-		//Record_summary:                   AGRecordSummary,
-		//Record_links_contact_information: AGRecordLinksContactInformation,
+		MusicianId:  musicianId,
+		Query:       query,
+		ResultCount: -1,
+		//RecordCollectionDataPath:                           ArchiveGridRecordSTRINGNULL,
+		//Title:                     AGRecordTitle,
+		//Author:                    AGRecordAuthor,
+		//Archive:                   AGRecordArchive,
+		//Summary:                   AGRecordSummary,
+		//LinksContactInformation: AGRecordLinksContactInformation,
 	}
 
 	archiveGridRecord.Id = archiveGridRecord.Hash()
@@ -153,33 +157,35 @@ func (agr ArchiveGridRecord) Set() {
 //
 
 type AGDomPaths struct {
-	Record                           string // AGRecord.Dom
-	Record_title                     string // AGRecordTitle.Dom
-	Record_author                    string // AGRecordAuthor.Dom
-	Record_archive                   string // AGRecordArchive.Dom
-	Record_summary                   string // AGRecordSummary.Dom
-	Record_links_contact_information string // AGRecordLinksContactInformation.Dom
-	Results                          string
-	ResultsNotEmpty                  string
-	ResultsEmpty                     string
-	ResultsSize                      string
-	ResultsSizeMessage               string
-	ResultsNext                      string
+	RecordCollectionDataPath string // AGRecord.Dom
+	Title                    string // AGRecordTitle.Dom
+	Author                   string // AGRecordAuthor.Dom
+	Archive                  string // AGRecordArchive.Dom
+	Summary                  string // AGRecordSummary.Dom
+	LinksContactInformation  string // AGRecordLinksContactInformation.Dom
+	ContactInformation       string
+	Results                  string
+	ResultsNotEmpty          string
+	ResultsEmpty             string
+	ResultsSize              string
+	ResultsSizeMessage       string
+	ResultsNext              string
 }
 
 var AGDomPathsDefinition = AGDomPaths{
-	Record:                           "div.record",                // container
-	Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
-	Record_author:                    "div.record_author",         // span THEN $inner_text
-	Record_archive:                   "div.record_archive",        // span THEN $inner_text
-	Record_summary:                   "div.record_summary",        // THEN $inner_text
-	Record_links_contact_information: "div.record_links",          // a href ANDALSO title
-	Results:                          "div.results",
-	ResultsNotEmpty:                  "div.results > div.searchresult",
-	ResultsEmpty:                     "div.results > div.alertresult",
-	ResultsSize:                      "main > h2", // "main h2 > span#resultsize"
-	ResultsSizeMessage:               ".navrow span",
-	ResultsNext:                      ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
+	RecordCollectionDataPath: "div.record input[value]",     // container->archivegrid collection data path
+	Title:                    "div.record_title > h3 > a",   // h3>a href THEN $inner_text
+	Author:                   "div.record_author > span",    // span[itemprop="name"] THEN $inner_text
+	Archive:                  "div.record_archive > span ",  // span[itemprop="name"] THEN $inner_text
+	Summary:                  "div.record_summary",          // THEN $inner_text
+	LinksContactInformation:  "div.record_links > a[href]",  // a href ANDALSO title
+	ContactInformation:       "div.record_links > a[title]", // a href ANDALSO title
+	Results:                  "div.results",
+	ResultsNotEmpty:          "div.results > div.searchresult",
+	ResultsEmpty:             "div.results > div.alertresult",
+	ResultsSize:              "main > h2", // "main h2 > span#resultsize"
+	ResultsSizeMessage:       ".navrow span",
+	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }
 
@@ -203,12 +209,12 @@ var AGDomPathsDefinition = AGDomPaths{
 
 // type ArchiveGridRecord struct {
 // 	RecId                            int
-// 	Record                           AGRecord
-// 	Record_title                     AGRecordTitle
-// 	Record_author                    AGRecordAuthor
-// 	Record_archive                   AGRecordArchive
-// 	Record_summary                   AGRecordSummary
-// 	Record_links_contact_information AGRecordLinksContactInformation
+// 	RecordCollectionDataPath                           AGRecord
+// 	Title                     AGRecordTitle
+// 	Author                    AGRecordAuthor
+// 	Archive                   AGRecordArchive
+// 	Summary                   AGRecordSummary
+// 	LinksContactInformation AGRecordLinksContactInformation
 // }
 
 //
@@ -259,12 +265,12 @@ div.results
 //
 ////
 //var AGDomPathsDefinition = AGDomPaths{
-//	Record:                           "div.record",                // container
-//	Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
-//	Record_author:                    "div.record_author",         // span THEN $inner_text
-//	Record_archive:                   "div.record_archive",        // span THEN $inner_text
-//	Record_summary:                   "div.record_summary",        // THEN $inner_text
-//	Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+//	RecordCollectionDataPath:                           "div.record",                // container
+//	Title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+//	Author:                    "div.record_author",         // span THEN $inner_text
+//	Archive:                   "div.record_archive",        // span THEN $inner_text
+//	Summary:                   "div.record_summary",        // THEN $inner_text
+//	LinksContactInformation: "div.record_links",          // a href ANDALSO title
 //}
 //
 ////
@@ -275,12 +281,12 @@ div.results
 //
 //// type ArchiveGridRecord struct {
 //// 	RecId                            int
-//// 	Record                           AGRecord
-//// 	Record_title                     AGRecordTitle
-//// 	Record_author                    AGRecordAuthor
-//// 	Record_archive                   AGRecordArchive
-//// 	Record_summary                   AGRecordSummary
-//// 	Record_links_contact_information AGRecordLinksContactInformation
+//// 	RecordCollectionDataPath                           AGRecord
+//// 	Title                     AGRecordTitle
+//// 	Author                    AGRecordAuthor
+//// 	Archive                   AGRecordArchive
+//// 	Summary                   AGRecordSummary
+//// 	LinksContactInformation AGRecordLinksContactInformation
 //// }
 //
 ////

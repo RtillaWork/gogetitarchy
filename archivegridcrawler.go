@@ -20,28 +20,39 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 
 type MusiciansData map[HashSum][]ArchiveGridRecord
 
-func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries) (musiciansData MusiciansData) {
+func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
-	for mhash, mq := range mqs {
-		log.Printf("\nScanArchiveGridAll DEBUG: QUERY %s\n FOR MUSICIAN %s \n\n", mq, ms[mhash].ToCsv())
-		musiciansData[mhash] = scanArchiveGrid(ms[mhash], mq)
+	if lenms, lenmqs := len(ms), len(mqs); lenms == 0 || lenmqs == 0 || size < 1 {
+		return nil, false
+	} else {
+		log.Printf("Processing %d queries for a MusiciansMap size of %d and a MusiciansQueries size of %d",
+			size, lenms, lenmqs)
 
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("press key... ")
-		presskey, _ := reader.ReadString('\n')
-		fmt.Println(presskey)
-		//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
-		//time.Sleep(delay)
-		//log.Printf("DELAY %d", delay)
+		for mhash, mq := range mqs {
+			if size == 0 {
+				break
+			}
+			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n FOR MUSICIAN %s \n\n", mq, ms[mhash].ToCsv())
+			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq)...)
 
+			reader := bufio.NewReader(os.Stdin)
+			fmt.Print("press key... ")
+			presskey, _ := reader.ReadString('\n')
+			fmt.Println(presskey)
+			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
+			//time.Sleep(delay)
+			//log.Printf("DELAY %d", delay)
+			size--
+		}
+		return musiciansData, true
 	}
-	return musiciansData
 
 }
 
-func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
+func ScanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
+	//agRecord := NewArchiveGridRecord(m.Id, mq)
 	agRecords = []ArchiveGridRecord{}
 
 	c := colly.NewCollector(
@@ -55,49 +66,64 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 		Delay:       3 * time.Second,
 	})
 
-	c.OnHTML(AGResultsDefinition.Results, func(results *colly.HTMLElement) {
-		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
+	agrecord := NewArchiveGridRecord(m.Id, mq)
+
+	c.OnHTML(AGDomPathsDefinition.Results, func(results *colly.HTMLElement) {
+		resultsSize, err := myAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
 		if resultsSize == 0 || err != nil {
-			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.IsFound = false
+			agrecord.ResultCount = 0
+			agrecord.IsMatch = true
+			agrecord.DebugNotes = AGDEBUG(NORESULTS)
 			agRecords = append(agRecords, agrecord)
 			return
 		} else if resultsSize > 3 {
-			// too many to process for now, take note and pass, set IsFound false as flag nor record as non nilfor now
-			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.IsFound = true
-			agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+			// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
+			agrecord.ResultCount = resultsSize
+			agrecord.IsMatch = false
+			agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 			agRecords = append(agRecords, agrecord)
 		} else {
-			results.ForEach(AGDomPathsDefinition.Record, func(_ int, record *colly.HTMLElement) {
-				title := record.ChildText(AGDomPathsDefinition.Record_title)
-				author := record.ChildText(AGDomPathsDefinition.Record_author)
-				archive := record.ChildText(AGDomPathsDefinition.Record_archive)
-				summary := record.ChildText(AGDomPathsDefinition.Record_summary)
-				contact := record.ChildAttr(AGDomPathsDefinition.Record_links_contact_information, "title")
-				link := record.ChildAttr(AGDomPathsDefinition.Record_links_contact_information, "href")
-				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
-					title, author, archive, summary, contact, link)
-				agrecord := NewArchiveGridRecord(m.Id, mq)
-				agrecord.IsFound = true
-				agrecord.set(title, author, archive, summary, contact)
-
-				agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
-				agRecords = append(agRecords, agrecord)
-
-			})
-
-			//c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-			//	record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
-			//	// writer.Write({record_title})
-			//	log.Println(record_title)
-			//
-			//})
-			//agrecord := NewArchiveGridRecord(m.Id, mq)
-			//agrecord.IsFound = true
-			//agRecords = append(agRecords, agrecord)
+			agrecord.ResultCount = resultsSize
+			//agrecord.set(title, author, archive, summary, contact)
+			agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
 		}
 	})
+
+
+	c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func( rec *colly.HTMLElement) {
+//if sanity check
+		agrecord := NewArchiveGridRecord(m.Id, mq)
+		agrecord.ResultCount = true
+		agrecord.set(title, author, archive, summary, contact)
+
+
+		record := rec.Attr("id")
+		title := rec.ChildText(AGDomPathsDefinition.Title)
+		author := rec.ChildText(AGDomPathsDefinition.Author)
+		archive := rec.ChildText(AGDomPathsDefinition.Archive)
+		summary := rec.ChildText(AGDomPathsDefinition.Summary)
+		contact := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "title")
+		link := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+
+		log.Printf("\n\n BEGINRECORD: %q\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
+			record, title, author, archive, summary, contact, link)
+
+
+		agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+		agRecords = append(agRecords, agrecord)
+		)}
+
+	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
+	//	// writer.Write({record_title})
+	//	log.Println(record_title)
+	//
+	//})
+	//agrecord := NewArchiveGridRecord(m.Id, mq)
+	//agrecord.ResultCount = true
+	//agRecords = append(agRecords, agrecord)
+
+
 
 	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
 	//	log.Printf("NOT FOUND")
@@ -112,8 +138,8 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 	//})
 
 	//log.Printf("DEBUG: c.OnHtml\n\n")
-	//c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-	//	record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
 	//	// writer.Write({record_title})
 	//	log.Println(record_title)
 	//
@@ -133,28 +159,28 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 //	log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
 //	switch {
 //	case resultsSize > 5:
-//		// too many to process for now, take note and pass, set IsFound false as flag nor record as non nilfor now
+//		// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.IsFound = true
-//		agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
+//		agrecord.ResultCount = true
+//		agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 //		agRecords = append(agRecords, agrecord)
 //		break
 //	case resultsSize > 0:
 //		// crawl each result and add
 //
-//		c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-//			record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+//		c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+//			record_title := rec.ChildText(AGDomPathsDefinition.Title)
 //			// writer.Write({record_title})
 //			log.Println(record_title)
 //
 //		})
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.IsFound = true
+//		agrecord.ResultCount = true
 //		agRecords = append(agRecords, agrecord)
 //		break
 //	case resultsSize == 0:
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.IsFound = false
+//		agrecord.ResultCount = false
 //		agRecords = append(agRecords, agrecord)
 //		break
 //
@@ -167,12 +193,12 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 
 	//
 	var AGDomPathsDefinition = AGDomPaths{
-		Record:                           "div.record",                // container
-		Record_title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
-		Record_author:                    "div.record_author",         // span THEN $inner_text
-		Record_archive:                   "div.record_archive",        // span THEN $inner_text
-		Record_summary:                   "div.record_summary",        // THEN $inner_text
-		Record_links_contact_information: "div.record_links",          // a href ANDALSO title
+		RecordCollectionDataPath: "div.record",                // container
+		Title:                    "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
+		Author:                   "div.record_author",         // span THEN $inner_text
+		Archive:                  "div.record_archive",        // span THEN $inner_text
+		Summary:                  "div.record_summary",        // THEN $inner_text
+		LinksContactInformation:  "div.record_links",          // a href ANDALSO title
 	}
 
 	//
@@ -183,12 +209,12 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 
 	// type ArchiveGridRecord struct {
 	// 	RecId                            int
-	// 	Record                           AGRecord
-	// 	Record_title                     AGRecordTitle
-	// 	Record_author                    AGRecordAuthor
-	// 	Record_archive                   AGRecordArchive
-	// 	Record_summary                   AGRecordSummary
-	// 	Record_links_contact_information AGRecordLinksContactInformation
+	// 	RecordCollectionDataPath                           AGRecord
+	// 	Title                     AGRecordTitle
+	// 	Author                    AGRecordAuthor
+	// 	Archive                   AGRecordArchive
+	// 	Summary                   AGRecordSummary
+	// 	LinksContactInformation AGRecordLinksContactInformation
 	// }
 
 	//
@@ -199,8 +225,8 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 	)
 
 	log.Printf("DEBUG: c.OnHtml\n\n")
-	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-		record_title := rec.ChildText(AGDomPathsDefinition.Record_title)
+	c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+		record_title := rec.ChildText(AGDomPathsDefinition.Title)
 		// writer.Write({record_title})
 		log.Println(record_title)
 
@@ -269,3 +295,90 @@ func myAtoi(s string) (n int, err error) {
 // https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
 
 //////////////////////
+
+//
+//func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
+//	agRecords = []ArchiveGridRecord{}
+//
+//	c := colly.NewCollector(
+//		colly.AllowedDomains(ALLOWED_DOMAINS...),
+//		colly.MaxDepth(1),
+//	)
+//
+//	c.Limit(&colly.LimitRule{
+//		DomainGlob:  "*",
+//		Parallelism: 1,
+//		Delay:       3 * time.Second,
+//	})
+//
+//	c.OnHTML(AGResultsDefinition.Results, func(results *colly.HTMLElement) {
+//		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
+//		if resultsSize == 0 || err != nil {
+//			agrecord := NewArchiveGridRecord(m.Id, mq)
+//			agrecord.ResultCount = false
+//			agRecords = append(agRecords, agrecord)
+//			return
+//		} else if resultsSize > 3 {
+//			// too many to process for now, take note and pass, set ResultCount false as flag nor record as non nilfor now
+//			agrecord := NewArchiveGridRecord(m.Id, mq)
+//			agrecord.ResultCount = true
+//			agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+//			agRecords = append(agRecords, agrecord)
+//		} else {
+//			results.ForEach(AGDomPathsDefinition.RecordCollectionDataPath, func(_ int, record *colly.HTMLElement) {
+//				title := record.ChildText(AGDomPathsDefinition.Title)
+//				author := record.ChildText(AGDomPathsDefinition.Author)
+//				archive := record.ChildText(AGDomPathsDefinition.Archive)
+//				summary := record.ChildText(AGDomPathsDefinition.Summary)
+//				contact := record.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "title")
+//				link := record.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+//				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
+//					title, author, archive, summary, contact, link)
+//				agrecord := NewArchiveGridRecord(m.Id, mq)
+//				agrecord.ResultCount = true
+//				agrecord.set(title, author, archive, summary, contact)
+//
+//				agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+//				agRecords = append(agRecords, agrecord)
+//
+//			})
+//
+//			//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+//			//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
+//			//	// writer.Write({record_title})
+//			//	log.Println(record_title)
+//			//
+//			//})
+//			//agrecord := NewArchiveGridRecord(m.Id, mq)
+//			//agrecord.ResultCount = true
+//			//agRecords = append(agRecords, agrecord)
+//		}
+//	})
+//
+//	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
+//	//	log.Printf("NOT FOUND")
+//	//	return
+//	//})
+//	//
+//	//c.OnHTML(AGResultsDefinition.ResultsNotEmpty, func(rec *colly.HTMLElement) {
+//	//	log.Printf("################## FOUND")
+//	//	agrecord := NewArchiveGridRecord(m.Id, mq)
+//	//	agRecords = append(agRecords, agrecord)
+//	//	return
+//	//})
+//
+//	//log.Printf("DEBUG: c.OnHtml\n\n")
+//	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+//	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
+//	//	// writer.Write({record_title})
+//	//	log.Println(record_title)
+//	//
+//	//})
+//
+//	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+//	log.Printf("\n\nscanArchiveGrid DEBUG QUERY %s\n", mq)
+//
+//	c.Visit(mq.String())
+//
+//	return agRecords
+//}
