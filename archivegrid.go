@@ -60,7 +60,7 @@ const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 //	Id                               HashSum                         `json:"id"`
 //	MusicianId                       HashSum                         `json:"musician_id"`
 //	Query                            MusicianQuery                   `json:"musician_query"`
-//	found                            bool                            `json:"is_found"`
+//	IsFound                            bool                            `json:"is_found"`
 //	Record                           AGRecord                        `json:"record"`
 //	Record_title                     AGRecordTitle                   `json:"record_title"`
 //	Record_author                    AGRecordAuthor                  `json:"record_author"`
@@ -74,7 +74,8 @@ type ArchiveGridRecord struct {
 	Id                               HashSum       `json:"id"`
 	MusicianId                       HashSum       `json:"musician_id"`
 	Query                            MusicianQuery `json:"musician_query"`
-	found                            bool          `json:"is_found"`
+	IsFound                          bool          `json:"is_found"`
+	IsMatch                          bool          `json:"is_match"`
 	Record                           string        `json:"record"`
 	Record_title                     string        `json:"record_title"`
 	Record_author                    string        `json:"record_author"`
@@ -110,7 +111,7 @@ func (agr ArchiveGridRecord) ToCsv() string {
 		agr.Id,
 		agr.MusicianId,
 		agr.Query,
-		agr.found,
+		agr.IsFound,
 		agr.Record,
 		agr.Record_title,
 		agr.Record_author,
@@ -132,7 +133,7 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 	archiveGridRecord = ArchiveGridRecord{
 		MusicianId: musicianId,
 		Query:      query,
-		found:      false,
+		IsFound:    false,
 		//Record:                           ArchiveGridRecordSTRINGNULL,
 		//Record_title:                     AGRecordTitle,
 		//Record_author:                    AGRecordAuthor,

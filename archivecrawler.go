@@ -59,13 +59,13 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
 		if resultsSize == 0 || err != nil {
 			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.found = false
+			agrecord.IsFound = false
 			agRecords = append(agRecords, agrecord)
 			return
 		} else if resultsSize > 3 {
-			// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
+			// too many to process for now, take note and pass, set IsFound false as flag nor record as non nilfor now
 			agrecord := NewArchiveGridRecord(m.Id, mq)
-			agrecord.found = true
+			agrecord.IsFound = true
 			agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
 			agRecords = append(agRecords, agrecord)
 		} else {
@@ -79,7 +79,7 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
 					title, author, archive, summary, contact, link)
 				agrecord := NewArchiveGridRecord(m.Id, mq)
-				agrecord.found = true
+				agrecord.IsFound = true
 				agrecord.set(title, author, archive, summary, contact)
 
 				agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
@@ -94,7 +94,7 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 			//
 			//})
 			//agrecord := NewArchiveGridRecord(m.Id, mq)
-			//agrecord.found = true
+			//agrecord.IsFound = true
 			//agRecords = append(agRecords, agrecord)
 		}
 	})
@@ -133,9 +133,9 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 //	log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
 //	switch {
 //	case resultsSize > 5:
-//		// too many to process for now, take note and pass, set found false as flag nor record as non nilfor now
+//		// too many to process for now, take note and pass, set IsFound false as flag nor record as non nilfor now
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.found = true
+//		agrecord.IsFound = true
 //		agrecord.DebugNotes = AGDEBUG(TOOMANYRECORDS)
 //		agRecords = append(agRecords, agrecord)
 //		break
@@ -149,12 +149,12 @@ func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecor
 //
 //		})
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.found = true
+//		agrecord.IsFound = true
 //		agRecords = append(agRecords, agrecord)
 //		break
 //	case resultsSize == 0:
 //		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.found = false
+//		agrecord.IsFound = false
 //		agRecords = append(agRecords, agrecord)
 //		break
 //
