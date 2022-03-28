@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/utils"
-
-	//"github.com/RtillaWork/gogetitarchy"
 	"io"
 	"strings"
 )
@@ -23,62 +21,7 @@ const (
 	//ACCEPTABLERESULTS
 )
 
-type AGOrganization struct {
-	orgId               int
-	name                string
-	contact_information string
-}
-
-type AGRecord struct {
-	Dom       string
-	URL_rec_x string
-}
-
-type AGRecordTitle struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordAuthor struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordArchive struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordSummary struct {
-	Dom         string
-	href        string
-	description string
-}
-
-type AGRecordLinksContactInformation struct {
-	Dom         string
-	href        string
-	description string
-}
-
 const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
-
-//type Record struct {
-//	Id                               HashSum                         `json:"id"`
-//	MusicianId                       HashSum                         `json:"musician_id"`
-//	Query                            MusicianQuery                   `json:"musician_query"`
-//	ResultSize                            bool                            `json:"is_found"`
-//	RecordCollectionDataPath                           AGRecord                        `json:"record"`
-//	Title                     AGRecordTitle                   `json:"record_title"`
-//	Author                    AGRecordAuthor                  `json:"record_author"`
-//	Archive                   AGRecordArchive                 `json:"record_archive"`
-//	Summary                   AGRecordSummary                 `json:"record_summary"`
-//	LinksContactInformation AGRecordLinksContactInformation `json:"record_links_contact_information"`
-//	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
-//}
 
 type Record struct {
 	Id                       utils.HashSum `json:"id"`
@@ -96,46 +39,46 @@ type Record struct {
 	DebugNotes               AGDEBUG       `json:"debug_notes"`
 }
 
-func (agr *Record) PrimaryKey() string {
-	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
+func (rec *Record) PrimaryKey() string {
+	return fmt.Sprintf("PRIMARYKEY=%s%s", rec.MusicianId, rec.Query)
 }
 
-//func (agr Record) String() string {
-//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
+//func (rec Record) String() string {
+//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", rec.Id, rec.MusicianId, rec.Query, rec.Archive.href)
 //}
 
-func (agr *Record) String() string {
-	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive)
+func (rec *Record) String() string {
+	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", rec.Id, rec.MusicianId, rec.Query, rec.Archive)
 }
 
-func (agr *Record) ToJson() string {
+func (rec *Record) ToJson() string {
 	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
-		agr.Id, agr.MusicianId, agr.Query)
+		rec.Id, rec.MusicianId, rec.Query)
 }
 
-//func (agr Record) ToCsv() string {
-//	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
+//func (rec Record) ToCsv() string {
+//	return fmt.Sprintf("%s; %s; %s; %s", rec.Id, rec.MusicianId, rec.Query, rec.Archive.href)
 //}
 
-func (agr *Record) ToCsv() string {
+func (rec *Record) ToCsv() string {
 	return fmt.Sprintf("%q; %q; %q; %d; %q; %q; %q; %q; %q; %q; %q; %q\n",
-		agr.Id,
-		agr.MusicianId,
-		agr.Query,
-		agr.ResultCount,
-		agr.RecordCollectionDataPath,
-		agr.Title,
-		agr.Author,
-		agr.Archive,
-		agr.Summary,
-		agr.LinksContactInformation,
-		agr.ContactInformation,
-		agr.DebugNotes)
+		rec.Id,
+		rec.MusicianId,
+		rec.Query,
+		rec.ResultCount,
+		rec.RecordCollectionDataPath,
+		rec.Title,
+		rec.Author,
+		rec.Archive,
+		rec.Summary,
+		rec.LinksContactInformation,
+		rec.ContactInformation,
+		rec.DebugNotes)
 }
 
-func (agr Record) Hash() utils.HashSum {
+func (rec Record) Hash() utils.HashSum {
 	hashfunc := md5.New()
-	data := agr.PrimaryKey()
+	data := rec.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
 	return utils.HashSum(fmt.Sprintf("%x", hashsum))
@@ -159,36 +102,36 @@ func NewArchiveGridRecord(musicianId utils.HashSum, query MusicianQuery) (archiv
 	return archiveGridRecord
 }
 
-func (agr *Record) Destroy() {
-	agr.Id = ""
-	agr.MusicianId = ""
-	agr.Query = MusicianQuery{}
-	agr.ResultCount = 0
-	agr.IsMatch = false
-	agr.RecordCollectionDataPath = ""
-	agr.Title = ""
-	agr.Author = ""
-	agr.Archive = ""
-	agr.Summary = ""
-	agr.LinksContactInformation = ""
-	agr.ContactInformation = ""
-	agr.DebugNotes = AGDEBUG(0)
+func (rec *Record) Destroy() {
+	rec.Id = ""
+	rec.MusicianId = ""
+	rec.Query = MusicianQuery{}
+	rec.ResultCount = 0
+	rec.IsMatch = false
+	rec.RecordCollectionDataPath = ""
+	rec.Title = ""
+	rec.Author = ""
+	rec.Archive = ""
+	rec.Summary = ""
+	rec.LinksContactInformation = ""
+	rec.ContactInformation = ""
+	rec.DebugNotes = AGDEBUG(0)
 	return
 }
 
-func (agr *Record) Set(record, title, author, archive, summary, link, contact string) {
-	agr.IsMatch = false
-	agr.RecordCollectionDataPath = record
-	agr.Title = title
-	agr.Author = author
-	agr.Archive = archive
-	agr.Summary = summary
-	agr.LinksContactInformation = link
-	agr.ContactInformation = contact
-	agr.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
+func (rec *Record) Set(record, title, author, archive, summary, link, contact string) {
+	rec.IsMatch = false
+	rec.RecordCollectionDataPath = record
+	rec.Title = title
+	rec.Author = author
+	rec.Archive = archive
+	rec.Summary = summary
+	rec.LinksContactInformation = link
+	rec.ContactInformation = contact
+	rec.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
 }
 
-func (agr *Record) ContainsAnyFolded(phrases []string) (matches int) {
+func (rec *Record) ContainsAnyFolded(phrases []string) (matches int) {
 	if len(phrases) < 1 {
 		return -1
 	}
@@ -198,27 +141,27 @@ func (agr *Record) ContainsAnyFolded(phrases []string) (matches int) {
 		p := strings.ToLower(phrase)
 		//log.Printf("A PHRASE %s", p)
 		//WaitForKeypress()
-		if strings.Contains(strings.ToLower(agr.Title), p) {
+		if strings.Contains(strings.ToLower(rec.Title), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Author), p) {
+		if strings.Contains(strings.ToLower(rec.Author), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Archive), p) {
+		if strings.Contains(strings.ToLower(rec.Archive), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Summary), p) {
+		if strings.Contains(strings.ToLower(rec.Summary), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.ContactInformation), p) {
+		if strings.Contains(strings.ToLower(rec.ContactInformation), p) {
 			matches++
 			//WaitForKeypress()
 
@@ -263,105 +206,3 @@ var AGDomPathsDefinition = AGDomPaths{
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }
-
-//type AGResults struct {
-//	Results            string
-//	ResultsNotEmpty    string //div.results > div.searchresults
-//	ResultsEmpty       string // div.results > div.alertresult
-//	ResultsSize        string // span#resultsize
-//	ResultsSizeMessage string
-//	ResultsNext        string
-//}
-
-//var AGResultsDefinition = AGResults{
-//	Results:            "div.results",
-//	ResultsNotEmpty:    "div.results > div.searchresult",
-//	ResultsEmpty:       "div.results > div.alertresult",
-//	ResultsSize:        "main > h2", // "main h2 > span#resultsize"
-//	ResultsSizeMessage: ".navrow span",
-//	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
-//}
-
-// type Record struct {
-// 	RecId                            int
-// 	RecordCollectionDataPath                           AGRecord
-// 	Title                     AGRecordTitle
-// 	Author                    AGRecordAuthor
-// 	Archive                   AGRecordArchive
-// 	Summary                   AGRecordSummary
-// 	LinksContactInformation AGRecordLinksContactInformation
-// }
-
-//
-
-/*
-
-main
-	...
-	span#resultsize
-		$text
-
-div.results
-	div.alertresult
-	div
-		text " No ArchiveGrid collection descriptions match this search:"
-
-div.results
-   div.searchresult
-   	div #rec_x .record
-   		input type="hidden" #url_rec_x value="/archivegrid/collection/data/nnnnnnnn"
-   		div itemprop="name" .record_title
-   			h3
-   				a
-   				href="/archivegrid/collection/data/same"
-   					$here text collection data title
-   				/a
-
-   		div itemprop="author" .record_author
-   			span itemprop="name"
-   				$here text author
-
-   		div itemprop="contributor" .record_archive
-   			span itemprop="name"
-   				$here text archive name
-
-   		div .record_summary
-   			$here text summary
-
-   		div .record_links
-   			a href="/archivegrid/contact-information/nnn" title="$here text about archive org"
-
-
-   			a href="/archivegrid/collection/data/samennnnn" <-- ignoring this one for now
-
-
-*/
-
-//
-////
-//var AGDomPathsDefinition = AGDomPaths{
-//	RecordCollectionDataPath:                           "div.record",                // container
-//	Title:                     "div.record_title > h3 > a", // h3>a href ANDTHEN $inner_text
-//	Author:                    "div.record_author",         // span THEN $inner_text
-//	Archive:                   "div.record_archive",        // span THEN $inner_text
-//	Summary:                   "div.record_summary",        // THEN $inner_text
-//	LinksContactInformation: "div.record_links",          // a href ANDALSO title
-//}
-//
-////
-//
-//var ARCHIVE_GRID_BASE_URL = "https://researchworks.oclc.org/archivegrid"
-//var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
-//log.Printf("INFO: %v", AG_BASE_URL)
-//
-//// type Record struct {
-//// 	RecId                            int
-//// 	RecordCollectionDataPath                           AGRecord
-//// 	Title                     AGRecordTitle
-//// 	Author                    AGRecordAuthor
-//// 	Archive                   AGRecordArchive
-//// 	Summary                   AGRecordSummary
-//// 	LinksContactInformation AGRecordLinksContactInformation
-//// }
-//
-////

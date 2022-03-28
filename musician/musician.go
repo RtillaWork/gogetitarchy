@@ -28,14 +28,30 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LastName   string        `json:"last_name"`
 	MiddleName string        `json:"middle_name"`
 	Notes      string        `json:"notes"`
+	// Keytags []string
 	//DateOfBirth   time.Time `json:"dateofbirth"`
+	//EstimatedBirthYear
 	//DateOfDeath   time.Time `json:"dateofdeath"`
 	//PleaceOfBirth string    `json:"placeofbirth"`
 	//PlaceOfDeath  string    `json:"placeofdeath"`
 	//Age           byte      `json:"age"`
 	//Bio           string    `json:"bio"` // other
 	// Army string
+	// Enlistement
+	// EnlistementDate
+	// Discharge
 	// Rank string
+	// Branch
+	// Company
+	// MiscDate
+}
+
+var Defaults = Musician{
+	Id:         utils.HashSum(0),
+	FirstName:  "NULL_FIRSTNAME",
+	MiddleName: "NULL_MIDDLENAME",
+	LastName:   "NULL_LASTNAME",
+	Notes:      "NULL_NOTES",
 }
 
 //var MusicianNULL = Musician{
