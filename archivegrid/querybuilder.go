@@ -21,7 +21,8 @@ const (
 	ACCEPTABLERESULTS
 )
 
-type MusiciansQueries map[utils.HashSum]*MusicianQuery
+//type MusiciansQueries map[utils.HashSum]*MusicianQuery
+type MusiciansQueries map[MusicianHashCode]*MusicianQuery
 
 type MusicianQuery struct {
 	Id utils.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query

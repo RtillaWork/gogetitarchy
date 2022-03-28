@@ -20,6 +20,9 @@ const NOTES_SEP_CLOSE = ")"
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
 
+type MuscianHashCode interface {
+	utils.HashCode
+}
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	// MD5 on aMusician.String()
