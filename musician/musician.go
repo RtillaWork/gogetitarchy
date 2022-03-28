@@ -29,6 +29,23 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	MiddleName string        `json:"middle_name"`
 	Notes      string        `json:"notes"`
 	// Tags []string
+	//L, F  || F M L || F M. L || F L || F "M" L
+	//Military Unit:
+	//Estimated Birth Year: y0 - y1
+	//Year: y
+	//Enlistment Rank: rank
+	///Enlistment: y - rank
+	///Enlistment: d m y - rankorbrigade - rank
+	///Enlistment: d m y - rankorbrigade - rank
+	//Branch: Union Army
+	//Civil war (union): unit ( Union )
+	///Civil war (union): Army - 97th US Colored Infantry - D,A - United States of America
+	//Discharge: rank
+	//Company: letter
+	//Military Unit: unit, unit
+	///Military Unit: unit
+	//Birth: y - city, county
+	//Death: d m y - city, state
 	//DateOfBirth   time.Time `json:"dateofbirth"`
 	//EstimatedBirthYear
 	//DateOfDeath   time.Time `json:"dateofdeath"`
@@ -44,6 +61,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	// Branch
 	// Company
 	// MiscDate
+
 }
 
 var Defaults = Musician{
