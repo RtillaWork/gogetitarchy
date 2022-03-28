@@ -3,21 +3,11 @@ package utils
 import (
 	"bufio"
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"log"
 	"os"
 	"strings"
 )
-
-type HashSum string
-
-func (h HashSum) String() string {
-	return string(h)
-}
-
-type HashCode interface {
-	String() string
-	Hash() HashSum
-}
 
 func ImportPhrases(filename string) (phrases []string) {
 	f, err := os.Open(filename)
@@ -43,6 +33,6 @@ func WaitForKeypress() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("press key... ")
 	_, err := reader.ReadString('\n')
-	FailOn(err, "WaitForKeypress Failed")
+	errors.FailOn(err, "WaitForKeypress Failed")
 	fmt.Println("RESUMING...")
 }

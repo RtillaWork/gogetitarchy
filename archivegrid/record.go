@@ -3,7 +3,8 @@ package archivegrid
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/RtillaWork/gogetitarchy/utils"
+	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"io"
 	"strings"
 )
@@ -23,20 +24,23 @@ const (
 
 const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 
+type RecordHash hash.HashSum
+
 type Record struct {
-	Id                       utils.HashSum `json:"id"`
-	MusicianId               utils.HashSum `json:"musician_id"`
-	Query                    MusicianQuery `json:"musician_query"`
-	ResultCount              int           `json:"result_count"`
-	IsMatch                  bool          `json:"is_match"`
-	RecordCollectionDataPath string        `json:"record_collection_datapath"`
-	Title                    string        `json:"record_title"`
-	Author                   string        `json:"record_author"`
-	Archive                  string        `json:"record_archive"`
-	Summary                  string        `json:"record_summary"`
-	LinksContactInformation  string        `json:"links_contact_information"`
-	ContactInformation       string        `json:"contact_information"`
-	DebugNotes               AGDEBUG       `json:"debug_notes"`
+	Id                       RecordHash            `json:"id"`
+	MusicianId               musician.MusicianHash `json:"musician_id"`
+	QueryId                  MusicianQueryHash     `json:"query_id"`
+	Query                    MusicianQuery         `json:"musician_query"`
+	ResultCount              int                   `json:"result_count"`
+	IsMatch                  bool                  `json:"is_match"`
+	RecordCollectionDataPath string                `json:"record_collection_datapath"`
+	Title                    string                `json:"record_title"`
+	Author                   string                `json:"record_author"`
+	Archive                  string                `json:"record_archive"`
+	Summary                  string                `json:"record_summary"`
+	LinksContactInformation  string                `json:"links_contact_information"`
+	ContactInformation       string                `json:"contact_information"`
+	DebugNotes               AGDEBUG               `json:"debug_notes"`
 }
 
 func (rec *Record) PrimaryKey() string {
@@ -76,15 +80,15 @@ func (rec *Record) ToCsv() string {
 		rec.DebugNotes)
 }
 
-func (rec Record) Hash() utils.HashSum {
+func (rec Record) Hash() RecordHash {
 	hashfunc := md5.New()
 	data := rec.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return utils.HashSum(fmt.Sprintf("%x", hashsum))
+	return RecordHash(fmt.Sprintf("%x", hashsum))
 }
 
-func NewArchiveGridRecord(musicianId utils.HashSum, query MusicianQuery) (archiveGridRecord *Record) {
+func NewArchiveGridRecord(musicianId musician.MusicianHash, query MusicianQuery) (archiveGridRecord *Record) {
 	archiveGridRecord = new(Record)
 	archiveGridRecord = &Record{
 		MusicianId:  musicianId,

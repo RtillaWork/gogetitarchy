@@ -3,7 +3,7 @@ package archivegrid
 import (
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/musician"
-	"github.com/RtillaWork/gogetitarchy/utils"
+	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"net/url"
 	"time"
 )
@@ -21,11 +21,13 @@ const (
 	ACCEPTABLERESULTS
 )
 
+type MusicianQueryHash hash.HashSum
+
 //type MusiciansQueries map[utils.HashSum]*MusicianQuery
-type MusiciansQueries map[MusicianHashCode]*MusicianQuery
+type MusiciansQueries map[musician.MusicianHash]*MusicianQuery
 
 type MusicianQuery struct {
-	Id utils.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
+	Id MusicianQueryHash `json:"query_id"` // for now init to same as MusicianId one musician one query
 	//MusicianId HashSum  `json:"musician_id"`
 	Url        string     `json:"url"`
 	Timestamp  time.Time  `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
@@ -38,10 +40,10 @@ func (mq *MusicianQuery) String() string {
 	return string(mq.Url)
 }
 
-func NewMusicianQuery(id utils.HashSum, url string) (newMusicianQuery *MusicianQuery) {
+func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *MusicianQuery) {
 	newMusicianQuery = new(MusicianQuery)
 	newMusicianQuery = &MusicianQuery{
-		Id: id,
+		Id: MusicianQueryHash(id),
 		//MusicianId: m.Id,
 		Url: url,
 		// Timestamp should be initialized to a NEVERQUERIED value

@@ -3,7 +3,8 @@ package musician
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/RtillaWork/gogetitarchy/utils"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
+	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"io"
 	"time"
 )
@@ -20,17 +21,16 @@ const NOTES_SEP_CLOSE = ")"
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
 
-type MuscianHashCode interface {
-	utils.HashCode
-}
+type MusicianHash hash.HashSum
+
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	// MD5 on aMusician.String()
-	Id         utils.HashSum `json:"id"`
-	FirstName  string        `json:"first_name"`
-	LastName   string        `json:"last_name"`
-	MiddleName string        `json:"middle_name"`
-	Notes      string        `json:"notes"`
+	Id         MusicianHash `json:"id"`
+	FirstName  string       `json:"first_name"`
+	LastName   string       `json:"last_name"`
+	MiddleName string       `json:"middle_name"`
+	Notes      string       `json:"notes"`
 	// Tags []string
 	//L, F  || F M L || F M. L || F L || F "M" L
 	//Military Unit:
@@ -68,7 +68,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 }
 
 var Defaults = Musician{
-	Id:         utils.HashSum(0),
+	Id:         MusicianHash(0),
 	FirstName:  "NULL_FIRSTNAME",
 	MiddleName: "NULL_MIDDLENAME",
 	LastName:   "NULL_LASTNAME",
@@ -137,7 +137,7 @@ func (m *Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, m
 	isFirstNamePresent = m.FirstName != STRING_NULL
 	isMiddleNamePresent = m.MiddleName != STRING_NULL
 	isLastNamePresent = m.LastName != STRING_NULL
-	utils.FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
+	errors.FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
 	lastname = m.LastName
 
 	if isFirstNamePresent {
@@ -209,18 +209,18 @@ func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 	return formattedName
 }
 
-func (m *Musician) Hash() utils.HashSum {
+func (m *Musician) Hash() MusicianHash {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
 	data := m.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return utils.HashSum(fmt.Sprintf("%x", hashsum))
+	return MusicianHash(fmt.Sprintf("%x", hashsum))
 }
 
 func NewMusician(data string) (newMusician *Musician, ok bool) {
 	newMusician = new(Musician)
-	newMusician.Id = utils.HashSum(STRING_NULL)
+	newMusician.Id = MusicianHash(STRING_NULL)
 	newMusician.FirstName = STRING_NULL
 	newMusician.MiddleName = STRING_NULL
 	newMusician.LastName = STRING_NULL
@@ -238,7 +238,7 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	}
 
 	firstname, middlename, lastname, ok := ExtractNames(names)
-	utils.FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	errors.FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 
 	newMusician.FirstName = firstname
 	newMusician.MiddleName = middlename

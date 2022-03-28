@@ -4,8 +4,7 @@ import (
 	"errors"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils"
-
-	//"github.com/RtillaWork/gogetitarchy"
+	errors2 "github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/gocolly/colly"
 	"log"
 	"net/url"
@@ -21,7 +20,7 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[utils.HashSum][]*Record
+type MusiciansData map[musician.MusicianHash][]*Record
 
 func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
@@ -294,7 +293,7 @@ func myAtoi(s string) (n int, err error) {
 		log.Printf("\nTEXT: %v\n", text)
 		n, err = strconv.Atoi(strings.Join(text, ""))
 		sint, text = "", nil
-		utils.FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		errors2.FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
 		return n, err
 	}
 }

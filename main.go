@@ -1,8 +1,8 @@
 package main
 
 import (
-	archivegrid "github.com/RtillaWork/gogetitarchy/archivegrid"
-	musician "github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/archivegrid"
+	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
@@ -28,9 +28,9 @@ func main() {
 	} else { // DEBUG TEMPORARY
 		phrases = utils.ImportPhrases("./phrases.csv")
 	}
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 10, phrases)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 1, phrases)
 	if ok {
-		utils.ExportAllResponseData(musicians, musiciansResponseData, "")
+		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, "")
 	} else {
 		log.Println("CrawlArchiveGrid returned not ok")
 	}

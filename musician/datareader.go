@@ -2,23 +2,21 @@ package musician
 
 import (
 	"bufio"
-	"github.com/RtillaWork/gogetitarchy/utils"
-
-	//"github.com/RtillaWork/gogetitarchy"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"log"
 	"os"
 	"strings"
 )
 
-type MusiciansMap map[utils.HashSum]*Musician
+type MusiciansMap map[MusicianHash]*Musician
 
 func ReadMusicianData(inFileName string) MusiciansMap {
 
 	inFile, err := os.Open(inFileName)
-	utils.FailOn(err, "opening inFile for reading...")
+	errors.FailOn(err, "opening inFile for reading...")
 	defer inFile.Close()
 
-	musicians := make(map[utils.HashSum]*Musician)
+	musicians := make(MusiciansMap)
 
 	s := bufio.NewScanner(inFile)
 	for line := ""; s.Scan(); {
