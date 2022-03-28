@@ -28,7 +28,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LastName   string        `json:"last_name"`
 	MiddleName string        `json:"middle_name"`
 	Notes      string        `json:"notes"`
-	// Keytags []string
+	// Tags []string
 	//DateOfBirth   time.Time `json:"dateofbirth"`
 	//EstimatedBirthYear
 	//DateOfDeath   time.Time `json:"dateofdeath"`
