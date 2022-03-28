@@ -1,8 +1,9 @@
-package main
+package musician
 
 import (
 	"crypto/md5"
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"io"
 	"time"
 )
@@ -22,11 +23,11 @@ var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.U
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	// MD5 on aMusician.String()
-	Id         HashSum `json:"id"`
-	FirstName  string  `json:"first_name"`
-	LastName   string  `json:"last_name"`
-	MiddleName string  `json:"middle_name"`
-	Notes      string  `json:"notes"`
+	Id         utils.HashSum `json:"id"`
+	FirstName  string        `json:"first_name"`
+	LastName   string        `json:"last_name"`
+	MiddleName string        `json:"middle_name"`
+	Notes      string        `json:"notes"`
 	//DateOfBirth   time.Time `json:"dateofbirth"`
 	//DateOfDeath   time.Time `json:"dateofdeath"`
 	//PleaceOfBirth string    `json:"placeofbirth"`
@@ -99,7 +100,7 @@ func (m *Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, m
 	isFirstNamePresent = m.FirstName != STRING_NULL
 	isMiddleNamePresent = m.MiddleName != STRING_NULL
 	isLastNamePresent = m.LastName != STRING_NULL
-	FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
+	utils.FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
 	lastname = m.LastName
 
 	if isFirstNamePresent {
@@ -171,13 +172,11 @@ func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 	return formattedName
 }
 
-type HashSum string
-
-func (h HashSum) String() string {
+func (h utils.HashSum) String() string {
 	return string(h)
 }
 
-func (m *Musician) Hash() HashSum {
+func (m *Musician) Hash() utils.HashSum {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
 	data := m.PrimaryKey()
@@ -206,7 +205,7 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	}
 
 	firstname, middlename, lastname, ok := ExtractNames(names)
-	FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	utils.FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 
 	newMusician.FirstName = firstname
 	newMusician.MiddleName = middlename

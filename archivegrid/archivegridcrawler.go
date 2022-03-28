@@ -1,7 +1,11 @@
-package main
+package archivegrid
 
 import (
 	"errors"
+	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils"
+
+	//"github.com/RtillaWork/gogetitarchy"
 	"github.com/gocolly/colly"
 	"log"
 	"net/url"
@@ -17,9 +21,9 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[HashSum][]*ArchiveGridRecord
+type MusiciansData map[musician.HashSum][]*ArchiveGridRecord
 
-func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
+func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
@@ -37,7 +41,7 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int, phrases [
 			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n  \n\n", mq)
 			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq, phrases)...)
 
-			WaitForKeypress()
+			utils.WaitForKeypress()
 			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
 			//time.Sleep(delay)
 			//log.Printf("DELAY %d", delay)
@@ -48,7 +52,7 @@ func CrawlArchiveGrid(ms MusiciansMap, mqs MusiciansQueries, size int, phrases [
 	return musiciansData, true
 }
 
-func ScanArchiveGrid(m *Musician, mq *MusicianQuery, phrases []string) (agRecords []*ArchiveGridRecord) {
+func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*ArchiveGridRecord) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
 	agRecords = []*ArchiveGridRecord{}
 
@@ -290,7 +294,7 @@ func myAtoi(s string) (n int, err error) {
 		log.Printf("\nTEXT: %v\n", text)
 		n, err = strconv.Atoi(strings.Join(text, ""))
 		sint, text = "", nil
-		FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		utils.FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
 		return n, err
 	}
 }

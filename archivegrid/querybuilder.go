@@ -1,7 +1,8 @@
-package main
+package archivegrid
 
 import (
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/musician"
 	"net/url"
 	"time"
 )
@@ -20,7 +21,7 @@ const (
 )
 
 type MusicianQuery struct {
-	Id HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
+	Id musician.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
 	//MusicianId HashSum  `json:"musician_id"`
 	Url        string     `json:"url"`
 	Timestamp  time.Time  `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
@@ -33,7 +34,7 @@ func (mq *MusicianQuery) String() string {
 	return string(mq.Url)
 }
 
-func NewMusicianQuery(id HashSum, url string) (newMusicianQuery *MusicianQuery) {
+func NewMusicianQuery(id musician.HashSum, url string) (newMusicianQuery *MusicianQuery) {
 	newMusicianQuery = new(MusicianQuery)
 	newMusicianQuery = &MusicianQuery{
 		Id: id,
@@ -71,20 +72,20 @@ func (mq *MusicianQuery) Destroy() {
 }
 
 //type MusiciansQueries map[HashSum][]MusicianQuery
-type MusiciansQueries map[HashSum]*MusicianQuery
+type MusiciansQueries map[musician.HashSum]*MusicianQuery
 
-func BuildQueries(ms MusiciansMap) (mq MusiciansQueries) {
+func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
 	mq = MusiciansQueries{}
 
 	for _, m := range ms {
-		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], MusicianNamesVariation(FULL))
+		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], musician.MusicianNamesVariation(musician.FULL))
 		mq[m.Id] = query
 	}
 
 	return mq
 }
 
-func buildQuery(m *Musician, template string, variation MusicianNamesVariation) *MusicianQuery {
+func buildQuery(m *musician.Musician, template string, variation musician.MusicianNamesVariation) *MusicianQuery {
 	querydata := url.QueryEscape(m.QueryFragment(variation))
 	fullquery := fmt.Sprintf(template, querydata)
 

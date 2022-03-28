@@ -1,7 +1,10 @@
-package main
+package musician
 
 import (
 	"bufio"
+	"github.com/RtillaWork/gogetitarchy/utils"
+
+	//"github.com/RtillaWork/gogetitarchy"
 	"log"
 	"os"
 	"strings"
@@ -12,7 +15,7 @@ type MusiciansMap map[HashSum]*Musician
 func ReadMusicianData(inFileName string) MusiciansMap {
 
 	inFile, err := os.Open(inFileName)
-	FailOn(err, "opening inFile for reading...")
+	utils.FailOn(err, "opening inFile for reading...")
 	defer inFile.Close()
 
 	musicians := make(map[HashSum]*Musician)

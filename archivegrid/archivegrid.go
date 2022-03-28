@@ -1,8 +1,9 @@
-package main
+package archivegrid
 
 import (
 	"crypto/md5"
 	"fmt"
+	//"github.com/RtillaWork/gogetitarchy"
 	"io"
 	"strings"
 )
@@ -78,19 +79,19 @@ const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 //}
 
 type ArchiveGridRecord struct {
-	Id                       HashSum       `json:"id"`
-	MusicianId               HashSum       `json:"musician_id"`
-	Query                    MusicianQuery `json:"musician_query"`
-	ResultCount              int           `json:"result_count"`
-	IsMatch                  bool          `json:"is_match"`
-	RecordCollectionDataPath string        `json:"record_collection_datapath"`
-	Title                    string        `json:"record_title"`
-	Author                   string        `json:"record_author"`
-	Archive                  string        `json:"record_archive"`
-	Summary                  string        `json:"record_summary"`
-	LinksContactInformation  string        `json:"links_contact_information"`
-	ContactInformation       string        `json:"contact_information"`
-	DebugNotes               AGDEBUG       `json:"debug_notes"`
+	Id                       utils.HashSum      `json:"id"`
+	MusicianId               main.HashSum       `json:"musician_id"`
+	Query                    main.MusicianQuery `json:"musician_query"`
+	ResultCount              int                `json:"result_count"`
+	IsMatch                  bool               `json:"is_match"`
+	RecordCollectionDataPath string             `json:"record_collection_datapath"`
+	Title                    string             `json:"record_title"`
+	Author                   string             `json:"record_author"`
+	Archive                  string             `json:"record_archive"`
+	Summary                  string             `json:"record_summary"`
+	LinksContactInformation  string             `json:"links_contact_information"`
+	ContactInformation       string             `json:"contact_information"`
+	DebugNotes               AGDEBUG            `json:"debug_notes"`
 }
 
 func (agr *ArchiveGridRecord) PrimaryKey() string {
@@ -130,15 +131,15 @@ func (agr *ArchiveGridRecord) ToCsv() string {
 		agr.DebugNotes)
 }
 
-func (agr ArchiveGridRecord) Hash() HashSum {
+func (agr ArchiveGridRecord) Hash() main.HashSum {
 	hashfunc := md5.New()
 	data := agr.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return HashSum(fmt.Sprintf("%x", hashsum))
+	return main.HashSum(fmt.Sprintf("%x", hashsum))
 }
 
-func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridRecord *ArchiveGridRecord) {
+func NewArchiveGridRecord(musicianId main.HashSum, query main.MusicianQuery) (archiveGridRecord *ArchiveGridRecord) {
 	archiveGridRecord = new(ArchiveGridRecord)
 	archiveGridRecord = &ArchiveGridRecord{
 		MusicianId:  musicianId,
@@ -159,7 +160,7 @@ func NewArchiveGridRecord(musicianId HashSum, query MusicianQuery) (archiveGridR
 func (agr *ArchiveGridRecord) Destroy() {
 	agr.Id = ""
 	agr.MusicianId = ""
-	agr.Query = MusicianQuery{}
+	agr.Query = main.MusicianQuery{}
 	agr.ResultCount = 0
 	agr.IsMatch = false
 	agr.RecordCollectionDataPath = ""
