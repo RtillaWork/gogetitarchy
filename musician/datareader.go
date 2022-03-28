@@ -210,6 +210,11 @@ func ExtractNames(data string) (firstname string, middlename string, lastname st
 	return firstname, middlename, lastname, ok
 }
 
+func ExtractFields(data string) (fields map[string]string) {
+	fields["field:"] = data
+	return fields
+}
+
 //func ExtractDataFromString(data string) (string, string, string, string, bool){
 //	firstname := STRING_NULL
 //	middlename := STRING_NULL

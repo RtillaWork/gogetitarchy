@@ -6,6 +6,7 @@ import (
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -17,6 +18,7 @@ const LAST_NAME_SEP = ","
 const INITIALS_SEP = ". " // I.N.I.T._NAMES
 const NOTES_SEP_OPEN = "("
 const NOTES_SEP_CLOSE = ")"
+const FIELDS_SEP = ",: -"
 
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
@@ -25,13 +27,14 @@ type MusicianHash hash.HashSum
 
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
-	// MD5 on aMusician.String()
-	Id         MusicianHash `json:"id"`
-	FirstName  string       `json:"first_name"`
-	LastName   string       `json:"last_name"`
-	MiddleName string       `json:"middle_name"`
-	Notes      string       `json:"notes"`
-	// Tags []string
+	Id         MusicianHash      `json:"id"`
+	FirstName  string            `json:"first_name"`
+	LastName   string            `json:"last_name"`
+	MiddleName string            `json:"middle_name"`
+	Notes      string            `json:"notes"`
+	Fields     map[string]string `json:"fields"`
+	Tags       []string          `json:"tags"`
+	// Fields []string
 	//L, F  || F M L || F M. L || F L || F "M" L
 	//Military Unit:
 	//Estimated Birth Year: y0 - y1
@@ -68,28 +71,14 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 }
 
 var Defaults = Musician{
-	Id:         MusicianHash(0),
+	Id:         MusicianHash(""),
 	FirstName:  "NULL_FIRSTNAME",
 	MiddleName: "NULL_MIDDLENAME",
 	LastName:   "NULL_LASTNAME",
 	Notes:      "NULL_NOTES",
+	Fields:     map[string]string{},
+	Tags:       []string{},
 }
-
-//var MusicianNULL = Musician{
-//	"NULL_HASH",
-//	STRING_NULL,
-//	STRING_NULL,
-//	STRING_NULL,
-//	STRING_NULL,
-//	//TIME_NULL,
-//	//TIME_NULL,
-//	//STRING_NULL,
-//	//STRING_NULL,
-//	//AGE_NULL,
-//	//STRING_NULL,
-//	// Army string
-//	// Rank string
-//}
 
 func (m *Musician) String() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
@@ -119,7 +108,6 @@ func (m *Musician) QueryFragment(v MusicianNamesVariation) string {
 		notes = m.Notes
 	}
 	return fmt.Sprintf("%s %s", m.NameFmt(v), notes)
-
 }
 
 //
@@ -225,6 +213,8 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	newMusician.MiddleName = STRING_NULL
 	newMusician.LastName = STRING_NULL
 	newMusician.Notes = STRING_NULL
+	newMusician.Fields = map[string]string{}
+	newMusician.Tags = []string{}
 	ok = false
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
@@ -248,3 +238,43 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 
 	return newMusician, ok
 }
+
+func (m *Musician) GetDates(interval uint8) []string {
+	return []string{}
+}
+
+func (m *Musician) buildField() {
+
+	m.Fields["FirstName"] = m.FirstName
+	m.Fields["MiddleName"] = m.MiddleName
+	m.Fields["LastName"] = m.LastName
+	//	from Notes with
+	//FIELD: TEXT\n
+	// plus struct fields
+
+}
+
+func (m *Musician) buildTags() {
+	tags := []string{}
+
+	for k, v := range m.Fields {
+		tags = strings.Split((k + v), FIELDS_SEP) // TODO replace by SplitFunc or Regex
+	}
+	m.Tags = tags
+}
+
+//var MusicianNULL = Musician{
+//	"NULL_HASH",
+//	STRING_NULL,
+//	STRING_NULL,
+//	STRING_NULL,
+//	STRING_NULL,
+//	//TIME_NULL,
+//	//TIME_NULL,
+//	//STRING_NULL,
+//	//STRING_NULL,
+//	//AGE_NULL,
+//	//STRING_NULL,
+//	// Army string
+//	// Rank string
+//}

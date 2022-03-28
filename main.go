@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/RtillaWork/gogetitarchy/archivegrid"
 	"github.com/RtillaWork/gogetitarchy/musician"
-	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
 )
@@ -24,9 +23,9 @@ func main() {
 
 	var phrases []string = nil
 	if len(os.Args) == 2 {
-		phrases = utils.ImportPhrases(os.Args[1])
+		phrases = archivegrid.ImportPhrases(os.Args[1])
 	} else { // DEBUG TEMPORARY
-		phrases = utils.ImportPhrases("./phrases.csv")
+		phrases = archivegrid.ImportPhrases("./phrases.csv")
 	}
 	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 1, phrases)
 	if ok {
