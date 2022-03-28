@@ -21,7 +21,7 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[musician.HashSum][]*ArchiveGridRecord
+type MusiciansData map[utils.HashSum][]*ArchiveGridRecord
 
 func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds

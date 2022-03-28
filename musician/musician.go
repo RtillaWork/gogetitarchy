@@ -172,22 +172,18 @@ func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 	return formattedName
 }
 
-func (h utils.HashSum) String() string {
-	return string(h)
-}
-
 func (m *Musician) Hash() utils.HashSum {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
 	data := m.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
-	return HashSum(fmt.Sprintf("%x", hashsum))
+	return utils.HashSum(fmt.Sprintf("%x", hashsum))
 }
 
 func NewMusician(data string) (newMusician *Musician, ok bool) {
 	newMusician = new(Musician)
-	newMusician.Id = HashSum(STRING_NULL)
+	newMusician.Id = utils.HashSum(STRING_NULL)
 	newMusician.FirstName = STRING_NULL
 	newMusician.MiddleName = STRING_NULL
 	newMusician.LastName = STRING_NULL

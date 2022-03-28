@@ -46,7 +46,7 @@ func ExportAllMusicians(musicians musician.MusiciansMap, filename string) {
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
 }
 
-func ExportAllqueries(ms musician.MusiciansMap, mqs MusiciansQueries, filename string) {
+func ExportAllqueries(ms musician.MusiciansMap, mqs archivegrid.MusiciansQueries, filename string) {
 	var outfile *os.File
 	if filename == "" || !strings.HasSuffix(filename, ".csv") {
 		outfile = os.Stdout
