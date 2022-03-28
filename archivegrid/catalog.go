@@ -40,46 +40,46 @@ type Catalog struct {
 	DebugNotes               AGDEBUG       `json:"debug_notes"`
 }
 
-func (agr *Catalog) PrimaryKey() string {
-	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
+func (cat *Catalog) PrimaryKey() string {
+	return fmt.Sprintf("PRIMARYKEY=%s%s", cat.MusicianId, cat.Query)
 }
 
-//func (agr Record) String() string {
-//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
+//func (cat Record) String() string {
+//	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", cat.Id, cat.MusicianId, cat.Query, cat.Archive.href)
 //}
 
-func (agr *Catalog) String() string {
-	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive)
+func (cat *Catalog) String() string {
+	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", cat.Id, cat.MusicianId, cat.Query, cat.Archive)
 }
 
-func (agr *Catalog) ToJson() string {
+func (cat *Catalog) ToJson() string {
 	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
-		agr.Id, agr.MusicianId, agr.Query)
+		cat.Id, cat.MusicianId, cat.Query)
 }
 
-//func (agr Record) ToCsv() string {
-//	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
+//func (cat Record) ToCsv() string {
+//	return fmt.Sprintf("%s; %s; %s; %s", cat.Id, cat.MusicianId, cat.Query, cat.Archive.href)
 //}
 
-func (agr *Catalog) ToCsv() string {
+func (cat *Catalog) ToCsv() string {
 	return fmt.Sprintf("%q; %q; %q; %d; %q; %q; %q; %q; %q; %q; %q; %q\n",
-		agr.Id,
-		agr.MusicianId,
-		agr.Query,
-		agr.ResultCount,
-		agr.RecordCollectionDataPath,
-		agr.Title,
-		agr.Author,
-		agr.Archive,
-		agr.Summary,
-		agr.LinksContactInformation,
-		agr.ContactInformation,
-		agr.DebugNotes)
+		cat.Id,
+		cat.MusicianId,
+		cat.Query,
+		cat.ResultCount,
+		cat.RecordCollectionDataPath,
+		cat.Title,
+		cat.Author,
+		cat.Archive,
+		cat.Summary,
+		cat.LinksContactInformation,
+		cat.ContactInformation,
+		cat.DebugNotes)
 }
 
-func (agr Catalog) Hash() utils.HashSum {
+func (cat Catalog) Hash() utils.HashSum {
 	hashfunc := md5.New()
-	data := agr.PrimaryKey()
+	data := cat.PrimaryKey()
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
 	return utils.HashSum(fmt.Sprintf("%x", hashsum))
@@ -103,36 +103,36 @@ func NewCatalog(musicianId utils.HashSum, query MusicianQuery) (archiveGridRecor
 	return archiveGridRecord
 }
 
-func (agr *Catalog) Destroy() {
-	agr.Id = ""
-	agr.MusicianId = ""
-	agr.Query = MusicianQuery{}
-	agr.ResultCount = 0
-	agr.IsMatch = false
-	agr.RecordCollectionDataPath = ""
-	agr.Title = ""
-	agr.Author = ""
-	agr.Archive = ""
-	agr.Summary = ""
-	agr.LinksContactInformation = ""
-	agr.ContactInformation = ""
-	agr.DebugNotes = AGDEBUG(0)
+func (cat *Catalog) Destroy() {
+	cat.Id = ""
+	cat.MusicianId = ""
+	cat.Query = MusicianQuery{}
+	cat.ResultCount = 0
+	cat.IsMatch = false
+	cat.RecordCollectionDataPath = ""
+	cat.Title = ""
+	cat.Author = ""
+	cat.Archive = ""
+	cat.Summary = ""
+	cat.LinksContactInformation = ""
+	cat.ContactInformation = ""
+	cat.DebugNotes = AGDEBUG(0)
 	return
 }
 
-func (agr *Catalog) Set(record, title, author, archive, summary, link, contact string) {
-	agr.IsMatch = false
-	agr.RecordCollectionDataPath = record
-	agr.Title = title
-	agr.Author = author
-	agr.Archive = archive
-	agr.Summary = summary
-	agr.LinksContactInformation = link
-	agr.ContactInformation = contact
-	agr.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
+func (cat *Catalog) Set(record, title, author, archive, summary, link, contact string) {
+	cat.IsMatch = false
+	cat.RecordCollectionDataPath = record
+	cat.Title = title
+	cat.Author = author
+	cat.Archive = archive
+	cat.Summary = summary
+	cat.LinksContactInformation = link
+	cat.ContactInformation = contact
+	cat.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
 }
 
-func (agr *Catalog) ContainsAnyFolded(phrases []string) (matches int) {
+func (cat *Catalog) ContainsAnyFolded(phrases []string) (matches int) {
 	if len(phrases) < 1 {
 		return -1
 	}
@@ -142,27 +142,27 @@ func (agr *Catalog) ContainsAnyFolded(phrases []string) (matches int) {
 		p := strings.ToLower(phrase)
 		//log.Printf("A PHRASE %s", p)
 		//WaitForKeypress()
-		if strings.Contains(strings.ToLower(agr.Title), p) {
+		if strings.Contains(strings.ToLower(cat.Title), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Author), p) {
+		if strings.Contains(strings.ToLower(cat.Author), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Archive), p) {
+		if strings.Contains(strings.ToLower(cat.Archive), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.Summary), p) {
+		if strings.Contains(strings.ToLower(cat.Summary), p) {
 			matches++
 			//WaitForKeypress()
 
 		}
-		if strings.Contains(strings.ToLower(agr.ContactInformation), p) {
+		if strings.Contains(strings.ToLower(cat.ContactInformation), p) {
 			matches++
 			//WaitForKeypress()
 
@@ -173,7 +173,7 @@ func (agr *Catalog) ContainsAnyFolded(phrases []string) (matches int) {
 
 //
 
-type AGCDomPaths struct {
+type CatDomPaths struct {
 	Record                   string
 	RecordCollectionDataPath string // AGRecord.Dom
 	Title                    string // AGRecordTitle.Dom
@@ -190,7 +190,7 @@ type AGCDomPaths struct {
 	ResultsNext              string
 }
 
-var AGCDomPathsDefinition = AGDomPaths{
+var CatDomPathsDefinition = CatDomPaths{
 	Record:                   "div.record",
 	RecordCollectionDataPath: "input[value]",                      // container->archivegrid collection data path  "div.record > input[value]",
 	Title:                    "div.record_title > h3 > a[title]",  // h3>a href THEN $inner_text "div.record_title > h3 > a[title]"
@@ -207,3 +207,34 @@ var AGCDomPathsDefinition = AGDomPaths{
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }
+
+/*
+root: main > div.container > div.row > div.col-12-md
+
+	div.row div.col-md-12
+		h2 text=$RecordName
+		h4.catalogrecordcreator text=$RecordCreator_MAYBE_WITH_DATE
+
+	div.row.pad-above > div.col-md-8
+		div.catalogrecordcontact
+		h5
+		div.catalogrecordfield(1)
+		div.catalogrecordfield(2) text=$Description
+		div.catalogrecordfield(3) text=$Info
+		div.catalogrecordfield(4)
+		div.catalogrecordfield(5)
+		div.catalogrecordfield(6)
+		div.catalogrecordfield(7)
+		h5
+		div.catalogrecordfield(8)
+			a[href]=$OnlineAidLink  text=$OnlineAidDescription
+		div.catalogrecordfield(9)
+			a[href]=$WorldCatOCLCLink    #https://www.worldcat.org/oclc/890209766
+
+	div.col-md-4#sidebar
+
+
+
+
+
+*/
