@@ -1,37 +1,36 @@
 package utils
 
+import (
+	"strings"
+	"time"
+)
+
 type DataDict struct {
-	FirstNames  []string            `json:"first_names"`
-	MiddleNames []string            `json:"middle_names"`
-	LastNames   []string            `json:"last_names"`
-	Fields      map[string][]string `json:"fields"`
+	LastModified time.Time           `json:"last_modified"`
+	Fields       map[string][]string `json:"fields"`
 }
 
 var TheDataDict = DataDict{
-	FirstNames:  []string{},
-	MiddleNames: []string{},
-	LastNames:   []string{},
-	Fields:      map[string][]string{},
+	LastModified: time.Now(),
+
+	Fields: map[string][]string{
+		"FIRSTNAMES":  []string{},
+		"MIDDLENAMES": []string{},
+		"LASTNAMES":   []string{},
+	},
 }
 
 func (d *DataDict) Update(key string, value string) {
-	switch key {
-	case "FirstName":
-		{
-			d.FirstNames = append(d.FirstNames, value)
-		}
-	case "MiddleName":
-		{
-			d.MiddleNames = append(d.MiddleNames, value)
-		}
-	case "LastName":
-		{
-			d.LastNames = append(d.LastNames, value)
-		}
-	default:
-		{
-			d.Fields[key] = append(d.Fields[key], value)
-		}
+	k := strings.ToUpper(key)
+	v := strings.ToUpper(value)
+	if _, ok := d.Fields[k]; !ok {
+		d.Fields[k] = []string{v}
+	} else {
+		d.Fields[k] = append(d.Fields[k], v)
 	}
 
+}
+
+func UpdateTheDict(key string, value string) {
+	TheDataDict.Update(key, value)
 }

@@ -245,11 +245,11 @@ func (m *Musician) GetDates(interval uint8) []string {
 
 func (m *Musician) buildField() {
 
-	m.Fields["FirstName"] = m.FirstName
-	m.Fields["MiddleName"] = m.MiddleName
-	m.Fields["LastName"] = m.LastName
+	m.Fields["FIRSTNAME"] = strings.ToUpper(m.FirstName)
+	m.Fields["MIDDLENAME"] = strings.ToUpper(m.MiddleName)
+	m.Fields["LASTNAME"] = strings.ToUpper(m.LastName)
 	//	from Notes with
-	//FIELD: TEXT\n
+	//FIELD: TEXT\n all ToUpper
 	// plus struct fields
 
 }
@@ -258,7 +258,7 @@ func (m *Musician) buildTags() {
 	tags := []string{}
 
 	for k, v := range m.Fields {
-		tags = strings.Split((k + v), FIELDS_SEP) // TODO replace by SplitFunc or Regex
+		tags = strings.Split(strings.ToUpper(k+v), FIELDS_SEP) // TODO replace by SplitFunc or Regex
 	}
 	m.Tags = tags
 }
