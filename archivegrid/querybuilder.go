@@ -21,6 +21,8 @@ const (
 	ACCEPTABLERESULTS
 )
 
+type MusiciansQueries map[utils.HashSum]*MusicianQuery
+
 type MusicianQuery struct {
 	Id utils.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
 	//MusicianId HashSum  `json:"musician_id"`
@@ -71,9 +73,6 @@ func (mq *MusicianQuery) Destroy() {
 	mq.DebugNotes = QUERYDEBUG(0)
 	return
 }
-
-//type MusiciansQueries map[HashSum][]MusicianQuery
-type MusiciansQueries map[utils.HashSum]*MusicianQuery
 
 func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
 	mq = MusiciansQueries{}
