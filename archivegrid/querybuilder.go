@@ -3,6 +3,7 @@ package archivegrid
 import (
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"net/url"
 	"time"
 )
@@ -21,7 +22,7 @@ const (
 )
 
 type MusicianQuery struct {
-	Id musician.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
+	Id utils.HashSum `json:"query_id"` // for now init to same as MusicianId one musician one query
 	//MusicianId HashSum  `json:"musician_id"`
 	Url        string     `json:"url"`
 	Timestamp  time.Time  `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
@@ -34,7 +35,7 @@ func (mq *MusicianQuery) String() string {
 	return string(mq.Url)
 }
 
-func NewMusicianQuery(id musician.HashSum, url string) (newMusicianQuery *MusicianQuery) {
+func NewMusicianQuery(id utils.HashSum, url string) (newMusicianQuery *MusicianQuery) {
 	newMusicianQuery = new(MusicianQuery)
 	newMusicianQuery = &MusicianQuery{
 		Id: id,
@@ -72,7 +73,7 @@ func (mq *MusicianQuery) Destroy() {
 }
 
 //type MusiciansQueries map[HashSum][]MusicianQuery
-type MusiciansQueries map[musician.HashSum]*MusicianQuery
+type MusiciansQueries map[utils.HashSum]*MusicianQuery
 
 func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
 	mq = MusiciansQueries{}

@@ -21,7 +21,7 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
 }
 
-type MusiciansData map[utils.HashSum][]*ArchiveGridRecord
+type MusiciansData map[utils.HashSum][]*Record
 
 func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
@@ -52,9 +52,9 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 	return musiciansData, true
 }
 
-func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*ArchiveGridRecord) {
+func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
-	agRecords = []*ArchiveGridRecord{}
+	agRecords = []*Record{}
 
 	c := colly.NewCollector(
 		colly.AllowedDomains(ALLOWED_DOMAINS...),
@@ -243,7 +243,7 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 	var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
 	log.Printf("INFO: %v", AG_BASE_URL)
 
-	// type ArchiveGridRecord struct {
+	// type Record struct {
 	// 	RecId                            int
 	// 	RecordCollectionDataPath                           AGRecord
 	// 	Title                     AGRecordTitle
@@ -338,8 +338,8 @@ func myAtoi(s string) (n int, err error) {
 //////////////////////
 
 //
-//func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []ArchiveGridRecord) {
-//	agRecords = []ArchiveGridRecord{}
+//func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []Record) {
+//	agRecords = []Record{}
 //
 //	c := colly.NewCollector(
 //		colly.AllowedDomains(ALLOWED_DOMAINS...),

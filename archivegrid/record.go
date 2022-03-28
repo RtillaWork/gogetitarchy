@@ -66,7 +66,7 @@ type AGRecordLinksContactInformation struct {
 
 const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 
-//type ArchiveGridRecord struct {
+//type Record struct {
 //	Id                               HashSum                         `json:"id"`
 //	MusicianId                       HashSum                         `json:"musician_id"`
 //	Query                            MusicianQuery                   `json:"musician_query"`
@@ -80,7 +80,7 @@ const ArchiveGridRecordSTRINGNULL = "NODATAFOUND"
 //	DebugNotes                       AGDEBUG                         `json:"debug_notes"`
 //}
 
-type ArchiveGridRecord struct {
+type Record struct {
 	Id                       utils.HashSum `json:"id"`
 	MusicianId               utils.HashSum `json:"musician_id"`
 	Query                    MusicianQuery `json:"musician_query"`
@@ -96,28 +96,28 @@ type ArchiveGridRecord struct {
 	DebugNotes               AGDEBUG       `json:"debug_notes"`
 }
 
-func (agr *ArchiveGridRecord) PrimaryKey() string {
+func (agr *Record) PrimaryKey() string {
 	return fmt.Sprintf("PRIMARYKEY=%s%s", agr.MusicianId, agr.Query)
 }
 
-//func (agr ArchiveGridRecord) String() string {
+//func (agr Record) String() string {
 //	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
-func (agr *ArchiveGridRecord) String() string {
+func (agr *Record) String() string {
 	return fmt.Sprintf("{ RECORDID%sMUSICIAN%s__%s_in_%s }", agr.Id, agr.MusicianId, agr.Query, agr.Archive)
 }
 
-func (agr *ArchiveGridRecord) ToJson() string {
+func (agr *Record) ToJson() string {
 	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
 		agr.Id, agr.MusicianId, agr.Query)
 }
 
-//func (agr ArchiveGridRecord) ToCsv() string {
+//func (agr Record) ToCsv() string {
 //	return fmt.Sprintf("%s; %s; %s; %s", agr.Id, agr.MusicianId, agr.Query, agr.Archive.href)
 //}
 
-func (agr *ArchiveGridRecord) ToCsv() string {
+func (agr *Record) ToCsv() string {
 	return fmt.Sprintf("%q; %q; %q; %d; %q; %q; %q; %q; %q; %q; %q; %q\n",
 		agr.Id,
 		agr.MusicianId,
@@ -133,7 +133,7 @@ func (agr *ArchiveGridRecord) ToCsv() string {
 		agr.DebugNotes)
 }
 
-func (agr ArchiveGridRecord) Hash() utils.HashSum {
+func (agr Record) Hash() utils.HashSum {
 	hashfunc := md5.New()
 	data := agr.PrimaryKey()
 	io.WriteString(hashfunc, data)
@@ -141,9 +141,9 @@ func (agr ArchiveGridRecord) Hash() utils.HashSum {
 	return utils.HashSum(fmt.Sprintf("%x", hashsum))
 }
 
-func NewArchiveGridRecord(musicianId utils.HashSum, query MusicianQuery) (archiveGridRecord *ArchiveGridRecord) {
-	archiveGridRecord = new(ArchiveGridRecord)
-	archiveGridRecord = &ArchiveGridRecord{
+func NewArchiveGridRecord(musicianId utils.HashSum, query MusicianQuery) (archiveGridRecord *Record) {
+	archiveGridRecord = new(Record)
+	archiveGridRecord = &Record{
 		MusicianId:  musicianId,
 		Query:       query,
 		ResultCount: -1,
@@ -159,7 +159,7 @@ func NewArchiveGridRecord(musicianId utils.HashSum, query MusicianQuery) (archiv
 	return archiveGridRecord
 }
 
-func (agr *ArchiveGridRecord) Destroy() {
+func (agr *Record) Destroy() {
 	agr.Id = ""
 	agr.MusicianId = ""
 	agr.Query = MusicianQuery{}
@@ -176,7 +176,7 @@ func (agr *ArchiveGridRecord) Destroy() {
 	return
 }
 
-func (agr *ArchiveGridRecord) Set(record, title, author, archive, summary, link, contact string) {
+func (agr *Record) Set(record, title, author, archive, summary, link, contact string) {
 	agr.IsMatch = false
 	agr.RecordCollectionDataPath = record
 	agr.Title = title
@@ -188,7 +188,7 @@ func (agr *ArchiveGridRecord) Set(record, title, author, archive, summary, link,
 	agr.DebugNotes = AGDEBUG(FOUNDNOTVALIDATEDYET)
 }
 
-func (agr *ArchiveGridRecord) ContainsAnyFolded(phrases []string) (matches int) {
+func (agr *Record) ContainsAnyFolded(phrases []string) (matches int) {
 	if len(phrases) < 1 {
 		return -1
 	}
@@ -282,7 +282,7 @@ var AGDomPathsDefinition = AGDomPaths{
 //	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 //}
 
-// type ArchiveGridRecord struct {
+// type Record struct {
 // 	RecId                            int
 // 	RecordCollectionDataPath                           AGRecord
 // 	Title                     AGRecordTitle
@@ -354,7 +354,7 @@ div.results
 //var AG_BASE_URL, _ = url.Parse(ARCHIVE_GRID_BASE_URL)
 //log.Printf("INFO: %v", AG_BASE_URL)
 //
-//// type ArchiveGridRecord struct {
+//// type Record struct {
 //// 	RecId                            int
 //// 	RecordCollectionDataPath                           AGRecord
 //// 	Title                     AGRecordTitle
