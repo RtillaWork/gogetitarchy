@@ -2,6 +2,7 @@ package musician
 
 import (
 	"bufio"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"log"
 	"os"
@@ -39,7 +40,7 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 			blockstarted, blockended = false, true
 		}
 
-		if blockstarted {
+		if blockstarted && utils.IsLikelyValidData(prevline, skipThese) {
 			lines = append(lines, prevline)
 		}
 
