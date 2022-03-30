@@ -11,7 +11,7 @@ import (
 
 // Some interesting block elements contain `:` as fields separators
 const blockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
-var skipThese = []string{blockDelim, "MEMORIAL"}
+var skipThese = []string{blockDelim, "MEMORIAL", ""}
 
 type RawMusicianBlock struct {
 	Names           string            `json:"Names"`
@@ -32,20 +32,41 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 	s := bufio.NewScanner(inFile)
 
 	lines := []string{}
-	for blockstarted, blockended, prevline := false, false, ""; s.Scan(); {
+	for block, prevline := 0, ""; s.Scan(); {
 		line := s.Text()
-		if line == delim && blockstarted == false {
-			blockstarted, blockended = true, false
-		} else if line == delim && blockstarted == true {
-			blockstarted, blockended = false, true
-		}
+		switch block {
+		case 0:
+			{
+				if line == delim {
+					lines = []string{}
+					block = 1
+					continue
 
-		if blockstarted && utils.IsLikelyValidData(prevline, skipThese) {
-			lines = append(lines, prevline)
-		}
+				}
 
-		if blockended {
-			//ReadMusicianData()
+			}
+
+		case 1:
+			{
+				if line == delim {
+					block = 2
+					continue
+
+				} else {
+					if utils.IsLikelyValidData(strings.TrimSpace(prevline), skipThese) {
+						lines = append(lines, prevline)
+					}
+				}
+
+			}
+		case 2:
+			{
+				musician := ReadMusicianData(lines)
+				musicians[musician.Id] = musician
+				block = 0
+				continue
+			}
+
 		}
 
 		prevline = line
