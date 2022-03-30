@@ -8,9 +8,71 @@ import (
 	"strings"
 )
 
+// Some interesting block elements contain `:` as fields separators
+const blockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
+var skipThese = []string{blockDelim, "MEMORIAL"}
+
+type RawMusicianBlock struct {
+	Names           string            `json:"Names"`
+	ConnectionCount string            `json:"connection_count"`
+	Notes           map[string]string `json:"notes"`
+}
+
 type MusiciansMap map[MusicianHash]*Musician
 
-func ReadMusicianData(inFileName string) MusiciansMap {
+func ImportData(inFileName string, delim string) MusiciansMap {
+
+	inFile, err := os.Open(inFileName)
+	errors.FailOn(err, "opening inFile for reading...")
+	defer inFile.Close()
+
+	musicians := make(MusiciansMap)
+
+	s := bufio.NewScanner(inFile)
+
+	lines := []string{}
+	for blockstarted, blockended, prevline := false, false, ""; s.Scan(); {
+		line := s.Text()
+		if line == delim && blockstarted == false {
+			blockstarted, blockended = true, false
+		} else if line == delim && blockstarted == true {
+			blockstarted, blockended = false, true
+		}
+
+		if blockstarted {
+			lines = append(lines, prevline)
+		}
+
+		if blockended {
+			//ReadMusicianData()
+		}
+
+		prevline = line
+	}
+	return musicians
+
+}
+
+func ReadMusicianData(aBlock []string) (musician *Musician) {
+
+	s := bufio.NewScanner(inFile)
+	for line := ""; s.Scan(); {
+		line = s.Text()
+		//log.Printf("SCANNING line: %s\n", line)
+		aMusician, ok := NewMusician(line)
+		if !ok {
+			continue
+			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
+		}
+
+		musicians[aMusician.Hash()] = aMusician
+		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+	}
+	return musicians
+
+}
+
+func ReadMusiciansNames(inFileName string) MusiciansMap {
 
 	inFile, err := os.Open(inFileName)
 	errors.FailOn(err, "opening inFile for reading...")

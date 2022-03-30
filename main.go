@@ -12,7 +12,7 @@ const inFileName = "../inFile.txt"
 func main() {
 
 	// archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
-	musicians := musician.ReadMusicianData(inFileName)
+	musicians := musician.ReadMusiciansNames(inFileName)
 	//if len(os.Args) == 2 {
 	//	exportAllMusicians(musicians, os.Args[1])
 	//} else {
