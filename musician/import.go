@@ -31,15 +31,19 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 
 	s := bufio.NewScanner(inFile)
 
+	//func initBlock() {
+	//	lines = []string{}
+	//	lines = append(lines, prevline) // first string would always be name (preceding delim)
+	//}
 	lines := []string{}
-	for block, prevline := 0, ""; s.Scan(); {
+	for state, prevline := 0, ""; s.Scan(); {
 		line := s.Text()
-		switch block {
+		switch state {
 		case 0:
 			{
 				if line == delim {
-					lines = []string{}
-					block = 1
+					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
+					state = 1
 					continue
 
 				}
@@ -49,7 +53,9 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 		case 1:
 			{
 				if line == delim {
-					block = 2
+					musician := ReadMusicianData(lines)
+					musicians[musician.Id] = musician
+					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
 					continue
 
 				} else {
@@ -58,13 +64,6 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 					}
 				}
 
-			}
-		case 2:
-			{
-				musician := ReadMusicianData(lines)
-				musicians[musician.Id] = musician
-				block = 0
-				continue
 			}
 
 		}
@@ -75,22 +74,15 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 
 }
 
-func ReadMusicianData(aBlock []string) (musician *Musician) {
+func ReadMusicianData(ablock []string) (musician *Musician) {
 
-	s := bufio.NewScanner(inFile)
-	for line := ""; s.Scan(); {
-		line = s.Text()
-		//log.Printf("SCANNING line: %s\n", line)
-		aMusician, ok := NewMusician(line)
-		if !ok {
-			continue
-			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
-		}
+	musician, ok := NewMusician(ablock[0])
+	errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s\n\n")
+	musician.Id = musician.Hash()
+	ExtractFields(ablock)
+	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 
-		musicians[aMusician.Hash()] = aMusician
-		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
-	}
-	return musicians
+	return
 
 }
 
@@ -294,8 +286,12 @@ func ExtractNames(data string) (firstname string, middlename string, lastname st
 	return firstname, middlename, lastname, ok
 }
 
-func ExtractFields(data string) (fields map[string]string) {
-	fields["field:"] = data
+func ExtractFields(data []string) (fields map[string]string) {
+	for _, d := range data {
+		k := strings.Split(d, ":")[0]
+		v := strings.Split(d, ":")[1]
+		fields[k] = v
+	}
 	return fields
 }
 

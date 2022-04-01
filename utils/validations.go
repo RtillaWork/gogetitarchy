@@ -76,3 +76,8 @@ func IsInAList(s string, list []string) (ok bool) {
 	}
 	return ok
 }
+
+func IsAName(s string) (ok bool) {
+
+	return
+}
