@@ -11,6 +11,9 @@ import (
 
 // BlockDelim Some interesting block elements contain `:` as fields separators
 const BlockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
+const block_FIELD_SEP = ":"
+const block_DATE_SEP = "-"
+
 var skipThese = []string{BlockDelim, "MEMORIAL", ""}
 
 type RawMusicianBlock struct {
@@ -302,9 +305,27 @@ func ExtractNames(data string) (firstname string, middlename string, lastname st
 func ExtractFields(data []string) (fields map[string]string) {
 	fields = make(map[string]string)
 	for i, d := range data {
-		//k := strings.Split(d, ":")
-		v := strings.Split(d, ":")[0]
-		fields[string(i)] = v
+
+		s := strings.Split(d, block_FIELD_SEP)
+		var k, v string
+		switch l := len(s); l {
+		case 0:
+			continue
+		case 1:
+			k = string(i)
+			v = s[0]
+		case 2:
+			k = s[0]
+			v = s[1]
+		default:
+			k = s[0]
+			v = strings.Join(s[1:], block_FIELD_SEP)
+
+		}
+
+		fields[k] = v
+		log.Printf("BLOCK: { %v }", fields)
+		utils.WaitForKeypress()
 	}
 	return fields
 }
