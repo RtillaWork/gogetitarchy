@@ -23,7 +23,7 @@ func LikelyValidData(s string, nopes []string) (score ValidScore) {
 
 // case insensitive, tests if a string is a word and returns a score BYTE_MAX = 255 <=> 100%
 func LikelyAWord(s string) (score ValidScore) {
-	score = 0
+	score = ValidScore(False)
 	r := regexp.MustCompile(`(?i)\w+`)
 
 	if r.MatchString(s) {

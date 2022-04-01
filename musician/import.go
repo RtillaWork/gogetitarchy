@@ -41,7 +41,11 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 	lines := []string{}
 	for state, prevline := 0, ""; s.Scan(); {
 		line := s.Text()
+
+		// NOTE DEBUG
+		log.Printf("prevline %s\n", prevline)
 		log.Printf("s.Text() %s\n", line)
+		// END NOTE DEBUG
 		switch state {
 		case 0:
 			{
@@ -69,9 +73,8 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 					continue
 
 				} else {
-					if utils.IsLikelyValidData(strings.TrimSpace(prevline), skipThese) {
-						lines = append(lines, prevline)
-					}
+					lines = append(lines, prevline)
+
 				}
 
 			}
@@ -79,7 +82,7 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 		}
 
 		prevline = line
-		//log.Printf("prevline %s\n", prevline)
+
 		//utils.WaitForKeypress()
 	}
 	return musicians
@@ -87,7 +90,8 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 }
 
 func ReadMusicianData(ablock []string) (musician *Musician, ok bool) {
-	log.Printf("### ablock[0] %s\n", ablock[0])
+	//log.Printf("### ablock[0] %s\n", ablock[0])
+
 	//utils.WaitForKeypress()
 	musician, ok = NewMusician(ablock[0])
 	if !ok {
@@ -95,7 +99,9 @@ func ReadMusicianData(ablock []string) (musician *Musician, ok bool) {
 	}
 	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 	musician.Id = musician.Hash()
-	ExtractFields(ablock)
+	if len(ablock) > 1 {
+		ExtractFields(ablock[1:])
+	}
 	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 
 	return musician, true
@@ -304,29 +310,52 @@ func ExtractNames(data string) (firstname string, middlename string, lastname st
 
 func ExtractFields(data []string) (fields map[string]string) {
 	fields = make(map[string]string)
+	//log.Printf("Raw Block Data i:{ %v }\n %s\n", data, data)
 	for i, d := range data {
+		// NOTE DEBUG
+		log.Printf("### ablock[%d] %v\n", i, d)
+		// NOTE END DEBUG
 
-		s := strings.Split(d, block_FIELD_SEP)
+		if !utils.IsLikelyValidData(d, skipThese) {
+			//continue
+			log.Printf("DEBUG IS UNLIKELY VALID DATA")
+		}
+
+		s := strings.Split(strings.TrimSpace(d), block_FIELD_SEP)
+		// NOTE DEBUG
+		log.Printf("### s[%d] %v\n", i, s)
+		// NOTE END DEBUG
+		if len(s) == 0 {
+			continue
+		} else if len(s[0]) == 0 {
+			s = s[1:]
+		} else {
+			s = s[0:]
+		}
 		var k, v string
 		switch l := len(s); l {
 		case 0:
 			continue
 		case 1:
-			k = string(i)
+			k = strings.ToUpper(s[0])
 			v = s[0]
 		case 2:
-			k = s[0]
+			k = strings.ToUpper(s[0])
 			v = s[1]
 		default:
-			k = s[0]
+			k = strings.ToUpper(s[0])
 			v = strings.Join(s[1:], block_FIELD_SEP)
-
 		}
 
 		fields[k] = v
-		log.Printf("BLOCK: { %v }", fields)
-		utils.WaitForKeypress()
+		//log.Printf("BLOCK i: %v { %v }\n %s\n", i, fields, fields)
 	}
+	utils.WaitForKeypress()
+	// NOTE DEBUG
+	for k, v := range fields {
+		log.Printf("BLOCK: k:  { %v } v:   %s\n", k, v)
+	}
+	// END NOTE DEBUG
 	return fields
 }
 
