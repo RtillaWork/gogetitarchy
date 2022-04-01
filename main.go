@@ -5,13 +5,14 @@ import (
 	"os"
 )
 
-const inFileName = "../inFile.txt"
+//const inFileName = "../inFile.txt"
+const inFileName = "../infantry_raw_in.txt"
 
 func main() {
 
-	//flag := flag.NewFlagSet("inrawfile")
 	// archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
-	musicians := musician.ReadMusiciansNames(inFileName)
+	//musicians := musician.ReadMusiciansNames(inFileName)
+	musicians := musician.ImportData(inFileName, musician.BlockDelim)
 	if len(os.Args) == 2 {
 		musician.ExportAllMusicians(musicians, os.Args[1])
 	} else {

@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-// Some interesting block elements contain `:` as fields separators
-const blockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
-var skipThese = []string{blockDelim, "MEMORIAL", ""}
+// BlockDelim Some interesting block elements contain `:` as fields separators
+const BlockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
+var skipThese = []string{BlockDelim, "MEMORIAL", ""}
 
 type RawMusicianBlock struct {
 	Names           string            `json:"Names"`
@@ -38,6 +38,7 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 	lines := []string{}
 	for state, prevline := 0, ""; s.Scan(); {
 		line := s.Text()
+		log.Printf("s.Text() %s\n", line)
 		switch state {
 		case 0:
 			{
@@ -53,8 +54,14 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 		case 1:
 			{
 				if line == delim {
-					musician := ReadMusicianData(lines)
-					musicians[musician.Id] = musician
+					if len(lines[0]) != 0 {
+						musician, ok := ReadMusicianData(lines)
+						if ok {
+							musicians[musician.Id] = musician
+						}
+					} else {
+						log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", line, prevline)
+					}
 					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
 					continue
 
@@ -69,20 +76,26 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 		}
 
 		prevline = line
+		//log.Printf("prevline %s\n", prevline)
+		//utils.WaitForKeypress()
 	}
 	return musicians
 
 }
 
-func ReadMusicianData(ablock []string) (musician *Musician) {
-
-	musician, ok := NewMusician(ablock[0])
-	errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s\n\n")
+func ReadMusicianData(ablock []string) (musician *Musician, ok bool) {
+	log.Printf("### ablock[0] %s\n", ablock[0])
+	//utils.WaitForKeypress()
+	musician, ok = NewMusician(ablock[0])
+	if !ok {
+		return musician, false
+	}
+	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 	musician.Id = musician.Hash()
 	ExtractFields(ablock)
 	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 
-	return
+	return musician, true
 
 }
 
@@ -287,10 +300,11 @@ func ExtractNames(data string) (firstname string, middlename string, lastname st
 }
 
 func ExtractFields(data []string) (fields map[string]string) {
-	for _, d := range data {
-		k := strings.Split(d, ":")[0]
-		v := strings.Split(d, ":")[1]
-		fields[k] = v
+	fields = make(map[string]string)
+	for i, d := range data {
+		//k := strings.Split(d, ":")
+		v := strings.Split(d, ":")[0]
+		fields[string(i)] = v
 	}
 	return fields
 }
