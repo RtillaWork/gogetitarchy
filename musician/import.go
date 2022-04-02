@@ -9,21 +9,12 @@ import (
 	"strings"
 )
 
-// BlockDelim Some interesting block elements contain `:` as fields separators
-const BlockDelim = "Civil War (Union)" // must be the second line, following the soldier's name
+// blockDelimDef Some interesting block elements contain `:` as fields separators
+const blockDelimDef = "Civil War (Union)" // must be the second line, following the soldier's name
 const block_FIELD_SEP = ":"
 const block_DATE_SEP = "-"
 
-var skipThese = []string{BlockDelim, "MEMORIAL", ""}
-
-//type RawMusicianBlock struct {
-//	Names      string            `json:"names"`
-//	Encounters int               `json:"encounters"`
-//	Notes      string            `json:"notes"`
-//	Fields     map[string]string `json:"fields"`
-//}
-
-//type RawMusicians []RawMusicianBlock
+var skipThese = []string{blockDelimDef, "MEMORIAL", ""}
 
 func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
@@ -33,10 +24,6 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 	s := bufio.NewScanner(inFile)
 
-	//func initBlock() {
-	//	lines = []string{}
-	//	lines = append(lines, prevline) // first string would always be name (preceding delim)
-	//}
 	blkln := []string{}
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
 		curln = s.Text()
@@ -62,7 +49,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 			}
 			blkln = []string{}
-			blkln = append(blkln, prevln)
+			blkln = append(blkln, prevln) // prevlin == names
 		}
 		blkln = append(blkln, prevln)
 	}
@@ -72,8 +59,8 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 }
 
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
+	errors.FailNotOK(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
 	//log.Printf("### ablock[0] %s\n", ablock[0])
-
 	//utils.WaitForKeypress()
 	amusician, ok = NewMusician(ablock[0])
 	if !ok {
@@ -82,37 +69,10 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 	amusician.Id = amusician.Hash()
 	if len(ablock) > 1 {
-		ExtractFields(ablock[1:])
+		amusician.Fields = ExtractFields(ablock[1:])
 	}
 	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
-
 	return amusician, true
-
-}
-
-func ReadMusiciansNames(inFileName string) MusiciansMap {
-
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	defer inFile.Close()
-
-	musicians := make(MusiciansMap)
-
-	s := bufio.NewScanner(inFile)
-	for line := ""; s.Scan(); {
-		line = s.Text()
-		//log.Printf("SCANNING line: %s\n", line)
-		aMusician, ok := NewMusician(line)
-		if !ok {
-			continue
-			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
-		}
-
-		musicians[aMusician.Hash()] = aMusician
-		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
-	}
-	return musicians
-
 }
 
 // TODO: replace by regex
@@ -339,6 +299,32 @@ func ExtractFields(data []string) (fields map[string]string) {
 	}
 	// END NOTE DEBUG
 	return fields
+}
+
+// OLDER functions
+
+func ReadMusiciansNames(inFileName string) MusiciansMap {
+
+	inFile, err := os.Open(inFileName)
+	errors.FailOn(err, "opening inFile for reading...")
+	defer inFile.Close()
+
+	musicians := make(MusiciansMap)
+
+	s := bufio.NewScanner(inFile)
+	for line := ""; s.Scan(); {
+		line = s.Text()
+		//log.Printf("SCANNING line: %s\n", line)
+		aMusician, ok := NewMusician(line)
+		if !ok {
+			continue
+			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
+		}
+
+		musicians[aMusician.Hash()] = aMusician
+		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+	}
+	return musicians
 }
 
 //func ExtractDataFromString(data string) (string, string, string, string, bool){
