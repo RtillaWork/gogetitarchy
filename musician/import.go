@@ -23,7 +23,8 @@ type RawMusicianBlock struct {
 	Fields     map[string]string `json:"fields"`
 }
 
-type MusiciansMap map[MusicianHash]*Musician
+//type MusiciansMap map[MusicianHash]*Musician
+type RawMusicians []RawMusicianBlock
 
 func ImportData(inFileName string, delim string) MusiciansMap {
 
