@@ -10,13 +10,15 @@ import (
 	"strings"
 )
 
-// blockDelimDef Some interesting block elements contain `:` as fields separators
-const blockDelimDef = "Civil War (Union)" // must be the second line, following the soldier's name
+// BlockDelimDef Some interesting block elements contain `:` as fields separators
+const BlockDelimDef = "Civil War (Union)" // must be the second line, following the soldier's name
 const block_FIELD_SEP = ":"
 const block_DATE_SEP = "-"
 
-var skipThese = []string{blockDelimDef, "MEMORIAL", ""}
+var skipThese = []string{BlockDelimDef, "MEMORIAL", ""}
 
+// ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
+// it reads the musician block content (partially unstructured)
 func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 	inFile, err := os.Open(inFileName)
@@ -59,6 +61,8 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 }
 
+// ReadMusicianData creates a Musician struct data from a partially unstructured block of []string
+// it expects that block[0] is t least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.FailNotOK(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
 	//log.Printf("### ablock[0] %s\n", ablock[0])
@@ -76,8 +80,8 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	return amusician, true
 }
 
-// returns (firstname if any, middlename if any, lastname if any, ok)
-// //L, F  || F M L || F M. L || F L || F "M" L (NOTES)
+// ExtractNamesNotesFrom returns (firstname if any, middlename if any, lastname if any, ok if lastname)
+// L, F  || F M L || F M. L || F L || F "M" L (NOTES)
 func ExtractNamesNotesFrom(data string) (fname string, mname string, lname string, notes string, ok bool) {
 	errors.FailNotOK(len(data) != 0, "ExtractFrom data is empty")
 	fname, mname, lname, notes = Defaults.FName, Defaults.MName, Defaults.LName, Defaults.Notes
@@ -160,6 +164,7 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 	return fname, mname, lname, notes, ok
 }
 
+// ExtractFields tries to build Musician.Fields map from valid data in the previously read block []string
 func ExtractFields(data []string) (fields map[string]string) {
 	fields = make(map[string]string)
 	//log.Printf("Raw Block Data i:{ %v }\n %s\n", data, data)
@@ -213,29 +218,29 @@ func ExtractFields(data []string) (fields map[string]string) {
 
 // OLDER functions
 
-func ReadMusiciansNames(inFileName string) MusiciansMap {
-
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	defer inFile.Close()
-
-	musicians := make(MusiciansMap)
-
-	s := bufio.NewScanner(inFile)
-	for line := ""; s.Scan(); {
-		line = s.Text()
-		//log.Printf("SCANNING line: %s\n", line)
-		aMusician, ok := NewMusicianFrom(line)
-		if !ok {
-			continue
-			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
-		}
-
-		musicians[aMusician.Hash()] = aMusician
-		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
-	}
-	return musicians
-}
+//func ReadMusiciansNames(inFileName string) MusiciansMap {
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	defer inFile.Close()
+//
+//	musicians := make(MusiciansMap)
+//
+//	s := bufio.NewScanner(inFile)
+//	for line := ""; s.Scan(); {
+//		line = s.Text()
+//		//log.Printf("SCANNING line: %s\n", line)
+//		aMusician, ok := NewMusicianFrom(line)
+//		if !ok {
+//			continue
+//			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
+//		}
+//
+//		musicians[aMusician.Hash()] = aMusician
+//		//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+//	}
+//	return musicians
+//}
 
 //func ExtractDataFromString(data string) (string, string, string, string, bool){
 //	firstname := STRING_NULL
@@ -373,7 +378,7 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 
 // OLD
 
-//// TODO: replace by regex
+//// TODO: replace by regex 02APR2222 INPROGRESS
 //
 //func ExtractNotes(data string) (notes string, foundnotes bool, rest string, foundmore bool) {
 //	// returns (notes if any, truncated data without notes if any, oknotes, okmore)

@@ -8,14 +8,34 @@ import (
 	"strings"
 )
 
-func (m *Musician) String() string {
-	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("%s_%s_%s_%d", first, middle, last, m.Encounter)
+func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
+	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
+	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	newMusician = New(fname, mname, lname, notes, 1)
+	return newMusician, true
+}
+
+func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Musician) {
+	newMusician = new(Musician)
+	*newMusician = Defaults
+	newMusician.FName = fname
+	newMusician.MName = mname
+	newMusician.LName = lname
+	newMusician.Notes = notes
+	newMusician.Encounter = encounter
+	newMusician.Id = newMusician.Hash()
+
+	return newMusician
 }
 
 func (m *Musician) PrimaryKey() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	return fmt.Sprintf("PRIMARYKEY=%s%s%s%s%d", first, middle, last, m.Notes, m.Encounter)
+}
+
+func (m *Musician) String() string {
+	first, _, middle, _, last, _ := m.FullNameTuple()
+	return fmt.Sprintf("%s_%s_%s_%d", first, middle, last, m.Encounter)
 }
 
 func (m *Musician) ToCsv() string {
@@ -117,26 +137,6 @@ func (m *Musician) Hash() MusicianHash {
 	io.WriteString(hashfunc, data)
 	hashsum := hashfunc.Sum(nil)
 	return MusicianHash(fmt.Sprintf("%x", hashsum))
-}
-
-func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
-	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
-	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
-	newMusician = New(fname, mname, lname, notes, 1)
-	return newMusician, true
-}
-
-func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Musician) {
-	newMusician = new(Musician)
-	*newMusician = Defaults
-	newMusician.FName = fname
-	newMusician.MName = mname
-	newMusician.LName = lname
-	newMusician.Notes = notes
-	newMusician.Encounter = encounter
-	newMusician.Id = newMusician.Hash()
-
-	return newMusician
 }
 
 func (m *Musician) GetDates(interval uint8) []string {

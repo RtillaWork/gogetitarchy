@@ -12,7 +12,7 @@ const inFileName = "../infantry_raw_in.txt"
 func main() {
 
 	//musicians := musician.ReadMusiciansNames(inFileName)
-	musicians := musician.ImportData(inFileName, musician.BlockDelim)
+	musicians := musician.ImportData(inFileName, musician.BlockDelimDef)
 	if len(os.Args) == 2 {
 		musician.ExportAllMusicians(musicians, os.Args[1])
 	} else {
