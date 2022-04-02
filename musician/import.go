@@ -100,12 +100,12 @@ func ExtractFrom(data string) (fname string, mname string, lname string, notes s
 		errors.FailNotOK(false, "ExtractFrom data Split returned too many fields separated by `(`")
 	}
 
-	r0 := regexp.MustCompile(`(?is)([A-Za-z]+)`)                                 // L
-	r1 := regexp.MustCompile(`(?is)([A-Za-z]+),\s*([A-Za-z]+)`)                  // L, F
-	r2 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]+)`)                   // F L
-	r3 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]+)\s+([A-Za-z]+)`)     // F M L
-	r4 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]\.)\s+([A-Za-z]+)`)    // F M. L
-	r5 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+(\"[A-Za-z]+\")\s+([A-Za-z]+)`) // F "M" L
+	r0 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)[\W\s]*$`)                               // L
+	r1 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+),\s*([A-Za-z]+)[\W\s]*$`)                // L, F
+	r2 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]+)[\W\s]*$`)                 // F L
+	r3 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]+)\s+([A-Za-z]+)[\W\s]*$`)   // F M L
+	r4 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]\.)\s+([A-Za-z]+)[\W\s]*$`)  // F M. L
+	r5 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+("[A-Za-z]+")\s+([A-Za-z]+)[\W\s]*$`) // F "M" L
 
 	s0 := r0.FindAllString(names, -1)
 	s1 := r1.FindAllStringSubmatch(names, -1)
@@ -508,7 +508,7 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 
 //// TESTS
 //
-// https://go.dev/play/p/8y-Tw6En6Bu
+// https://go.dev/play/p/CK0HOwcb8dy
 //package main
 //
 //import (
@@ -517,25 +517,25 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 //)
 //
 //func main() {
-//r0 := regexp.MustCompile(`(?is)([A-Za-z]+)`)                                 // L
-//r1 := regexp.MustCompile(`(?is)([A-Za-z]+),\s*([A-Za-z]+)`)                  // L, F
-//r2 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]+)`)                   // F L
-//r3 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]+)\s+([A-Za-z]+)`)     // F M L
-//r4 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+([A-Za-z]\.)\s+([A-Za-z]+)`)    // F M. L
-//r5 := regexp.MustCompile(`(?is)([A-Za-z]+)\s+(\"[A-Za-z]+\")\s+([A-Za-z]+)`) // F "M" L
+//r0 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)[\W\s]*$`)                                 // L
+//r1 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+),\s*([A-Za-z]+)[\W\s]*$`)                  // L, F
+//r2 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]+)[\W\s]*$`)                   // F L
+//r3 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]+)\s+([A-Za-z]+)[\W\s]*$`)     // F M L
+//r4 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]\.)\s+([A-Za-z]+)[\W\s]*$`)    // F M. L
+//r5 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+(\"[A-Za-z]+\")\s+([A-Za-z]+)[\W\s]*$`) // F "M" L
 //
-//n0 := "  Last     "
-//n1 := "  Last,    First"
-//n2 := ",   First    Last"
-//n3 := "First   Middle   Last"
-//n4 := "First M. Last"
+////n0 := "  Last     "
+////n1 := "  Last,    First"
+////n2 := ",   First    Last"
+////n3 := "First   Middle   Last"
+////n4 := "First M. Last"
 //n5 := "First \"Moo\" Last"
 //
-//fmt.Printf("0 %#v\n", r0.FindAllString(n0, -1))
-//fmt.Printf("1 %#v\n", r1.FindAllStringSubmatch(n1, -1))
-//fmt.Printf("2 %#v\n", r2.FindAllStringSubmatch(n2, -1))
-//fmt.Printf("3 %#v\n", r3.FindAllStringSubmatch(n3, -1))
-//fmt.Printf("4 %#v\n", r4.FindAllStringSubmatch(n4, -1))
-//fmt.Printf("5 %#q\n", r5.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("0 %#v\n", r0.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("1 %#v\n", r1.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("2 %#v\n", r2.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("3 %#v\n", r3.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("4 %#v\n", r4.FindAllStringSubmatch(n5, -1))
+//fmt.Printf("5 %#v\n", r5.FindAllStringSubmatch(n5, -1))
 //
 //}
