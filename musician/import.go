@@ -41,7 +41,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 			initial = false
 			blklines[0] = prevln // prevlin == names
 			log.Printf("if initial blklines %#v\n", blklines)
-			curln = prevln // to skip the next coniditon during the transition from initial true to false
+			continue // to skip the next coniditon during the transition from initial true to false
 		}
 
 		if !initial && curln == delim {
@@ -126,38 +126,39 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 	s4 := r4.FindAllStringSubmatch(names, -1)
 	s5 := r5.FindAllStringSubmatch(names, -1)
 	switch {
-	case len(s0[0]) == 2:
+	case len(s0) > 0 && len(s0[0]) == 2:
 		lname = s0[0][1]
 		mname = Defaults.MName
 		fname = Defaults.FName
 
-	case len(s1[0]) == 3:
-		lname = s0[0][1]
+	case len(s1) > 0 && len(s1[0]) == 3:
+		lname = s1[0][1]
 		mname = Defaults.MName
-		fname = s0[0][2]
+		fname = s1[0][2]
 
-	case len(s2[0]) == 3:
-		lname = s0[0][2]
+	case len(s2) > 0 && len(s2[0]) == 3:
+		lname = s2[0][2]
 		mname = Defaults.MName
-		fname = s0[0][1]
+		fname = s2[0][1]
 
-	case len(s3[0]) == 4:
-		lname = s0[0][3]
-		mname = s0[0][2]
-		fname = s0[0][1]
+	case len(s3) > 0 && len(s3[0]) == 4:
+		lname = s3[0][3]
+		mname = s3[0][2]
+		fname = s3[0][1]
 
-	case len(s4[0]) == 4:
-		lname = s0[0][3]
-		mname = s0[0][2]
-		fname = s0[0][1]
+	case len(s4) > 0 && len(s4[0]) == 4:
+		lname = s4[0][3]
+		mname = s4[0][2]
+		fname = s4[0][1]
 
-	case len(s5[0]) == 4:
-		lname = s0[0][3]
-		mname = s0[0][2]
-		fname = s0[0][1]
+	case len(s5) > 0 && len(s5[0]) == 4:
+		lname = s5[0][3]
+		mname = s5[0][2]
+		fname = s5[0][1]
 
 	default:
 		// Errors
+		errors.Assert(false, "UNDEFINED REGREX FOR names")
 		lname = Defaults.LName
 		mname = Defaults.MName
 		fname = Defaults.FName
