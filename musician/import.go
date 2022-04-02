@@ -31,15 +31,17 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
 		curln = s.Text()
 		// NOTE DEBUG
-		//log.Printf("prevline %s\n", prevln)
-		//log.Printf("s.Text() %s\n", curln)
-		log.Printf("prevline %#v\n", prevln)
-		log.Printf("s.Text() %s\n", curln)
+		log.Printf("for prevline %s\n", prevln)
+		log.Printf("for curln %s\n", curln)
+		log.Printf("blklines %#v\n", blklines)
+		log.Printf("initial %#v\n", initial)
 		// END NOTE DEBUG
 
 		if initial && curln == delim {
 			initial = false
-			blklines = append(blklines, prevln) // prevlin == names
+			blklines[0] = prevln // prevlin == names
+			log.Printf("if initial blklines %#v\n", blklines)
+			curln = prevln // to skip the next coniditon during the transition from initial true to false
 		}
 
 		if !initial && curln == delim {
@@ -54,9 +56,12 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 			}
 			blklines = []string{}
-			blklines = append(blklines, prevln) // prevlin == names
+			blklines[0] = prevln // prevlin == names // prevlin == names
+			log.Printf("if not initial blklines %#v\n", blklines)
 		}
 		blklines = append(blklines, prevln)
+		utils.WaitForKeypress()
+
 	}
 
 	return musicians
@@ -67,7 +72,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 // it expects that block[0] is t least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.Assert(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
-	log.Printf("### ablock[0] %s\n", ablock[0])
+	log.Printf("### ablock[0] %#v\n", ablock[0])
 	utils.WaitForKeypress()
 	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
