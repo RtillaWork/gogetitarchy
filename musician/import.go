@@ -27,21 +27,23 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 	s := bufio.NewScanner(inFile)
 
-	blkln := []string{}
+	blklines := []string{}
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
 		curln = s.Text()
 		// NOTE DEBUG
-		log.Printf("prevline %s\n", prevln)
+		//log.Printf("prevline %s\n", prevln)
+		//log.Printf("s.Text() %s\n", curln)
+		log.Printf("prevline %#v\n", prevln)
 		log.Printf("s.Text() %s\n", curln)
 		// END NOTE DEBUG
 
 		if initial && curln == delim {
 			initial = false
-			blkln = append(blkln, prevln) // prevlin == names
+			blklines = append(blklines, prevln) // prevlin == names
 		}
 
 		if !initial && curln == delim {
-			amusician, ok := ReadMusicianData(blkln)
+			amusician, ok := ReadMusicianData(blklines)
 			if ok {
 				musicians[amusician.Id] = amusician
 				log.Printf("ENTRY ADDED to RawMusicians \n")
@@ -51,10 +53,10 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
 
 			}
-			blkln = []string{}
-			blkln = append(blkln, prevln) // prevlin == names
+			blklines = []string{}
+			blklines = append(blklines, prevln) // prevlin == names
 		}
-		blkln = append(blkln, prevln)
+		blklines = append(blklines, prevln)
 	}
 
 	return musicians
@@ -65,8 +67,8 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 // it expects that block[0] is t least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.Assert(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
-	//log.Printf("### ablock[0] %s\n", ablock[0])
-	//utils.WaitForKeypress()
+	log.Printf("### ablock[0] %s\n", ablock[0])
+	utils.WaitForKeypress()
 	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
 		return amusician, false
