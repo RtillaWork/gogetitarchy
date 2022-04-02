@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"io"
+	"log"
 	"strings"
 )
 
 func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
-	errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	if !ok {
+		//errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+		log.Printf("NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS\n")
+		return &Defaults, false
+	}
+
 	newMusician = New(fname, mname, lname, notes, 1)
 	return newMusician, true
 }
