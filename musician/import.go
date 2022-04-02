@@ -62,7 +62,7 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.FailNotOK(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
 	//log.Printf("### ablock[0] %s\n", ablock[0])
 	//utils.WaitForKeypress()
-	amusician, ok = NewMusician(ablock[0])
+	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
 		return amusician, false
 	}
@@ -315,7 +315,7 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 	for line := ""; s.Scan(); {
 		line = s.Text()
 		//log.Printf("SCANNING line: %s\n", line)
-		aMusician, ok := NewMusician(line)
+		aMusician, ok := NewMusicianFrom(line)
 		if !ok {
 			continue
 			log.Printf("\n\nSCANNING BAD line: %s\n\n", line)
@@ -446,7 +446,7 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 //	//log.Printf("### ablock[0] %s\n", ablock[0])
 //
 //	//utils.WaitForKeypress()
-//	musician, ok = NewMusician(ablock[0])
+//	musician, ok = NewMusicianFrom(ablock[0])
 //	if !ok {
 //		return musician, false
 //	}

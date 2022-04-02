@@ -134,7 +134,7 @@ func (m *Musician) Hash() MusicianHash {
 	return MusicianHash(fmt.Sprintf("%x", hashsum))
 }
 
-func NewMusician(data string) (newMusician *Musician, ok bool) {
+func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 	newMusician = new(Musician)
 	newMusician.Id = MusicianHash(STRING_NULL)
 	newMusician.FirstName = STRING_NULL
@@ -146,7 +146,7 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	ok = false
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
-	//FailNotOK(okmore, "NewMusician Try to ExctractNotes( FAILED TO FIND NAMES")
+	//FailNotOK(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
 	if !okmore {
 		return newMusician, false
 	}
@@ -156,7 +156,7 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	}
 
 	firstname, middlename, lastname, ok := ExtractNames(names)
-	errors.FailNotOK(ok, "NewMusician try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 
 	newMusician.FirstName = firstname
 	newMusician.MiddleName = middlename
