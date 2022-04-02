@@ -64,14 +64,14 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 // ReadMusicianData creates a Musician struct data from a partially unstructured block of []string
 // it expects that block[0] is t least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
-	errors.FailNotOK(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
+	errors.Assert(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
 	//log.Printf("### ablock[0] %s\n", ablock[0])
 	//utils.WaitForKeypress()
 	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
 		return amusician, false
 	}
-	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
+	//errors.Assert(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 	amusician.Id = amusician.Hash()
 	if len(ablock) > 1 {
 		amusician.Fields = ExtractFields(ablock[1:])
@@ -83,17 +83,17 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 // ExtractNamesNotesFrom returns (firstname if any, middlename if any, lastname if any, ok if lastname)
 // L, F  || F M L || F M. L || F L || F "M" L (NOTES)
 func ExtractNamesNotesFrom(data string) (fname string, mname string, lname string, notes string, ok bool) {
-	errors.FailNotOK(len(data) != 0, "ExtractFrom data is empty")
+	errors.Assert(len(data) != 0, "ExtractFrom data is empty")
 	fname, mname, lname, notes = Defaults.FName, Defaults.MName, Defaults.LName, Defaults.Notes
 	ok = false
 	// split names away from notes through `(`, if exists
 	names, notes := "", Defaults.Notes
 	switch s := strings.Split(strings.TrimSpace(data), NOTES_SEP_OPEN); len(s) {
 	case 0:
-		errors.FailNotOK(false, "ExtractFrom switch Split error data likely nil/empty")
+		errors.Assert(false, "ExtractFrom switch Split error data likely nil/empty")
 	case 1:
 		if strings.Contains(s[0], NOTES_SEP_OPEN+NOTES_SEP_CLOSE) {
-			errors.FailNotOK(false, "ExtractFrom Contains error data likely conmtains only notes but no names")
+			errors.Assert(false, "ExtractFrom Contains error data likely conmtains only notes but no names")
 		} else {
 			names = s[0]
 		}
@@ -101,7 +101,7 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 		names = strings.TrimSpace(s[0])
 		notes = strings.TrimSpace(strings.Trim(s[1], NOTES_SEP_OPEN+NOTES_SEP_CLOSE))
 	default:
-		errors.FailNotOK(false, "ExtractFrom data Split returned too many fields separated by `(`")
+		errors.Assert(false, "ExtractFrom data Split returned too many fields separated by `(`")
 	}
 
 	// Only one will match. len(result) = number of names + 1
@@ -365,7 +365,7 @@ func ExtractFields(data []string) (fields map[string]string) {
 //	if !ok {
 //		return musician, false
 //	}
-//	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
+//	//errors.Assert(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 //	musician.Id = musician.Hash()
 //	if len(ablock) > 1 {
 //		ExtractFields(ablock[1:])

@@ -10,7 +10,7 @@ import (
 
 func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
-	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+	errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 	newMusician = New(fname, mname, lname, notes, 1)
 	return newMusician, true
 }
@@ -67,7 +67,7 @@ func (m *Musician) FullNameTuple() (fname string, isfnamepresent bool, mname str
 	isfnamepresent = m.FName != Defaults.FName
 	ismnamepresent = m.MName != Defaults.MName
 	islnamepresent = m.LName != Defaults.LName
-	errors.FailNotOK(islnamepresent, "Musician#FullNameTuple NO LASTNAME")
+	errors.Assert(islnamepresent, "Musician#FullNameTuple NO LASTNAME")
 	lname = m.LName
 
 	if isfnamepresent {
@@ -184,7 +184,7 @@ func (m *Musician) buildTags() {
 //func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 //
 //	notes, oknotes, names, okmore := ExtractNotes(data)
-//	//FailNotOK(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
+//	//Assert(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
 //	if !okmore {
 //		return newMusician, false
 //	}
@@ -194,7 +194,7 @@ func (m *Musician) buildTags() {
 //	}
 //
 //	fname, middlename, lastname, ok := ExtractNames(names)
-//	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+//	errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 //
 //	newMusician = New(fname, middlename, lastname, notes, 1)
 //	return newMusician, true
