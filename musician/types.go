@@ -19,6 +19,7 @@ const FIELDS_SEP = ",: -"
 
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
+var Defaults Musician
 
 type MusicianHash hash.HashSum
 
@@ -29,6 +30,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LastName   string            `json:"last_name"`
 	MiddleName string            `json:"middle_name"`
 	Notes      string            `json:"notes"`
+	Encounter  uint8             `json:"encounter"`
 	Fields     map[string]string `json:"fields"`
 	Tags       []string          `json:"tags"`
 	// Fields []string
@@ -67,12 +69,26 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 
 }
 
-var Defaults = Musician{
-	Id:         MusicianHash(""),
-	FirstName:  "NULL_FIRSTNAME",
-	MiddleName: "NULL_MIDDLENAME",
-	LastName:   "NULL_LASTNAME",
-	Notes:      "NULL_NOTES",
-	Fields:     map[string]string{},
-	Tags:       []string{},
+func init() {
+	Defaults = Musician{
+		Id:         MusicianHash(""),
+		FirstName:  "NULL_FIRSTNAME",
+		MiddleName: "NULL_MIDDLENAME",
+		LastName:   "NULL_LASTNAME",
+		Notes:      "NULL_NOTES",
+		Encounter:  0,
+		Fields:     map[string]string{},
+		Tags:       []string{},
+	}
+
 }
+
+//newMusician = new(Musician)
+//newMusician.Id = MusicianHash(STRING_NULL)
+//newMusician.FirstName = STRING_NULL
+//newMusician.MiddleName = STRING_NULL
+//newMusician.LastName = STRING_NULL
+//newMusician.Notes = STRING_NULL
+//newMusician.Fields = map[string]string{}
+//newMusician.Tags = []string{}
+//ok = false

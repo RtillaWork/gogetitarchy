@@ -10,18 +10,18 @@ import (
 
 func (m *Musician) String() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("%s_%s_%s", first, middle, last)
+	return fmt.Sprintf("%s_%s_%s_%d", first, middle, last, m.Encounter)
 }
 
 func (m *Musician) PrimaryKey() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("PRIMARYKEY=%s%s%s", first, middle, last)
+	return fmt.Sprintf("PRIMARYKEY=%s%s%s%s%d", first, middle, last, m.Notes, m.Encounter)
 }
 
 func (m *Musician) ToCsv() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	id := m.Id
-	return fmt.Sprintf("%q; %q; %q; %q", id, first, middle, last)
+	return fmt.Sprintf("%q; %q; %q; %q; %q, %q", id, first, middle, last, m.Notes, m.Encounter)
 }
 
 func (m *Musician) ToJson() string {
@@ -135,15 +135,6 @@ func (m *Musician) Hash() MusicianHash {
 }
 
 func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
-	newMusician = new(Musician)
-	newMusician.Id = MusicianHash(STRING_NULL)
-	newMusician.FirstName = STRING_NULL
-	newMusician.MiddleName = STRING_NULL
-	newMusician.LastName = STRING_NULL
-	newMusician.Notes = STRING_NULL
-	newMusician.Fields = map[string]string{}
-	newMusician.Tags = []string{}
-	ok = false
 
 	notes, oknotes, names, okmore := ExtractNotes(data)
 	//FailNotOK(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
@@ -158,23 +149,18 @@ func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 	firstname, middlename, lastname, ok := ExtractNames(names)
 	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 
-	newMusician.FirstName = firstname
-	newMusician.MiddleName = middlename
-	newMusician.LastName = lastname
-	newMusician.Id = newMusician.Hash()
-	ok = true
-
-	return newMusician, ok
+	newMusician = New(firstname, middlename, lastname, notes, 1)
+	return newMusician, true
 }
 
-func New(fname, mname, lname, notes string, encounter int) (newMusician *Musician) {
+func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Musician) {
 	newMusician = new(Musician)
-
+	*newMusician = Defaults
 	newMusician.FirstName = fname
 	newMusician.MiddleName = mname
 	newMusician.LastName = lname
 	newMusician.Notes = notes
-	//newMusician.Encounter = encounter
+	newMusician.Encounter = encounter
 	newMusician.Id = newMusician.Hash()
 
 	return newMusician
