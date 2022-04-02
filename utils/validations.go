@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"bufio"
+	"log"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -80,4 +83,24 @@ func IsInAList(s string, list []string) (ok bool) {
 func IsAName(s string) (ok bool) {
 
 	return
+}
+
+func ImportPhrases(filename string) (phrases []string) {
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		return nil
+	}
+
+	r := bufio.NewScanner(f)
+
+	for r.Scan() {
+		phrases = append(phrases, strings.Trim(r.Text(), "\" "))
+
+	}
+	for i, phrase := range phrases {
+		log.Printf("Phrase #%d: %s\n", i, phrase)
+	}
+	WaitForKeypress()
+	return phrases
 }

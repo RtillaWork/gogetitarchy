@@ -5,12 +5,12 @@ import (
 	"os"
 )
 
+// archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inFileName = "../inFile.txt"
 const inFileName = "../infantry_raw_in.txt"
 
 func main() {
 
-	// archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 	//musicians := musician.ReadMusiciansNames(inFileName)
 	musicians := musician.ImportData(inFileName, musician.BlockDelim)
 	if len(os.Args) == 2 {
@@ -18,6 +18,7 @@ func main() {
 	} else {
 		musician.ExportAllMusicians(musicians, "")
 	}
+
 	//musiciansQueries := archivegrid.BuildQueries(musicians)
 	//exportAllqueries(musicians, musiciansQueries, "")
 	//

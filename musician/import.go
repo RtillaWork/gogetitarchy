@@ -17,9 +17,10 @@ const block_DATE_SEP = "-"
 var skipThese = []string{BlockDelim, "MEMORIAL", ""}
 
 type RawMusicianBlock struct {
-	Names           string            `json:"Names"`
-	ConnectionCount string            `json:"connection_count"`
-	Notes           map[string]string `json:"notes"`
+	Names      string            `json:"names"`
+	Encounters int               `json:"encounters"`
+	Notes      string            `json:"notes"`
+	Fields     map[string]string `json:"fields"`
 }
 
 type MusiciansMap map[MusicianHash]*Musician
