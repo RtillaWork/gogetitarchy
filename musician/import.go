@@ -16,23 +16,20 @@ const block_DATE_SEP = "-"
 
 var skipThese = []string{BlockDelim, "MEMORIAL", ""}
 
-type RawMusicianBlock struct {
-	Names      string            `json:"names"`
-	Encounters int               `json:"encounters"`
-	Notes      string            `json:"notes"`
-	Fields     map[string]string `json:"fields"`
-}
+//type RawMusicianBlock struct {
+//	Names      string            `json:"names"`
+//	Encounters int               `json:"encounters"`
+//	Notes      string            `json:"notes"`
+//	Fields     map[string]string `json:"fields"`
+//}
 
-//type MusiciansMap map[MusicianHash]*Musician
-type RawMusicians []RawMusicianBlock
+//type RawMusicians []RawMusicianBlock
 
-func ImportData(inFileName string, delim string) MusiciansMap {
+func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 	inFile, err := os.Open(inFileName)
 	errors.FailOn(err, "opening inFile for reading...")
 	defer inFile.Close()
-
-	musicians := make(MusiciansMap)
 
 	s := bufio.NewScanner(inFile)
 
@@ -40,73 +37,56 @@ func ImportData(inFileName string, delim string) MusiciansMap {
 	//	lines = []string{}
 	//	lines = append(lines, prevline) // first string would always be name (preceding delim)
 	//}
-	lines := []string{}
-	for state, prevline := 0, ""; s.Scan(); {
-		line := s.Text()
-
+	blkln := []string{}
+	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+		curln = s.Text()
 		// NOTE DEBUG
-		log.Printf("prevline %s\n", prevline)
-		log.Printf("s.Text() %s\n", line)
+		log.Printf("prevline %s\n", prevln)
+		log.Printf("s.Text() %s\n", curln)
 		// END NOTE DEBUG
-		switch state {
-		case 0:
-			{
-				if line == delim {
-					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
-					state = 1
-					continue
 
-				}
-
-			}
-
-		case 1:
-			{
-				if line == delim {
-					if len(lines[0]) != 0 {
-						musician, ok := ReadMusicianData(lines)
-						if ok {
-							musicians[musician.Id] = musician
-						}
-					} else {
-						log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", line, prevline)
-					}
-					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
-					continue
-
-				} else {
-					lines = append(lines, prevline)
-
-				}
-
-			}
-
+		if initial && curln == delim {
+			initial = false
+			blkln = append(blkln, prevln) // prevlin == names
 		}
 
-		prevline = line
+		if !initial && curln == delim {
+			amusician, ok := ReadMusicianData(blkln)
+			if ok {
+				musicians[amusician.Id] = amusician
+				log.Printf("ENTRY ADDED to RawMusicians \n")
 
-		//utils.WaitForKeypress()
+			} else {
+				log.Printf("ENTRY IGNORED UNDERTERMINATE REASON \n")
+				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+
+			}
+			blkln = []string{}
+			blkln = append(blkln, prevln)
+		}
+		blkln = append(blkln, prevln)
 	}
+
 	return musicians
 
 }
 
-func ReadMusicianData(ablock []string) (musician *Musician, ok bool) {
+func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	//log.Printf("### ablock[0] %s\n", ablock[0])
 
 	//utils.WaitForKeypress()
-	musician, ok = NewMusician(ablock[0])
+	amusician, ok = NewMusician(ablock[0])
 	if !ok {
-		return musician, false
+		return amusician, false
 	}
 	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
-	musician.Id = musician.Hash()
+	amusician.Id = amusician.Hash()
 	if len(ablock) > 1 {
 		ExtractFields(ablock[1:])
 	}
 	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 
-	return musician, true
+	return amusician, true
 
 }
 
@@ -405,5 +385,92 @@ func ExtractFields(data []string) (fields map[string]string) {
 //	for _, field := range fields {
 //
 //	}
+//
+//}
+
+////  old
+
+//
+//func ImportData(inFileName string, delim string) (*MusiciansMap) {
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	defer inFile.Close()
+//
+//	s := bufio.NewScanner(inFile)
+//
+//	//func initBlock() {
+//	//	lines = []string{}
+//	//	lines = append(lines, prevline) // first string would always be name (preceding delim)
+//	//}
+//
+//	lines := []string{}
+//	for state, prevline := 0, ""; s.Scan(); {
+//		line := s.Text()
+//
+//		// NOTE DEBUG
+//		log.Printf("prevline %s\n", prevline)
+//		log.Printf("s.Text() %s\n", line)
+//		// END NOTE DEBUG
+//		switch state {
+//		case 0:
+//			{
+//				if line == delim {
+//					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
+//					state = 1
+//					continue
+//
+//				}
+//
+//			}
+//
+//		case 1:
+//			{
+//				if line == delim {
+//					if len(lines[0]) != 0 {
+//						musician, ok := ReadMusicianData(lines)
+//						if ok {
+//							musicians[musician.Id] = musician
+//						}
+//					} else {
+//						log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", line, prevline)
+//					}
+//					lines = append([]string{}, prevline) // first string would always be name (preceding delim)
+//					continue
+//
+//				} else {
+//					lines = append(lines, prevline)
+//
+//				}
+//
+//			}
+//
+//		}
+//
+//		prevline = line
+//
+//		//utils.WaitForKeypress()
+//	}
+//	return MusiciansMap{}
+//
+//}
+
+//
+//func ReadMusicianData(ablock []string) (musician *Musician, ok bool) {
+//	//log.Printf("### ablock[0] %s\n", ablock[0])
+//
+//	//utils.WaitForKeypress()
+//	musician, ok = NewMusician(ablock[0])
+//	if !ok {
+//		return musician, false
+//	}
+//	//errors.FailNotOK(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
+//	musician.Id = musician.Hash()
+//	if len(ablock) > 1 {
+//		ExtractFields(ablock[1:])
+//	}
+//	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
+//
+//	return musician, true
 //
 //}
