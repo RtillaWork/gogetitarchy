@@ -79,17 +79,35 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 // returns (firstname if any, middlename if any, lastname if any, ok)
 // //L, F  || F M L || F M. L || F L || F "M" L (NOTES)
 func ExtractFrom(data string) (fname string, mname string, lname string, notes string, ok bool) {
+	errors.FailNotOK(len(data) != 0, "ExtractFrom data is empty")
 	fname, mname, lname, notes = Defaults.FirstName, Defaults.MiddleName, Defaults.LastName, Defaults.Notes
 	ok = false
-	data = strings.TrimSpace(data)
-	errors.FailNotOK(len(data) != 0, "ExtractFrom data is empty")
+	// split names away from notes through `(`, if exists
+	names, notes := "", ""
+	switch s := strings.Split(strings.TrimSpace(data), NOTES_SEP_OPEN); len(s) {
+	case 0:
+		errors.FailNotOK(false, "ExtractFrom switch Split error data likely nil/empty")
+	case 1:
+		if strings.Contains(s[0], NOTES_SEP_OPEN+NOTES_SEP_CLOSE) {
+			errors.FailNotOK(false, "ExtractFrom Contains error data likely conmtains only notes but no names")
+		} else {
+			names = s[0]
+		}
+	case 2:
+		names = strings.TrimSpace(s[0])
+		notes = strings.TrimSpace(strings.Trim(s[1], NOTES_SEP_OPEN+NOTES_SEP_CLOSE))
+	default:
+		errors.FailNotOK(false, "ExtractFrom data Split returned too many fields separated by `(`")
+	}
 
-	rn := regexp.MustCompile(`(?is)"(.+?)"`)
-	r1 := regexp.MustCompile(`(?is)"\w+,\s*\w+`)
-	r2 := regexp.MustCompile(`(?is)()`)
-	r3 := regexp.MustCompile(`(?is)()`)
-	r4 := regexp.MustCompile(`(?is)()`)
-	r5 := regexp.MustCompile(`(?is)()`)
+	r0 := regexp.MustCompile(`(?is)(\w+)\s`)        // L
+	r1 := regexp.MustCompile(`(?is)(\w+),\s*(\w+)`) // L, F
+	r2 := regexp.MustCompile(`(?is)(\w+) \s*(\w+)`) // F L
+	r3 := regexp.MustCompile(`(?is)(\w+),\s*(\w+)`) // F M L
+	r4 := regexp.MustCompile(`(?is)(\w+),\s*(\w+)`) // F M. L
+	r5 := regexp.MustCompile(`(?is)(\w+),\s*(\w+)`) // F "M" L
+
+	return
 
 }
 
