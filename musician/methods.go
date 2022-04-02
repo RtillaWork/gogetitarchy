@@ -167,6 +167,19 @@ func NewMusician(data string) (newMusician *Musician, ok bool) {
 	return newMusician, ok
 }
 
+func New(fname, mname, lname, notes string, encounter int) (newMusician *Musician) {
+	newMusician = new(Musician)
+
+	newMusician.FirstName = fname
+	newMusician.MiddleName = mname
+	newMusician.LastName = lname
+	newMusician.Notes = notes
+	//newMusician.Encounter = encounter
+	newMusician.Id = newMusician.Hash()
+
+	return newMusician
+}
+
 func (m *Musician) GetDates(interval uint8) []string {
 	return []string{}
 }
