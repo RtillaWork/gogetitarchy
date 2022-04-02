@@ -30,7 +30,7 @@ func (m *Musician) ToJson() string {
 	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
 }
 
-func (m *Musician) QueryFragment(v MusicianNamesVariation) string {
+func (m *Musician) QueryFragment(v NamesVariation) string {
 	notes := ""
 	if m.Notes != STRING_NULL {
 		notes = m.Notes
@@ -39,31 +39,25 @@ func (m *Musician) QueryFragment(v MusicianNamesVariation) string {
 }
 
 //
-func (m *Musician) FullNameTuple() (firstname string, isFirstNamePresent bool, middlename string, isMiddleNamePresent bool, lastname string, isLastNamePresent bool) { //  firstname, middlename, lastname
-	//firstname := STRING_NULL
-	//middlename := STRING_NULL
-	//lastname := STRING_NULL
+func (m *Musician) FullNameTuple() (fname string, isfnamepresent bool, mname string, ismnamepresent bool, lname string, islnamepresent bool) { //  fname, mname, lname
+	fname = Defaults.FName
+	mname = Defaults.MName
+	lname = Defaults.LName
 
-	firstname = STRING_NULL
-	middlename = STRING_NULL
-	lastname = STRING_NULL
-	//isFirstNamePresent := m.FirstName != STRING_NULL
-	//isMiddleNamePresent := m.MiddleName != STRING_NULL
-	//isLastNamePresent := m.LastName != STRING_NULL
-	isFirstNamePresent = m.FirstName != STRING_NULL
-	isMiddleNamePresent = m.MiddleName != STRING_NULL
-	isLastNamePresent = m.LastName != STRING_NULL
-	errors.FailNotOK(isLastNamePresent, "Musician#FullNameTuple NO LASTNAME")
-	lastname = m.LastName
+	isfnamepresent = m.FName != Defaults.FName
+	ismnamepresent = m.MName != Defaults.MName
+	islnamepresent = m.LName != Defaults.LName
+	errors.FailNotOK(islnamepresent, "Musician#FullNameTuple NO LASTNAME")
+	lname = m.LName
 
-	if isFirstNamePresent {
-		firstname = m.FirstName
+	if isfnamepresent {
+		fname = m.FName
 	}
 
-	if isMiddleNamePresent {
-		middlename = m.MiddleName
+	if ismnamepresent {
+		mname = m.MName
 	}
-	return firstname, isFirstNamePresent, middlename, isMiddleNamePresent, lastname, isLastNamePresent
+	return fname, isfnamepresent, mname, ismnamepresent, lname, islnamepresent
 }
 
 //
@@ -79,19 +73,10 @@ func (m *Musician) FullName() string {
 	return fmt.Sprintf("%s%s%s", first, middle, last)
 }
 
-type MusicianNamesVariation int
-
-const (
-	FULL MusicianNamesVariation = iota
-	LAST
-	FIRSTLAST
-	LASTFIRSTMIDDLE
-)
-
-func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
+func (m *Musician) NameFmt(v NamesVariation) (formattedName string) {
 	formattedName = ""
 	switch v {
-	case MusicianNamesVariation(FULL):
+	case NamesVariation(FULL):
 		first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
 		if !isFirstPresent {
 			first = ""
@@ -100,16 +85,16 @@ func (m *Musician) NameFmt(v MusicianNamesVariation) (formattedName string) {
 			middle = ""
 		}
 		formattedName = fmt.Sprintf("%s %s %s", first, middle, last)
-	case MusicianNamesVariation(LAST):
+	case NamesVariation(L):
 		_, _, _, _, last, _ := m.FullNameTuple()
 		formattedName = fmt.Sprintf("%s", last)
-	case MusicianNamesVariation(FIRSTLAST):
+	case NamesVariation(FL):
 		first, isFirstPresent, _, _, last, _ := m.FullNameTuple()
 		if !isFirstPresent {
 			first = ""
 		}
 		formattedName = fmt.Sprintf("%s %s", first, last)
-	case MusicianNamesVariation(LASTFIRSTMIDDLE):
+	case NamesVariation(LFM):
 		first, isFirstPresent, middle, isMiddlePresent, last, _ := m.FullNameTuple()
 		if !isFirstPresent {
 			first = ""
@@ -135,30 +120,18 @@ func (m *Musician) Hash() MusicianHash {
 }
 
 func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
-
-	notes, oknotes, names, okmore := ExtractNotes(data)
-	//FailNotOK(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
-	if !okmore {
-		return newMusician, false
-	}
-
-	if oknotes {
-		newMusician.Notes = notes
-	}
-
-	firstname, middlename, lastname, ok := ExtractNames(names)
+	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
 	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
-
-	newMusician = New(firstname, middlename, lastname, notes, 1)
+	newMusician = New(fname, mname, lname, notes, 1)
 	return newMusician, true
 }
 
 func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Musician) {
 	newMusician = new(Musician)
 	*newMusician = Defaults
-	newMusician.FirstName = fname
-	newMusician.MiddleName = mname
-	newMusician.LastName = lname
+	newMusician.FName = fname
+	newMusician.MName = mname
+	newMusician.LName = lname
 	newMusician.Notes = notes
 	newMusician.Encounter = encounter
 	newMusician.Id = newMusician.Hash()
@@ -172,9 +145,9 @@ func (m *Musician) GetDates(interval uint8) []string {
 
 func (m *Musician) buildField() {
 
-	m.Fields["FIRSTNAME"] = strings.ToUpper(m.FirstName)
-	m.Fields["MIDDLENAME"] = strings.ToUpper(m.MiddleName)
-	m.Fields["LASTNAME"] = strings.ToUpper(m.LastName)
+	m.Fields["FIRSTNAME"] = strings.ToUpper(m.FName)
+	m.Fields["MIDDLENAME"] = strings.ToUpper(m.MName)
+	m.Fields["LASTNAME"] = strings.ToUpper(m.LName)
 	//	from Notes with
 	//FIELD: TEXT\n all ToUpper
 	// plus struct fields
@@ -204,4 +177,25 @@ func (m *Musician) buildTags() {
 //	//STRING_NULL,
 //	// Army string
 //	// Rank string
+//}
+
+// OLD
+
+//func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
+//
+//	notes, oknotes, names, okmore := ExtractNotes(data)
+//	//FailNotOK(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
+//	if !okmore {
+//		return newMusician, false
+//	}
+//
+//	if oknotes {
+//		newMusician.Notes = notes
+//	}
+//
+//	fname, middlename, lastname, ok := ExtractNames(names)
+//	errors.FailNotOK(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
+//
+//	newMusician = New(fname, middlename, lastname, notes, 1)
+//	return newMusician, true
 //}

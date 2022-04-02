@@ -78,12 +78,12 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 
 // returns (firstname if any, middlename if any, lastname if any, ok)
 // //L, F  || F M L || F M. L || F L || F "M" L (NOTES)
-func ExtractFrom(data string) (fname string, mname string, lname string, notes string, ok bool) {
+func ExtractNamesNotesFrom(data string) (fname string, mname string, lname string, notes string, ok bool) {
 	errors.FailNotOK(len(data) != 0, "ExtractFrom data is empty")
-	fname, mname, lname, notes = Defaults.FirstName, Defaults.MiddleName, Defaults.LastName, Defaults.Notes
+	fname, mname, lname, notes = Defaults.FName, Defaults.MName, Defaults.LName, Defaults.Notes
 	ok = false
 	// split names away from notes through `(`, if exists
-	names, notes := "", ""
+	names, notes := "", Defaults.Notes
 	switch s := strings.Split(strings.TrimSpace(data), NOTES_SEP_OPEN); len(s) {
 	case 0:
 		errors.FailNotOK(false, "ExtractFrom switch Split error data likely nil/empty")
@@ -100,6 +100,7 @@ func ExtractFrom(data string) (fname string, mname string, lname string, notes s
 		errors.FailNotOK(false, "ExtractFrom data Split returned too many fields separated by `(`")
 	}
 
+	// Only one will match. len(result) = number of names + 1
 	r0 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)[\W\s]*$`)                               // L
 	r1 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+),\s*([A-Za-z]+)[\W\s]*$`)                // L, F
 	r2 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]+)[\W\s]*$`)                 // F L
@@ -107,15 +108,56 @@ func ExtractFrom(data string) (fname string, mname string, lname string, notes s
 	r4 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+([A-Za-z]\.)\s+([A-Za-z]+)[\W\s]*$`)  // F M. L
 	r5 := regexp.MustCompile(`(?is)^[\W\s]*([A-Za-z]+)\s+("[A-Za-z]+")\s+([A-Za-z]+)[\W\s]*$`) // F "M" L
 
-	s0 := r0.FindAllString(names, -1)
+	s0 := r0.FindAllStringSubmatch(names, -1)
 	s1 := r1.FindAllStringSubmatch(names, -1)
 	s2 := r2.FindAllStringSubmatch(names, -1)
 	s3 := r3.FindAllStringSubmatch(names, -1)
 	s4 := r4.FindAllStringSubmatch(names, -1)
 	s5 := r5.FindAllStringSubmatch(names, -1)
+	switch {
+	case len(s0[0]) == 2:
+		lname = s0[0][1]
+		mname = Defaults.MName
+		fname = Defaults.FName
 
-	return
+	case len(s1[0]) == 3:
+		lname = s0[0][1]
+		mname = Defaults.MName
+		fname = s0[0][2]
 
+	case len(s2[0]) == 3:
+		lname = s0[0][2]
+		mname = Defaults.MName
+		fname = s0[0][1]
+
+	case len(s3[0]) == 4:
+		lname = s0[0][3]
+		mname = s0[0][2]
+		fname = s0[0][1]
+
+	case len(s4[0]) == 4:
+		lname = s0[0][3]
+		mname = s0[0][2]
+		fname = s0[0][1]
+
+	case len(s5[0]) == 4:
+		lname = s0[0][3]
+		mname = s0[0][2]
+		fname = s0[0][1]
+
+	default:
+		// Errors
+		lname = Defaults.LName
+		mname = Defaults.MName
+		fname = Defaults.FName
+	}
+
+	if len(lname) > 1 {
+		ok = true
+	} else {
+		ok = false
+	}
+	return fname, mname, lname, notes, ok
 }
 
 func ExtractFields(data []string) (fields map[string]string) {
@@ -508,7 +550,7 @@ func ReadMusiciansNames(inFileName string) MusiciansMap {
 
 //// TESTS
 //
-// https://go.dev/play/p/CK0HOwcb8dy
+//https://go.dev/play/p/caqAFfFJLWq
 //package main
 //
 //import (

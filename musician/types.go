@@ -25,14 +25,14 @@ type MusicianHash hash.HashSum
 
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
-	Id         MusicianHash      `json:"id"`
-	FirstName  string            `json:"first_name"`
-	LastName   string            `json:"last_name"`
-	MiddleName string            `json:"middle_name"`
-	Notes      string            `json:"notes"`
-	Encounter  uint8             `json:"encounter"`
-	Fields     map[string]string `json:"fields"`
-	Tags       []string          `json:"tags"`
+	Id        MusicianHash      `json:"id"`
+	FName     string            `json:"first_name"`
+	LName     string            `json:"last_name"`
+	MName     string            `json:"middle_name"`
+	Notes     string            `json:"notes"`
+	Encounter uint8             `json:"encounter"`
+	Fields    map[string]string `json:"fields"`
+	Tags      []string          `json:"tags"`
 	// Fields []string
 	//L, F  || F M L || F M. L || F L || F "M" L
 	//Military Unit:
@@ -69,25 +69,34 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 
 }
 
+type NamesVariation int
+
+const (
+	FULL NamesVariation = iota
+	L
+	FL
+	LFM
+)
+
 func init() {
 	Defaults = Musician{
-		Id:         MusicianHash(""),
-		FirstName:  "NULL_FIRSTNAME",
-		MiddleName: "NULL_MIDDLENAME",
-		LastName:   "NULL_LASTNAME",
-		Notes:      "NULL_NOTES",
-		Encounter:  0,
-		Fields:     map[string]string{},
-		Tags:       []string{},
+		Id:        MusicianHash(""),
+		FName:     "NULL_FIRSTNAME",
+		MName:     "NULL_MIDDLENAME",
+		LName:     "NULL_LASTNAME",
+		Notes:     "NULL_NOTES",
+		Encounter: 0,
+		Fields:    map[string]string{},
+		Tags:      []string{},
 	}
 
 }
 
 //newMusician = new(Musician)
 //newMusician.Id = MusicianHash(STRING_NULL)
-//newMusician.FirstName = STRING_NULL
-//newMusician.MiddleName = STRING_NULL
-//newMusician.LastName = STRING_NULL
+//newMusician.FName = STRING_NULL
+//newMusician.MName = STRING_NULL
+//newMusician.LName = STRING_NULL
 //newMusician.Notes = STRING_NULL
 //newMusician.Fields = map[string]string{}
 //newMusician.Tags = []string{}

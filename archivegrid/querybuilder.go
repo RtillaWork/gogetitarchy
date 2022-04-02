@@ -81,14 +81,14 @@ func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
 	mq = MusiciansQueries{}
 
 	for _, m := range ms {
-		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], musician.MusicianNamesVariation(musician.FULL))
+		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], musician.NamesVariation(musician.FULL))
 		mq[m.Id] = query
 	}
 
 	return mq
 }
 
-func buildQuery(m *musician.Musician, template string, variation musician.MusicianNamesVariation) *MusicianQuery {
+func buildQuery(m *musician.Musician, template string, variation musician.NamesVariation) *MusicianQuery {
 	querydata := url.QueryEscape(m.QueryFragment(variation))
 	fullquery := fmt.Sprintf(template, querydata)
 

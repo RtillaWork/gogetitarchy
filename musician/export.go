@@ -19,7 +19,7 @@ func ExportAllMusicians(musicians MusiciansMap, filename string) {
 	}
 	counter := 1
 	for _, m := range musicians {
-		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  LAST: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FirstName, m.LastName, m.MiddleName, m.Notes)
+		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  L: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FName, m.LName, m.MName, m.Notes)
 		//log.Println(m.ToCsv())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n===================")
