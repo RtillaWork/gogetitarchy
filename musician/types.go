@@ -1,11 +1,20 @@
 package musician
 
 import (
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"time"
 )
 
 type MusiciansMap map[MusicianHash]*Musician
+type MusiciansDb struct {
+	Musicians MusiciansMap
+	Dict      utils.DataDict
+}
+
+var Defaults Musician
+
+type MusicianHash hash.HashSum
 
 //const INT64_NULL = 9223372036854775807 // Max int64
 const AGE_NULL = 0
@@ -19,9 +28,6 @@ const FIELDS_SEP = ",: -"
 
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
-var Defaults Musician
-
-type MusicianHash hash.HashSum
 
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil

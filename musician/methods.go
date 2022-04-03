@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"io"
 	"log"
@@ -229,3 +230,12 @@ func (m *Musician) buildTags() {
 //	hashsum := hashfunc.Sum(nil)
 //	return MusicianHash(fmt.Sprintf("%x", hashsum))
 //}
+
+// MusiciansDb
+
+func NewMusiciansDb(musicians MusiciansMap) (musiciansdb MusiciansDb) {
+	musiciansdb = MusiciansDb{musicians, utils.TheDataDict}
+	return musiciansdb
+}
+
+// MusiciansDb utilities to create Dict and stats

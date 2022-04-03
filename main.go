@@ -13,10 +13,11 @@ func main() {
 
 	//musicians := musician.ReadMusiciansNames(inFileName)
 	musicians := musician.ImportData(inFileName, musician.BlockDelimDef)
+	musiciansdb := musician.NewMusiciansDb(musicians)
 	if len(os.Args) == 2 {
-		musician.ExportAll(musicians, os.Args[1])
+		musician.ExportAll(musiciansdb.Musicians, os.Args[1])
 	} else {
-		musician.ExportAll(musicians, "")
+		musician.ExportAll(musiciansdb.Musicians, "")
 	}
 
 	//musiciansQueries := archivegrid.BuildQueries(musicians)

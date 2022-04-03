@@ -10,14 +10,18 @@ type DataDict struct {
 	Fields       map[string][]string `json:"fields"`
 }
 
-var TheDataDict = DataDict{
-	LastModified: time.Now(),
+var TheDataDict DataDict
 
-	Fields: map[string][]string{
-		"FIRSTNAMES":  []string{},
-		"MIDDLENAMES": []string{},
-		"LASTNAMES":   []string{},
-	},
+func init() {
+	TheDataDict = DataDict{
+		LastModified: time.Now(),
+
+		Fields: map[string][]string{
+			"FIRSTNAMES":  []string{},
+			"MIDDLENAMES": []string{},
+			"LASTNAMES":   []string{},
+		},
+	}
 }
 
 func (d *DataDict) Update(key string, value string) {
@@ -31,6 +35,8 @@ func (d *DataDict) Update(key string, value string) {
 
 }
 
+// utility funcs
+
 func UpdateTheDict(key string, value string) {
-	TheDataDict.Update(key, value)
+	TheDataDict.Update(strings.ToUpper(key), strings.ToLower(value))
 }
