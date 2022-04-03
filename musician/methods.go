@@ -47,6 +47,8 @@ func (m *Musician) String() string {
 func (m *Musician) ToCsv() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
 	id := m.Id
+	// TODO enumrate .Fields by going through DataDictionary and...
+	// TODO ... accumulate key-value orelse key-NOVALUE
 	return fmt.Sprintf("%q; %q; %q; %q; %q, %q", id, first, middle, last, m.Notes, m.Encounter)
 }
 

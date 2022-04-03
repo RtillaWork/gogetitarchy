@@ -74,7 +74,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 }
 
 // ReadMusicianData creates a Musician struct data from a partially unstructured block of []string
-// it expects that block[0] is t least present with names
+// it expects that block[0] is at least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.Assert(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
 	log.Printf("### ablock[0] %#v\n", ablock[0])
@@ -215,9 +215,9 @@ func ExtractFields(data []string) (fields map[string]string) {
 		log.Printf("### ablock[%d] %v\n", i, d)
 		// NOTE END DEBUG
 
-		if !utils.IsLikelyValidData(d, skipThese) {
-			//continue
-			log.Printf("DEBUG IS UNLIKELY VALID DATA")
+		if utils.IsNotValid(d, nil, skipThese) {
+			continue
+			//log.Printf("DEBUG IS UNLIKELY VALID DATA")
 		}
 
 		s := strings.Split(strings.TrimSpace(d), block_FIELD_SEP)

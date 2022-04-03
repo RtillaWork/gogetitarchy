@@ -15,6 +15,19 @@ const (
 	True  ValidScore = 127
 )
 
+var rWord = regexp.MustCompile(`[A-Zaz]+`)
+var rBlank = regexp.MustCompile(`[\s]+`)
+
+// regexp improvement and generalization of data validation
+func IsNotValid(s string, goodset []string, badset []string) (ok bool) {
+	if rBlank.MatchString(s) {
+		return true
+	} else {
+		return false
+	}
+
+}
+
 // case insensitive, tests a string against some criteria and returns a score BYTE_MAX = 255 <=> 100%
 func LikelyValidData(s string, nopes []string) (score ValidScore) {
 	score = ValidScore(False)
