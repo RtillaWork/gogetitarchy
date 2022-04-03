@@ -2,6 +2,7 @@ package musician
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"io"
@@ -35,13 +36,12 @@ func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Music
 }
 
 func (m *Musician) PrimaryKey() string {
-	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("PRIMARYKEY=%s%s%s%s%d", first, middle, last, m.Notes, m.Encounter)
+	return fmt.Sprintf("PRIMARYKEY=%x", m.Hash())
 }
 
 func (m *Musician) String() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("%s_%s_%s_%d", first, middle, last, m.Encounter)
+	return fmt.Sprintf("%s_%s_%s_%s_%d", m.Id, first, middle, last, m.Encounter)
 }
 
 func (m *Musician) ToCsv() string {
@@ -51,10 +51,21 @@ func (m *Musician) ToCsv() string {
 }
 
 func (m *Musician) ToJson() string {
-	first, _, middle, _, last, _ := m.FullNameTuple()
-	id := m.Id
-	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
+	jsoned, err := json.Marshal(*m)
+	errors.FailOn(err, "Musician::ToJson json.Marshal")
+	return fmt.Sprintf("%s", string(jsoned))
 }
+
+func (m *Musician) Hash() MusicianHash {
+	hashfunc := md5.New()
+	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
+	data := m.ToJson()
+	io.WriteString(hashfunc, data)
+	hashsum := hashfunc.Sum(nil)
+	return MusicianHash(fmt.Sprintf("%x", hashsum))
+}
+
+// Support funcs
 
 func (m *Musician) QueryFragment(v NamesVariation) string {
 	notes := ""
@@ -136,15 +147,6 @@ func (m *Musician) NameFmt(v NamesVariation) (formattedName string) {
 	return formattedName
 }
 
-func (m *Musician) Hash() MusicianHash {
-	hashfunc := md5.New()
-	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
-	data := m.PrimaryKey()
-	io.WriteString(hashfunc, data)
-	hashsum := hashfunc.Sum(nil)
-	return MusicianHash(fmt.Sprintf("%x", hashsum))
-}
-
 func (m *Musician) GetDates(interval uint8) []string {
 	return []string{}
 }
@@ -204,4 +206,24 @@ func (m *Musician) buildTags() {
 //
 //	newMusician = New(fname, middlename, lastname, notes, 1)
 //	return newMusician, true
+//}
+
+//func (m *Musician) ToJson() string {
+//	first, _, middle, _, last, _ := m.FullNameTuple()
+//	id := m.Id
+//	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
+//}
+
+//func (m *Musician) PrimaryKey() string {
+//	first, _, middle, _, last, _ := m.FullNameTuple()
+//	return fmt.Sprintf("PRIMARYKEY=%s%s%s%s%d", first, middle, last, m.Notes, m.Encounter)
+//}
+
+//func (m *Musician) Hash() MusicianHash {
+//	hashfunc := md5.New()
+//	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
+//	data := m.PrimaryKey()
+//	io.WriteString(hashfunc, data)
+//	hashsum := hashfunc.Sum(nil)
+//	return MusicianHash(fmt.Sprintf("%x", hashsum))
 //}
