@@ -16,8 +16,10 @@ func main() {
 	musiciansdb := musician.NewMusiciansDb(musicians)
 	if len(os.Args) == 2 {
 		musician.ExportAll(musiciansdb.Musicians, os.Args[1])
+		musician.ExportDataDict(musician.TheDataDict, os.Args[1])
 	} else {
 		musician.ExportAll(musiciansdb.Musicians, "")
+		musician.ExportDataDict(musician.TheDataDict, "")
 	}
 
 	//musiciansQueries := archivegrid.BuildQueries(musicians)
