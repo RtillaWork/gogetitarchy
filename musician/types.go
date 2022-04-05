@@ -1,7 +1,6 @@
 package musician
 
 import (
-	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"time"
 )
@@ -9,7 +8,7 @@ import (
 type MusiciansMap map[MusicianHash]*Musician
 type MusiciansDb struct {
 	Musicians MusiciansMap
-	Dict      utils.DataDict
+	Dict      DataDict
 }
 
 var Defaults Musician

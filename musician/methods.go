@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"io"
 	"log"
@@ -234,7 +233,9 @@ func (m *Musician) buildTags() {
 // MusiciansDb
 
 func NewMusiciansDb(musicians MusiciansMap) (musiciansdb MusiciansDb) {
-	musiciansdb = MusiciansDb{musicians, utils.TheDataDict}
+	BuildTheDataDict(musicians)
+	musiciansdb = MusiciansDb{musicians, TheDataDict}
+
 	return musiciansdb
 }
 
