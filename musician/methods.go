@@ -173,63 +173,6 @@ func (m *Musician) buildTags() {
 	m.Tags = tags
 }
 
-//var MusicianNULL = Musician{
-//	"NULL_HASH",
-//	STRING_NULL,
-//	STRING_NULL,
-//	STRING_NULL,
-//	STRING_NULL,
-//	//TIME_NULL,
-//	//TIME_NULL,
-//	//STRING_NULL,
-//	//STRING_NULL,
-//	//AGE_NULL,
-//	//STRING_NULL,
-//	// Army string
-//	// Rank string
-//}
-
-// OLD
-
-//func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
-//
-//	notes, oknotes, names, okmore := ExtractNotes(data)
-//	//Assert(okmore, "NewMusicianFrom Try to ExctractNotes( FAILED TO FIND NAMES")
-//	if !okmore {
-//		return newMusician, false
-//	}
-//
-//	if oknotes {
-//		newMusician.Notes = notes
-//	}
-//
-//	fname, middlename, lastname, ok := ExtractNames(names)
-//	errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
-//
-//	newMusician = New(fname, middlename, lastname, notes, 1)
-//	return newMusician, true
-//}
-
-//func (m *Musician) ToJson() string {
-//	first, _, middle, _, last, _ := m.FullNameTuple()
-//	id := m.Id
-//	return fmt.Sprintf("{ \"id\": %q,\n \"first_name\": %q,\n \"middle_name\": %q,\n \"last_name\": %q\n}", id, first, middle, last)
-//}
-
-//func (m *Musician) PrimaryKey() string {
-//	first, _, middle, _, last, _ := m.FullNameTuple()
-//	return fmt.Sprintf("PRIMARYKEY=%s%s%s%s%d", first, middle, last, m.Notes, m.Encounter)
-//}
-
-//func (m *Musician) Hash() MusicianHash {
-//	hashfunc := md5.New()
-//	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
-//	data := m.PrimaryKey()
-//	io.WriteString(hashfunc, data)
-//	hashsum := hashfunc.Sum(nil)
-//	return MusicianHash(fmt.Sprintf("%x", hashsum))
-//}
-
 // MusiciansDb
 
 func NewMusiciansDb(musicians MusiciansMap) (musiciansdb MusiciansDb) {

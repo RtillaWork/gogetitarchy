@@ -333,3 +333,92 @@ func myAtoi(s string) (n int, err error) {
 // https://researchworks.oclc.org/archivegrid/?p=1&q=event.name%3A%22american+civil+war%22
 //
 // https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
+
+//////////////////////
+
+//
+//func scanArchiveGrid(m Musician, mq MusicianQuery) (agRecords []Record) {
+//	agRecords = []Record{}
+//
+//	c := colly.NewCollector(
+//		colly.AllowedDomains(ALLOWED_DOMAINS...),
+//		colly.MaxDepth(1),
+//	)
+//
+//	c.Limit(&colly.LimitRule{
+//		DomainGlob:  "*",
+//		Parallelism: 1,
+//		Delay:       3 * time.Second,
+//	})
+//
+//	c.OnHTML(AGResultsDefinition.Results, func(results *colly.HTMLElement) {
+//		resultsSize, err := myAtoi(results.ChildText(AGResultsDefinition.ResultsSizeMessage))
+//		if resultsSize == 0 || err != nil {
+//			agrecord := NewArchiveGridRecord(m.Id, mq)
+//			agrecord.ResultSize = false
+//			agRecords = append(agRecords, agrecord)
+//			return
+//		} else if resultsSize > 3 {
+//			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
+//			agrecord := NewArchiveGridRecord(m.Id, mq)
+//			agrecord.ResultSize = true
+//			agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+//			agRecords = append(agRecords, agrecord)
+//		} else {
+//			results.ForEach(AGDomPathsDefinition.RecordCollectionDataPath, func(_ int, record *colly.HTMLElement) {
+//				title := record.ChildText(AGDomPathsDefinition.Title)
+//				author := record.ChildText(AGDomPathsDefinition.Author)
+//				archive := record.ChildText(AGDomPathsDefinition.Archive)
+//				summary := record.ChildText(AGDomPathsDefinition.Summary)
+//				contact := record.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "title")
+//				link := record.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+//				log.Printf("\n\n BEGINRECORD:\nTITLE: %s\nAUTHOR: %s\nARCHIVE: %s\nSUMMARY: %s\nCONTACT: %s\nLINK: %s\nENDRECORD\n\n",
+//					title, author, archive, summary, contact, link)
+//				agrecord := NewArchiveGridRecord(m.Id, mq)
+//				agrecord.ResultSize = true
+//				agrecord.set(title, author, archive, summary, contact)
+//
+//				agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+//				agRecords = append(agRecords, agrecord)
+//
+//			})
+//
+//			//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+//			//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
+//			//	// writer.Write({record_title})
+//			//	log.Println(record_title)
+//			//
+//			//})
+//			//agrecord := NewArchiveGridRecord(m.Id, mq)
+//			//agrecord.ResultSize = true
+//			//agRecords = append(agRecords, agrecord)
+//		}
+//	})
+//
+//	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
+//	//	log.Printf("NOT FOUND")
+//	//	return
+//	//})
+//	//
+//	//c.OnHTML(AGResultsDefinition.ResultsNotEmpty, func(rec *colly.HTMLElement) {
+//	//	log.Printf("################## FOUND")
+//	//	agrecord := NewArchiveGridRecord(m.Id, mq)
+//	//	agRecords = append(agRecords, agrecord)
+//	//	return
+//	//})
+//
+//	//log.Printf("DEBUG: c.OnHtml\n\n")
+//	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
+//	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
+//	//	// writer.Write({record_title})
+//	//	log.Println(record_title)
+//	//
+//	//})
+//
+//	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
+//	log.Printf("\n\nscanArchiveGrid DEBUG QUERY %s\n", mq)
+//
+//	c.Visit(mq.String())
+//
+//	return agRecords
+//}
