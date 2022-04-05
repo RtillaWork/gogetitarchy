@@ -1,27 +1,39 @@
 package main
 
 import (
+	"flag"
 	"github.com/RtillaWork/gogetitarchy/musician"
-	"os"
 )
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
-//const inFileName = "../inFile.txt"
-const inFileName = "../infantry_raw_in.txt"
+//const inRawFileNameDefault = "../inFile.txt"
+const InRawFileNameDefault = "../infantry_raw_in.txt"
+const FilterPhrasesDefault = "../phrases.csv"
+const OutMusiciansFilenameDefault = "../out_musicians_default"
+const OutMusiciansDbFilenameDefault = "../out_musiciansdb_default"
+const OutTheDataDictFilenameDefault = "../out_musiciansdb_default"
+const OutFormatDefault = ".json" // or ".csv"
 
 func main() {
+	InRawFilename := flag.String("inRawFilename", InRawFileNameDefault, "Input Raw Musicians filename")
+	//FilterPhrases := flag.String("filterPhrases", FilterPhrasesDefault, "Input filter-in phrases in csv format")
+	OutMusiciansFilename := flag.String("outMusiciansFilename", OutMusiciansFilenameDefault, "Output Musicians filename")
+	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
+	OutTheDataDictFilename := flag.String("outTheDatadictFilename", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
+	//OutFormat := flag.String("outformat", OutFormatDefault, "Output format json or csv(;). Default json")
+	flag.Parse()
 
-	//musicians := musician.ReadMusiciansNames(inFileName)
-	musicians := musician.ImportData(inFileName, musician.BlockDelimDef)
+	//musicians := musician.ReadMusiciansNames(inRawFileNameDefault)
+	musicians := musician.ImportData(*InRawFilename, musician.BlockDelimDef)
 	musiciansdb := musician.NewMusiciansDb(musicians)
-	if len(os.Args) == 2 {
-		musician.ExportJson(musiciansdb.Musicians, os.Args[1])
-		musician.ExportDataDict(musiciansdb.Dict, os.Args[1])
-	} else {
-
-		musician.ExportJson(musiciansdb.Musicians, "")
-		musician.ExportDataDict(musiciansdb.Dict, "")
-	}
+	//if len(os.Args) == 2 {
+	musician.ExportJson(musiciansdb.Musicians, *OutMusiciansFilename)
+	musician.ExportDataDict(musiciansdb.Dict, *OutTheDataDictFilename)
+	//} else {
+	//
+	//	musician.ExportJson(musiciansdb.Musicians, "")
+	//	musician.ExportDataDict(musiciansdb.Dict, "")
+	//}
 
 	//musiciansQueries := archivegrid.BuildQueries(musicians)
 	//exportAllqueries(musicians, musiciansQueries, "")
