@@ -20,12 +20,24 @@ var rBlank = regexp.MustCompile(`[\s]+`)
 
 // regexp improvement and generalization of data validation
 func IsNotValid(s string, goodset []string, badset []string) (ok bool) {
+
+	// tests if s is blank
 	if rBlank.MatchString(s) {
 		return true
 	} else {
 		return false
 	}
 
+	// test if is in badset
+	ok = false
+	for _, badstr := range badset {
+		if strings.TrimSpace(strings.ToUpper(s)) == strings.TrimSpace(strings.ToUpper(badstr)) {
+			ok = true
+			break
+		}
+	}
+
+	return ok
 }
 
 // case insensitive, tests a string against some criteria and returns a score BYTE_MAX = 255 <=> 100%
