@@ -1,7 +1,6 @@
 package musician
 
 import (
-	"encoding/json"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"strings"
 	"time"
@@ -10,6 +9,8 @@ import (
 type DataDict struct {
 	LastModified time.Time           `json:"last_modified"`
 	Fields       map[string][]string `json:"fields"`
+	KeyStats     map[string]int      `json"keys_tats"`
+	ValuesStats  map[string]int      `json"values_tats"`
 }
 
 var TheDataDict DataDict
@@ -23,6 +24,9 @@ func init() {
 			"MIDDLENAMES": []string{},
 			"LASTNAMES":   []string{},
 		},
+
+		KeyStats:    make(map[string]int),
+		ValuesStats: make(map[string]int),
 	}
 }
 
@@ -100,7 +104,11 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 			}
 		}
 	}
-	json.Marshal(TheDataDict)
+
+	TheDataDict.LastModified = time.Now()
+	TheDataDict.KeyStats = keys
+	TheDataDict.ValuesStats = values
+	//json.Marshal(TheDataDict)
 	utils.WaitForKeypress()
 }
 
