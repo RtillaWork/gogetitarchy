@@ -16,7 +16,7 @@ const OutExtensionDefault = ".json" // or ".csv"
 
 func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")
-	//FilterPhrases := flag.String("filterPhrases", FilterPhrasesDefault, "Input filter-in phrases in csv format")
+	FilterPhrases := flag.String("filterPhrases", FilterPhrasesDefault, "Input filter-in phrases in csv format")
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
 	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")

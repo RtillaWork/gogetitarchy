@@ -129,3 +129,20 @@ func ImportPhrases(filename string) (phrases []string) {
 	WaitForKeypress()
 	return phrases
 }
+
+// Utilities to make data valid
+
+// NormalizeStr converts a string to Uppercase and remove spaces around
+// returns the changed string and true if success, otherwise false if in our out string is invalid
+func NormalizeStr(in string) (out string, ok bool) {
+	if IsNotValid(in, FilterPhr) {
+		return "", false
+	}
+
+	out = strings.ToUpper(strings.TrimSpace(in))
+	if IsNotValid(out) {
+		return "", false
+	} else {
+		return out, true
+	}
+}
