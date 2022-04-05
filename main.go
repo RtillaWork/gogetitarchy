@@ -15,11 +15,12 @@ func main() {
 	musicians := musician.ImportData(inFileName, musician.BlockDelimDef)
 	musiciansdb := musician.NewMusiciansDb(musicians)
 	if len(os.Args) == 2 {
-		musician.ExportAll(musiciansdb.Musicians, os.Args[1])
-		musician.ExportDataDict(musician.TheDataDict, os.Args[1])
+		musician.ExportJson(musiciansdb.Musicians, os.Args[1])
+		musician.ExportDataDict(musiciansdb.Dict, os.Args[1])
 	} else {
-		musician.ExportAll(musiciansdb.Musicians, "")
-		musician.ExportDataDict(musician.TheDataDict, "")
+
+		musician.ExportJson(musiciansdb.Musicians, "")
+		musician.ExportDataDict(musiciansdb.Dict, "")
 	}
 
 	//musiciansQueries := archivegrid.BuildQueries(musicians)

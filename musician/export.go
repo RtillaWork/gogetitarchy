@@ -32,7 +32,7 @@ func ExportAll(musicians MusiciansMap, filename string) {
 
 func ExportJson(musicians MusiciansMap, filename string) {
 	var outfile *os.File
-	if filename == "" || !strings.HasSuffix(filename, ".csv") {
+	if filename == "" || !strings.HasSuffix(filename, ".json") {
 		outfile = os.Stdout
 	} else if h, err := os.Open("OUT_MUSICIANS_" + filename); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
@@ -47,7 +47,7 @@ func ExportJson(musicians MusiciansMap, filename string) {
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n===================")
 		}
-		fmt.Fprintf(outfile, "\n%d; %s\n", counter, m.ToCsv())
+		fmt.Fprintf(outfile, "\n%d; %s\n", counter, m.ToJson())
 		counter++
 	}
 	log.Printf("\n\n\n SIZE of musicians: %d\n\n", counter)
