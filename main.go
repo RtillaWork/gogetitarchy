@@ -2,13 +2,16 @@ package main
 
 import (
 	"flag"
+	"github.com/RtillaWork/gogetitarchy/archivegrid"
 	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils"
+	"log"
 )
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inRawFileNameDefault = "../inFile.txt"
 const InRawFileNameDefault = "../infantry_raw_in.txt"
-const FilterPhrasesDefault = "../phrases.csv"
+const FilterPhrasesFilenameDefault = "../phrases.csv"
 const OutMusiciansFilenameDefault = "../out_musicians_default"
 const OutMusiciansDbFilenameDefault = "../out_musiciansdb_default"
 const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DataDict"
@@ -16,7 +19,7 @@ const OutExtensionDefault = ".json" // or ".csv"
 
 func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")
-	FilterPhrases := flag.String("filterPhrases", FilterPhrasesDefault, "Input filter-in phrases in csv format")
+	FilterPhrasesFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in phrases in csv format")
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
 	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
@@ -35,20 +38,15 @@ func main() {
 	//	musician.ExportDataDict(musiciansdb.Dict, "")
 	//}
 
-	//musiciansQueries := archivegrid.BuildQueries(musicians)
-	//exportAllqueries(musicians, musiciansQueries, "")
-	//
-	//var phrases []string = nil
-	//if len(os.Args) == 2 {
-	//	phrases = archivegrid.ImportPhrases(os.Args[1])
-	//} else { // DEBUG TEMPORARY
-	//	phrases = archivegrid.ImportPhrases("./phrases.csv")
-	//}
-	//musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 1, phrases)
-	//if ok {
-	//	archivegrid.ExportAllResponseData(musicians, musiciansResponseData, "")
-	//} else {
-	//	log.Println("CrawlArchiveGrid returned not ok")
-	//}
+	musiciansQueries := archivegrid.BuildQueries(musicians)
+	archivegrid.ExportAllqueries(musicians, musiciansQueries, "")
+
+	phrases := utils.ImportPhrases(*FilterPhrasesFilename)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 1, phrases)
+	if ok {
+		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, "")
+	} else {
+		log.Println("CrawlArchiveGrid returned not ok")
+	}
 
 }

@@ -13,15 +13,6 @@ import (
 	"time"
 )
 
-const TOOMANYRESULTSVALUE int = 15000
-
-var ALLOWED_DOMAINS []string = []string{"researchworks.oclc.org", "archives.chadwyck.com", "www.newspapers.com"}
-var ARCHIVE_GRID_URL_PATTERNS []string = []string{
-	"https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22",
-}
-
-type MusiciansData map[musician.MusicianHash][]*Record
-
 func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
@@ -297,23 +288,6 @@ func myAtoi(s string) (n int, err error) {
 		return n, err
 	}
 }
-
-// c := colly.NewCollector(colly.AllowedDomains(ALLOWED_DOMAINS[0]))
-
-// c.OnHTML("div", func(h *colly.HTMLElement) {
-// 	contents := h.ChildAttrs("a", "href")
-// 	fmt.Println(contents)
-// })
-
-// c.Visit(ARCHIVE_GRID_URL_PATTERNS[0])
-
-//////////////////////////////////////
-
-//type ArchiveData struct {
-//	Person
-//	query url.URL
-//	map[string]string
-//}
 
 ////////////////////////////
 
