@@ -31,8 +31,8 @@ func main() {
 	musicians := musician.ImportData(*InRawFilename, musician.BlockDelimDef)
 	musiciansdb := musician.NewMusiciansDb(musicians)
 	//if len(os.Args) == 2 {
-	musician.ExportJson(musiciansdb.Musicians, *OutMusiciansFilename+*OutExtension)
-	musician.ExportDataDict(musiciansdb.Dict, *OutTheDataDictFilename+*OutExtension)
+	musician.ExportJson(*musiciansdb.Musicians, *OutMusiciansFilename+*OutExtension)
+	musician.ExportDataDict(*musiciansdb.Dict, *OutTheDataDictFilename+*OutExtension)
 	//} else {
 	//
 	//	musician.ExportJson(musiciansdb.Musicians, "")
