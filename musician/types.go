@@ -7,8 +7,8 @@ import (
 
 type MusiciansMap map[MusicianHash]*Musician
 type MusiciansDb struct {
-	Musicians MusiciansMap
-	Dict      DataDict
+	Musicians *MusiciansMap
+	Dict      *DataDict
 }
 
 var Defaults Musician

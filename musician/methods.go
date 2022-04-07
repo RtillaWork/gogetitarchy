@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"io"
 	"log"
@@ -19,6 +20,7 @@ func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
 	}
 
 	newMusician = New(fname, mname, lname, notes, 1)
+	newMusician.AddFields(nil)
 	return newMusician, true
 }
 
@@ -154,11 +156,17 @@ func (m *Musician) GetDates(interval uint8) []string {
 	return []string{}
 }
 
-func (m *Musician) buildField() {
+func (m *Musician) AddFields(fields map[string]string) {
+	if fields == nil {
+		m.Fields["FIRSTNAME"] = utils.NormalizeValue(m.FName)
+		m.Fields["MIDDLENAME"] = utils.NormalizeValue(m.FName)
+		m.Fields["LASTNAME"] = utils.NormalizeValue(m.FName)
+	} else {
+		for k, v := range fields {
+			m.Fields[utils.NormalizeKey(k)] = utils.NormalizeValue(v)
+		}
+	}
 
-	m.Fields["FIRSTNAME"] = strings.ToUpper(m.FName)
-	m.Fields["MIDDLENAME"] = strings.ToUpper(m.MName)
-	m.Fields["LASTNAME"] = strings.ToUpper(m.LName)
 	//	from Notes with
 	//FIELD: TEXT\n all ToUpper
 	// plus struct fields
@@ -178,7 +186,7 @@ func (m *Musician) buildTags() {
 
 func NewMusiciansDb(musicians MusiciansMap) (musiciansdb *MusiciansDb) {
 	BuildTheDataDict(musicians)
-	musiciansdb = &MusiciansDb{musicians, TheDataDict}
+	musiciansdb = &MusiciansDb{&musicians, &TheDataDict}
 
 	return musiciansdb
 	// TODO repopulate musiciansMap with the same in common KEYS (assigning "" to non existent)

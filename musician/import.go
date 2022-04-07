@@ -86,7 +86,7 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	//errors.Assert(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
 	amusician.Id = amusician.Hash()
 	if len(ablock) > 1 {
-		amusician.Fields = ExtractFields(ablock[1:])
+		amusician.AddFields(ExtractFields(ablock[1:]))
 	}
 	//log.Printf("\nSCANNING SUCCESS aMusican: {  %v  }\n\n", aMusician.Hash())
 	return amusician, true
@@ -212,7 +212,7 @@ func ExtractFields(data []string) (fields map[string]string) {
 	//log.Printf("Raw Block Data i:{ %v }\n %s\n", data, data)
 	for i, d := range data {
 		// NOTE DEBUG
-		log.Printf("### ablock[%d] %v\n", i, d)
+		log.Printf("### \n\nablock[%d] %v\n", i, d)
 		// NOTE END DEBUG
 
 		if utils.IsUnwantedInput(d, skipThese) {
@@ -222,7 +222,7 @@ func ExtractFields(data []string) (fields map[string]string) {
 
 		s := strings.Split(strings.TrimSpace(d), block_FIELD_SEP)
 		// NOTE DEBUG
-		log.Printf("### s[%d] %v\n", i, s)
+		//log.Printf("### s[%d] %v\n", i, s)
 		// NOTE END DEBUG
 		if len(s) == 0 {
 			continue

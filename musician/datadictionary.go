@@ -82,8 +82,8 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 		}
 		////Fields[key]value
 		for key, val := range mv.Fields {
-			k := strings.ToUpper(strings.TrimSpace(key))
-			v := strings.ToUpper(strings.TrimSpace(val))
+			k := utils.NormalizeKey(key)
+			v := utils.NormalizeValue(val)
 			keys[k]++
 			values[v]++
 			valueskey[v] = k
