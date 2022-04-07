@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -30,9 +29,17 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 			if size == 0 {
 				break
 			}
-			resultsize, err := ScanQueryResultSize(mq)
-			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n  \n\n", mq)
-			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq, phrases)...)
+			mq.SetResultCountFunc(ScanQueryResultSize)
+
+			if mq.ResultSize > 0 {
+				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
+				recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
+				errors2.FailOn(err, "Crawling query\n"+mq.String())
+				musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
+			} else {
+				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count <= 0 %d\n For query %s \n SKIPPING...\n", mq.ResultSize, mq)
+
+			}
 
 			utils.WaitForKeypress()
 			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
@@ -56,61 +63,47 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 1,
-		Delay:       3 * time.Second,
+		Delay:       1 * time.Second,
+		// Add an additional random delay
+		RandomDelay: 1 * time.Second,
 	})
 
 	c.OnRequest(func(request *colly.Request) {
-		log.Printf("\nSTARTING NEW REQUEST TIME: %v\n", time.Now())
-		log.Printf("\nQueryResultSize YOUR QUERY %s\n", mq)
-		log.Printf("\nscanArchiveGrid REQUEST: %s\n\n", request.URL)
+		log.Printf("\n ScanQueryResultSize STARTING NEW REQUEST TIME: %v\n", time.Now())
+		log.Printf("\n ScanQueryResultSizeQueryResultSize YOUR QUERY %s\n", mq.String())
+		log.Printf("\nScanQueryResultSize scanArchiveGrid REQUEST: %s\n\n", request.URL)
 
 	})
 
 	c.OnError(func(response *colly.Response, e error) {
-		log.Printf("\nERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
 		err = e
+		log.Printf("\nScanQueryResultSize ERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
+
 	})
 
 	c.OnResponse(func(response *colly.Response) {
-		log.Printf("\nReceived response about request %s\n", response.Request.URL)
+		log.Printf("\nScanQueryResultSize Received response about request %s\n", response.Request.URL)
 	})
 
-	c.OnHTML(AGDomPathsDefinition.ResultsSize, func(results *colly.HTMLElement) {
-		resultsizehtml, e := results.DOM.Find("#resultsize").Html()
-		if e != nil {
-			err = e
-		} else {
-			resultsSize, e := totalPagesAtoi(resultsizehtml)
-		}
+	c.OnHTML(AGDomPathsDefinition.ResultsSize, func(elem *colly.HTMLElement) {
+		//resultsizehtml, e := results.DOM.Find("#resultsize").Html()
+		resultsizehtml := elem.Text
+		log.Printf("ResultSize elem.Text %s", resultsizehtml)
+		utils.WaitForKeypress()
 
-		if resultsSize == 0 || err != nil {
-			mq.SetResultCount(0)
-			mq.DebugNotes = QUERYDEBUG(NORESULTS)
-
-			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
-
-			return
-		} else if resultsSize > TOOMANYRESULTSVALUE {
-			log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsSize)
-			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
-			mq.SetResultCount(0)
-			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
-
-		} else {
-			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
-			mq.SetResultCount(resultsSize)
-			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
-
-		}
+		//if e != nil {
+		//	err = e
+		//} else {
+		resultsize, err = totalPagesAtoi(resultsizehtml)
+		//}
 	})
-
 	c.Visit(mq.String())
 
 	return resultsize, err
 
 }
 
-func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
+func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record, err error) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
 	agRecords = []*Record{}
 
@@ -122,7 +115,9 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 1,
-		Delay:       3 * time.Second,
+		Delay:       1 * time.Second,
+		// Add an additional random delay
+		RandomDelay: 1 * time.Second,
 	})
 
 	c.OnRequest(func(request *colly.Request) {
@@ -132,7 +127,8 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 
 	})
 
-	c.OnError(func(response *colly.Response, err error) {
+	c.OnError(func(response *colly.Response, e error) {
+		err = e
 		log.Printf("\nERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
 
 	})
@@ -141,46 +137,7 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 		log.Printf("\nReceived response about request %s\n", response.Request.URL)
 	})
 
-	c.OnHTML(AGDomPathsDefinition.Results, func(results *colly.HTMLElement) {
-		resultsSize, err := totalPagesAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
-		if resultsSize == 0 || err != nil {
-			mq.SetResultCount(0)
-			mq.DebugNotes = QUERYDEBUG(NORESULTS)
-
-			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
-			//agrecord.MatchestCount = -1
-			//agrecord.IsMatch = true
-			//agrecord.DebugNotes = AGDEBUG(NORESULTS)
-			//agRecords = append(agRecords, agrecord)
-			return
-		} else if resultsSize > TOOMANYRESULTSVALUE {
-			log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsSize)
-			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
-			mq.SetResultCount(0)
-			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
-			//agrecord.MatchestCount = resultsSize
-			//agrecord.IsMatch = false
-			//agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
-			//agRecords = append(agRecords, agrecord)
-		} else {
-			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
-			mq.SetResultCount(resultsSize)
-			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
-			//agrecord.MatchestCount = resultsSize
-			//agrecord.set(title, author, archive, summary, contact)
-			//agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
-		}
-	})
-
 	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
-
-		// exit this OnHtml if there is nothing to search for or sanity doesn't check
-		switch {
-		case mq.ResultSize < 1:
-			return
-		case mq.ResultSize > QUERY_LIMIT:
-			//
-		}
 
 		agrecord := NewArchiveGridRecord(m.Id, *mq)
 		record := rec.ChildAttr(AGDomPathsDefinition.RecordCollectionDataPath, "value")
@@ -220,30 +177,22 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 
 	c.Visit(mq.String())
 
-	return agRecords
+	return agRecords, err
 }
 
 // Helpers
 
 // like Atoi but cleanes the string out of any non digit characters like comma before the conversion
 func totalPagesAtoi(s string) (n int, err error) {
-	rexTotalPages := regexp.MustCompile(`\d+$`)
-	if s == "" {
-		return 0, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")
+	rexTotalPages := regexp.MustCompile(`\d+`)
+	sint := rexTotalPages.FindString(s)
+	if s == "" || sint == "" {
+		return -1, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")
 	} else {
-
-		text := strings.Fields(s)
-		log.Printf("\nTEXT: %v\n", text)
-		sint := text[len(text)-1]
-		log.Printf("SINT: %v\n", sint)
-		sint = sint[:len(sint)-1]
-		log.Printf("SINT: %v\n", sint)
-		text = strings.Split(sint, ",")
-		log.Printf("\nTEXT: %v\n", text)
-
-		n, err = strconv.Atoi(strings.Join(text, ""))
-		sint, text = "", nil
+		n, err = strconv.Atoi(sint)
 		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+
+		sint = ""
 		return n, err
 	}
 }

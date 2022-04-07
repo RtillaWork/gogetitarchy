@@ -71,9 +71,10 @@ func (m *Musician) Hash() MusicianHash {
 
 func (m *Musician) QueryFragment(v NamesVariation) string {
 	notes := ""
-	if m.Notes != STRING_NULL {
-		notes = m.Notes
-	}
+	// TODO INCLUDE NOTES OR FIELDS OR GoodSetPhrases in Query variations
+	//if m.Notes != Defaults.Notes {
+	//	notes = m.Notes
+	//}
 	return fmt.Sprintf("%s %s", m.NameFmt(v), notes)
 }
 
@@ -175,11 +176,14 @@ func (m *Musician) buildTags() {
 
 // MusiciansDb
 
-func NewMusiciansDb(musicians MusiciansMap) (musiciansdb MusiciansDb) {
+func NewMusiciansDb(musicians MusiciansMap) (musiciansdb *MusiciansDb) {
 	BuildTheDataDict(musicians)
-	musiciansdb = MusiciansDb{musicians, TheDataDict}
+	musiciansdb = &MusiciansDb{musicians, TheDataDict}
 
 	return musiciansdb
+	// TODO repopulate musiciansMap with the same in common KEYS (assigning "" to non existent)
+	// TODO build musicians TAGS
+	// TODO separate dates and add dates data to fields
 }
 
 // MusiciansDb utilities to create Dict and stats

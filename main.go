@@ -19,12 +19,13 @@ const OutExtensionDefault = ".json" // or ".csv"
 
 func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")
-	FilterPhrasesFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in phrases in csv format")
+	FilterPhrasesFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in GoodSetPhrases in csv format")
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
 	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
 	OutExtension := flag.String("outformat", OutExtensionDefault, "Output format json or csv(;). Default json")
 	flag.Parse()
+	GoodSetPhrases := utils.ImportPhrases(*FilterPhrasesFilename)
 
 	//musicians := musician.ReadMusiciansNames(inRawFileNameDefault)
 	musicians := musician.ImportData(*InRawFilename, musician.BlockDelimDef)
@@ -41,8 +42,7 @@ func main() {
 	musiciansQueries := archivegrid.BuildQueries(musicians)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, "")
 
-	phrases := utils.ImportPhrases(*FilterPhrasesFilename)
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 1, phrases)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 10, GoodSetPhrases)
 	if ok {
 		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, "")
 	} else {

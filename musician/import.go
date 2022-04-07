@@ -215,7 +215,7 @@ func ExtractFields(data []string) (fields map[string]string) {
 		log.Printf("### ablock[%d] %v\n", i, d)
 		// NOTE END DEBUG
 
-		if utils.IsNotValid(d, nil, skipThese) {
+		if utils.IsUnwantedInput(d, skipThese) {
 			continue
 			//log.Printf("DEBUG IS UNLIKELY VALID DATA")
 		}
@@ -236,8 +236,10 @@ func ExtractFields(data []string) (fields map[string]string) {
 		case 0:
 			continue
 		case 1:
-			k = strings.ToUpper(s[0])
-			v = s[0]
+			k = "MISC"
+			v += s[0] // Normalize(s[0])
+			// PREVIOUSLY k = strings.ToUpper(s[0])
+			// PREVIOUSLY v = s[0]
 		case 2:
 			k = strings.ToUpper(s[0])
 			v = s[1]

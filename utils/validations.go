@@ -16,11 +16,10 @@ const (
 )
 
 var rWord = regexp.MustCompile(`[A-Zaz]+`)
-var rBlank = regexp.MustCompile(`[\s]+`)
+var rBlank = regexp.MustCompile(`^[\s]+$`)
 
 // regexp improvement and generalization of data validation
-func IsNotValid(s string, goodset []string, badset []string) (ok bool) {
-
+func IsUnwantedInput(s string, badset []string) (ok bool) {
 	// tests if s is blank
 	if rBlank.MatchString(s) {
 		return true
@@ -29,6 +28,7 @@ func IsNotValid(s string, goodset []string, badset []string) (ok bool) {
 	}
 
 	// test if is in badset
+	// TODO replace with regex template
 	ok = false
 	for _, badstr := range badset {
 		if strings.TrimSpace(strings.ToUpper(s)) == strings.TrimSpace(strings.ToUpper(badstr)) {
@@ -38,6 +38,28 @@ func IsNotValid(s string, goodset []string, badset []string) (ok bool) {
 	}
 
 	return ok
+}
+
+// regexp improvement and generalization of data validation
+func IsWanteddInput(s string, goodset []string) (ok bool) {
+	//// tests if s is blank
+	//if rBlank.MatchString(s) {
+	//	return true
+	//} else {
+	//	return false
+	//}
+	//
+	//// test if is in badset
+	//ok = false
+	//for _, badstr := range badset {
+	//	if strings.TrimSpace(strings.ToUpper(s)) == strings.TrimSpace(strings.ToUpper(badstr)) {
+	//		ok = true
+	//		break
+	//	}
+	//}
+
+	//return ok
+	return true
 }
 
 // case insensitive, tests a string against some criteria and returns a score BYTE_MAX = 255 <=> 100%
@@ -134,15 +156,12 @@ func ImportPhrases(filename string) (phrases []string) {
 
 // NormalizeStr converts a string to Uppercase and remove spaces around
 // returns the changed string and true if success, otherwise false if in our out string is invalid
-func NormalizeStr(in string) (out string, ok bool) {
-	if IsNotValid(in, FilterPhr) {
-		return "", false
-	}
+func NormalizeStr(in string) (out string, err error) {
+	//if IsUnwantedInput(in, goodset, badset) {
+	//	return "", false
+	//}
 
 	out = strings.ToUpper(strings.TrimSpace(in))
-	if IsNotValid(out) {
-		return "", false
-	} else {
-		return out, true
-	}
+	return out, nil
+
 }

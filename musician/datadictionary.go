@@ -23,6 +23,11 @@ func init() {
 			"FIRSTNAMES":  []string{},
 			"MIDDLENAMES": []string{},
 			"LASTNAMES":   []string{},
+			"MISCS":       []string{},
+			"DATESBEGIN":  []string{},
+			"DATESEND":    []string{},
+			"DATESOTHER":  []string{},
+			"DATESCSV":    []string{},
 		},
 
 		KeyStats:    make(map[string]int),
@@ -48,6 +53,7 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 	firstnames := make(map[string]int)
 	middlenames := make(map[string]int)
 	lastnames := make(map[string]int)
+
 	keys := make(map[string]int)
 	values := make(map[string]int)
 	valueskey := make(map[string]string)

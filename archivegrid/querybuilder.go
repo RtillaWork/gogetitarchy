@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
+	"log"
 	"net/url"
 	"time"
 )
@@ -20,6 +21,7 @@ const (
 	TOOMANYRESULTS = iota
 	NORESULTS
 	ACCEPTABLERESULTS
+	ERROR
 )
 const QUERY_LIMIT = 100
 
@@ -67,6 +69,35 @@ func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *M
 func (mq *MusicianQuery) SetResultCount(count int) {
 	mq.Timestamp = time.Now()
 	mq.ResultSize = count
+}
+
+func (mq *MusicianQuery) SetResultCountFunc(f func(query MusicianQuery) (int, error)) {
+	resultsize, err := ScanQueryResultSize(*mq)
+	if err != nil {
+		mq.SetResultCount(-1)
+		mq.DebugNotes = QUERYDEBUG(ERROR)
+
+		log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsize)
+
+		return
+	} else if resultsize == 0 {
+		mq.SetResultCount(0)
+		mq.DebugNotes = QUERYDEBUG(NORESULTS)
+
+		log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsize)
+
+		return
+	} else if resultsize > TOOMANYRESULTSVALUE {
+		log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsize)
+		// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
+		mq.SetResultCount(0)
+		mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
+
+	} else {
+		log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsize)
+		mq.SetResultCount(resultsize)
+		mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
+	}
 }
 
 func (mq *MusicianQuery) Destroy() {

@@ -38,6 +38,9 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	Encounter uint8             `json:"encounter"`
 	Fields    map[string]string `json:"fields"`
 	Tags      []string          `json:"tags"`
+
+	// FIELDS:
+	// FNAME, MNAME, LNAME, MISCS, DATEBEGIN, DATEEND, DATEOTHER, DATES
 	// Fields []string
 	//L, F  || F M L || F M. L || F L || F "M" L
 	//Military Unit:
@@ -91,8 +94,18 @@ func init() {
 		LName:     "NULL_LASTNAME",
 		Notes:     "NULL_NOTES",
 		Encounter: 0,
-		Fields:    map[string]string{},
-		Tags:      []string{},
+		Fields: map[string]string{
+			"FIRSTNAME":  "NULL_FIRSTNAME",
+			"MIDDLENAME": "NULL_MIDDLENAME",
+			"LASTNAME":   "NULL_LASTNAME",
+			"MISC":       "NULL_MISC",
+			"DATEBEGIN":  "NULL_DATEBEGIN",
+			"DATEEND":    "NULL_DATEEND",
+			"DATEOTHER":  "NULL_DATEOTHER",
+			"DATECSV":    "NULL_DATEBCSV", //"xxxx;yyyy;....zzzz"
+
+		}, //map[string]string{},
+		Tags: []string{},
 	}
 
 }
