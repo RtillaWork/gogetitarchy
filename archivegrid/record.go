@@ -2,8 +2,10 @@ package archivegrid
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
 	"io"
 	"strings"
@@ -31,7 +33,7 @@ type Record struct {
 	MusicianId               musician.MusicianHash `json:"musician_id"`
 	QueryId                  MusicianQueryHash     `json:"query_id"`
 	Query                    MusicianQuery         `json:"musician_query"`
-	ResultCount              int                   `json:"result_count"`
+	MatchestCount            int                   `json:"matches_count"`
 	IsMatch                  bool                  `json:"is_match"`
 	RecordCollectionDataPath string                `json:"record_collection_datapath"`
 	Title                    string                `json:"record_title"`
@@ -44,7 +46,17 @@ type Record struct {
 }
 
 func (rec *Record) PrimaryKey() string {
-	return fmt.Sprintf("PRIMARYKEY=%s%s", rec.MusicianId, rec.Query)
+	//return fmt.Sprintf("PRIMARYKEY=%s%s", rec.MusicianId, rec.Query)
+	return fmt.Sprintf("PRIMARYKEY=%x", rec.Hash())
+}
+
+func (rec Record) Hash() RecordHash {
+	hashfunc := md5.New()
+	//data := rec.PrimaryKey()
+	data := rec.ToJson()
+	io.WriteString(hashfunc, data)
+	hashsum := hashfunc.Sum(nil)
+	return RecordHash(fmt.Sprintf("%x", hashsum))
 }
 
 //func (rec Record) String() string {
@@ -56,8 +68,11 @@ func (rec *Record) String() string {
 }
 
 func (rec *Record) ToJson() string {
-	return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
-		rec.Id, rec.MusicianId, rec.Query)
+	jsoned, err := json.Marshal(*rec)
+	errors.FailOn(err, "Record::ToJson json.Marshal")
+	return fmt.Sprintf("%s", string(jsoned))
+	//return fmt.Sprintf("{\"ag_record_id\": %q, \n\"musician_id\": %q, \n\"query\": %q, \n}",
+	//	rec.Id, rec.MusicianId, rec.Query)
 }
 
 //func (rec Record) ToCsv() string {
@@ -69,7 +84,7 @@ func (rec *Record) ToCsv() string {
 		rec.Id,
 		rec.MusicianId,
 		rec.Query,
-		rec.ResultCount,
+		rec.MatchestCount,
 		rec.RecordCollectionDataPath,
 		rec.Title,
 		rec.Author,
@@ -80,20 +95,12 @@ func (rec *Record) ToCsv() string {
 		rec.DebugNotes)
 }
 
-func (rec Record) Hash() RecordHash {
-	hashfunc := md5.New()
-	data := rec.PrimaryKey()
-	io.WriteString(hashfunc, data)
-	hashsum := hashfunc.Sum(nil)
-	return RecordHash(fmt.Sprintf("%x", hashsum))
-}
-
 func NewArchiveGridRecord(musicianId musician.MusicianHash, query MusicianQuery) (archiveGridRecord *Record) {
 	archiveGridRecord = new(Record)
 	archiveGridRecord = &Record{
-		MusicianId:  musicianId,
-		Query:       query,
-		ResultCount: -1,
+		MusicianId:    musicianId,
+		Query:         query,
+		MatchestCount: -1,
 		//RecordCollectionDataPath:                           ArchiveGridRecordSTRINGNULL,
 		//Title:                     AGRecordTitle,
 		//Author:                    AGRecordAuthor,
@@ -110,7 +117,7 @@ func (rec *Record) Destroy() {
 	rec.Id = ""
 	rec.MusicianId = ""
 	rec.Query = MusicianQuery{}
-	rec.ResultCount = 0
+	rec.MatchestCount = 0
 	rec.IsMatch = false
 	rec.RecordCollectionDataPath = ""
 	rec.Title = ""
@@ -205,7 +212,7 @@ var AGDomPathsDefinition = AGDomPaths{
 	Results:                  "div.results",
 	ResultsNotEmpty:          "div.results div.searchresult",
 	ResultsEmpty:             "div.results div.alertresult",
-	ResultsSize:              "resultsize", // "main h2 > span[id=resultsize]", // "main > h2", // "main h2 > span#resultsize"
+	ResultsSize:              "main .container .row .col-md-12 h2", //Child("span") // main .container .row .col-md-12 h2 #resultsize // "main h2 > span[id=resultsize]", // "main > h2", // "main h2 > span#resultsize"
 	ResultsSizeMessage:       "div.navtable > div.navrow > div.navrowright > span",
 	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 

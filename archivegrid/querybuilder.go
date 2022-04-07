@@ -10,6 +10,7 @@ import (
 
 var ARCHIVE_GRID_URL_TEMPLATE []string = []string{
 	"https://researchworks.oclc.org/archivegrid/?q=%s&limit=100",
+	// REPLACE 100 by QUERY_LIMIT
 	//"https://researchworks.oclc.org/archivegrid/?q=%s&limit=10",
 }
 
@@ -20,6 +21,7 @@ const (
 	NORESULTS
 	ACCEPTABLERESULTS
 )
+const QUERY_LIMIT = 100
 
 type MusicianQueryHash hash.HashSum
 

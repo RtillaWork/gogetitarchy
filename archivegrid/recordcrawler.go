@@ -8,6 +8,7 @@ import (
 	"github.com/gocolly/colly"
 	"log"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -23,11 +24,13 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 	} else {
 		log.Printf("Processing %d queries for a MusiciansMap size of %d and a MusiciansQueries size of %d",
 			size, lenms, lenmqs)
+		utils.WaitForKeypress()
 
 		for mhash, mq := range mqs {
 			if size == 0 {
 				break
 			}
+			resultsize, err := ScanQueryResultSize(mq)
 			log.Printf("\nCrawlArchiveGrid DEBUG: QUERY %s\n  \n\n", mq)
 			musiciansData[mhash] = append(musiciansData[mhash], ScanArchiveGrid(ms[mhash], mq, phrases)...)
 
@@ -42,6 +45,71 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 	return musiciansData, true
 }
 
+// Get query's specific parameters particularily result size
+func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
+	resultsize = -1
+	c := colly.NewCollector(
+		colly.AllowedDomains(ALLOWED_DOMAINS...),
+		colly.MaxDepth(1),
+	)
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*",
+		Parallelism: 1,
+		Delay:       3 * time.Second,
+	})
+
+	c.OnRequest(func(request *colly.Request) {
+		log.Printf("\nSTARTING NEW REQUEST TIME: %v\n", time.Now())
+		log.Printf("\nQueryResultSize YOUR QUERY %s\n", mq)
+		log.Printf("\nscanArchiveGrid REQUEST: %s\n\n", request.URL)
+
+	})
+
+	c.OnError(func(response *colly.Response, e error) {
+		log.Printf("\nERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
+		err = e
+	})
+
+	c.OnResponse(func(response *colly.Response) {
+		log.Printf("\nReceived response about request %s\n", response.Request.URL)
+	})
+
+	c.OnHTML(AGDomPathsDefinition.ResultsSize, func(results *colly.HTMLElement) {
+		resultsizehtml, e := results.DOM.Find("#resultsize").Html()
+		if e != nil {
+			err = e
+		} else {
+			resultsSize, e := totalPagesAtoi(resultsizehtml)
+		}
+
+		if resultsSize == 0 || err != nil {
+			mq.SetResultCount(0)
+			mq.DebugNotes = QUERYDEBUG(NORESULTS)
+
+			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
+
+			return
+		} else if resultsSize > TOOMANYRESULTSVALUE {
+			log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsSize)
+			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
+			mq.SetResultCount(0)
+			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
+
+		} else {
+			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
+			mq.SetResultCount(resultsSize)
+			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
+
+		}
+	})
+
+	c.Visit(mq.String())
+
+	return resultsize, err
+
+}
+
 func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
 	//agRecord := NewArchiveGridRecord(m.Id, mq)
 	agRecords = []*Record{}
@@ -54,7 +122,7 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 1,
-		Delay:       7 * time.Second,
+		Delay:       3 * time.Second,
 	})
 
 	c.OnRequest(func(request *colly.Request) {
@@ -69,14 +137,18 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 
 	})
 
+	c.OnResponse(func(response *colly.Response) {
+		log.Printf("\nReceived response about request %s\n", response.Request.URL)
+	})
+
 	c.OnHTML(AGDomPathsDefinition.Results, func(results *colly.HTMLElement) {
-		resultsSize, err := myAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
+		resultsSize, err := totalPagesAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
 		if resultsSize == 0 || err != nil {
 			mq.SetResultCount(0)
 			mq.DebugNotes = QUERYDEBUG(NORESULTS)
 
 			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
-			//agrecord.ResultCount = -1
+			//agrecord.MatchestCount = -1
 			//agrecord.IsMatch = true
 			//agrecord.DebugNotes = AGDEBUG(NORESULTS)
 			//agRecords = append(agRecords, agrecord)
@@ -86,7 +158,7 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 			mq.SetResultCount(0)
 			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
-			//agrecord.ResultCount = resultsSize
+			//agrecord.MatchestCount = resultsSize
 			//agrecord.IsMatch = false
 			//agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
 			//agRecords = append(agRecords, agrecord)
@@ -94,7 +166,7 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
 			mq.SetResultCount(resultsSize)
 			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
-			//agrecord.ResultCount = resultsSize
+			//agrecord.MatchestCount = resultsSize
 			//agrecord.set(title, author, archive, summary, contact)
 			//agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
 		}
@@ -103,9 +175,13 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
 
 		// exit this OnHtml if there is nothing to search for or sanity doesn't check
-		if mq.ResultSize < 1 {
+		switch {
+		case mq.ResultSize < 1:
 			return
+		case mq.ResultSize > QUERY_LIMIT:
+			//
 		}
+
 		agrecord := NewArchiveGridRecord(m.Id, *mq)
 		record := rec.ChildAttr(AGDomPathsDefinition.RecordCollectionDataPath, "value")
 		title := rec.ChildText(AGDomPathsDefinition.Title)
@@ -142,78 +218,60 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 
 	})
 
-	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
-	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
-	//	// writer.Write({record_title})
-	//	log.Println(record_title)
-	//
-	//})
-	//agrecord := NewArchiveGridRecord(m.Id, mq)
-	//agrecord.ResultSize = true
-	//agRecords = append(agRecords, agrecord)
-
-	//c.OnHTML(AGResultsDefinition.ResultsEmpty, func(rec *colly.HTMLElement) {
-	//	log.Printf("NOT FOUND")
-	//	return
-	//})
-	//
-	//c.OnHTML(AGResultsDefinition.ResultsNotEmpty, func(rec *colly.HTMLElement) {
-	//	log.Printf("################## FOUND")
-	//	agrecord := NewArchiveGridRecord(m.Id, mq)
-	//	agRecords = append(agRecords, agrecord)
-	//	return
-	//})
-
-	//log.Printf("DEBUG: c.OnHtml\n\n")
-	//c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
-	//	record_title := rec.ChildText(AGDomPathsDefinition.Title)
-	//	// writer.Write({record_title})
-	//	log.Println(record_title)
-	//
-	//})
-
-	// person_url := fmt.Sprintf(ARCHIVE_GRID_URL_PATTERNS[0], "Albert Quincy Porter")
-
 	c.Visit(mq.String())
 
 	return agRecords
 }
 
-//c.OnHTML(AGResultsDefinition.ResultsSizeMessage, func(e *colly.HTMLElement) {
-//	log.Printf("ELEMENT %#v", e.Text) // e.ChildText(AGResultsDefinition.ResultsSize))
-//	resultsSize, _ := myAtoi(e.Text)
-//	log.Printf("################## FOUND RESULT SIZE: %d", resultsSize)
-//	switch {
-//	case resultsSize > 5:
-//		// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
-//		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultSize = true
-//		agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
-//		agRecords = append(agRecords, agrecord)
-//		break
-//	case resultsSize > 0:
-//		// crawl each result and add
+// Helpers
+
+// like Atoi but cleanes the string out of any non digit characters like comma before the conversion
+func totalPagesAtoi(s string) (n int, err error) {
+	rexTotalPages := regexp.MustCompile(`\d+$`)
+	if s == "" {
+		return 0, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")
+	} else {
+
+		text := strings.Fields(s)
+		log.Printf("\nTEXT: %v\n", text)
+		sint := text[len(text)-1]
+		log.Printf("SINT: %v\n", sint)
+		sint = sint[:len(sint)-1]
+		log.Printf("SINT: %v\n", sint)
+		text = strings.Split(sint, ",")
+		log.Printf("\nTEXT: %v\n", text)
+
+		n, err = strconv.Atoi(strings.Join(text, ""))
+		sint, text = "", nil
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		return n, err
+	}
+}
+
+func FilteredMusiciansDataBuilder(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
+	return nil
+}
+
+////////////////////////////
+
+// https://archives.chadwyck.com/marketing/index.jsp
+// https://www.newspapers.com/
+// https://researchworks.oclc.org/archivegrid/
+// https://en.wikipedia.org/wiki/Names_of_the_American_Civil_Warhttps://researchworks.oclc.org/archivegrid/
 //
-//		c.OnHTML(AGDomPathsDefinition.RecordCollectionDataPath, func(rec *colly.HTMLElement) {
-//			record_title := rec.ChildText(AGDomPathsDefinition.Title)
-//			// writer.Write({record_title})
-//			log.Println(record_title)
+//	"https://researchworks.oclc.org/archivegrid/?q=Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29&limit=100"
+// Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29
 //
-//		})
-//		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultSize = true
-//		agRecords = append(agRecords, agrecord)
-//		break
-//	case resultsSize == 0:
-//		agrecord := NewArchiveGridRecord(m.Id, mq)
-//		agrecord.ResultSize = false
-//		agRecords = append(agRecords, agrecord)
-//		break
+// Good samples
+// https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22
+// using person.name and `AND` :
+// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert++AND+person.name%3AQuincy&limit=100
+// also George Bowen, also Christian Abraham Fleetwood
+// https://researchworks.oclc.org/archivegrid/?p=1&q=event.name%3A%22american+civil+war%22
 //
-//	}
-//
-//	return
-//})
+// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
+
+////////////
 
 func ScanArchive(musiciansQueries MusiciansQueries) {
 
@@ -267,43 +325,137 @@ func ScanArchive(musiciansQueries MusiciansQueries) {
 
 }
 
-// Helpers
+// OLD
+//// like Atoi but cleanes the string out of any non digit characters like comma before the conversion
+//func totalPagesAtoi(s string) (n int, err error) {
+//	if s == "" {
+//		return 0, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")
+//	} else {
+//		text := strings.Fields(s)
+//		log.Printf("\nTEXT: %v\n", text)
+//		sint := text[len(text)-1]
+//		log.Printf("SINT: %v\n", sint)
+//		sint = sint[:len(sint)-1]
+//		log.Printf("SINT: %v\n", sint)
+//		text = strings.Split(sint, ",")
+//		log.Printf("\nTEXT: %v\n", text)
+//		n, err = strconv.Atoi(strings.Join(text, ""))
+//		sint, text = "", nil
+//		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+//		return n, err
+//	}
+//}
 
-// like Atoi but cleanes the string out of any non digit characters like comma before the conversion
-func myAtoi(s string) (n int, err error) {
-	if s == "" {
-		return 0, errors.New("myAtoi got empty string probably because no css selector matched OnHtml")
-	} else {
-		text := strings.Fields(s)
-		log.Printf("\nTEXT: %v\n", text)
-		sint := text[len(text)-1]
-		log.Printf("SINT: %v\n", sint)
-		sint = sint[:len(sint)-1]
-		log.Printf("SINT: %v\n", sint)
-		text = strings.Split(sint, ",")
-		log.Printf("\nTEXT: %v\n", text)
-		n, err = strconv.Atoi(strings.Join(text, ""))
-		sint, text = "", nil
-		errors2.FailOn(err, "INFO myAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-		return n, err
-	}
-}
-
-////////////////////////////
-
-// https://archives.chadwyck.com/marketing/index.jsp
-// https://www.newspapers.com/
-// https://researchworks.oclc.org/archivegrid/
-// https://en.wikipedia.org/wiki/Names_of_the_American_Civil_Warhttps://researchworks.oclc.org/archivegrid/
+// OLD works but result size incorrect
+//func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
+//	//agRecord := NewArchiveGridRecord(m.Id, mq)
+//	agRecords = []*Record{}
 //
-//	"https://researchworks.oclc.org/archivegrid/?q=Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29&limit=100"
-// Jack+Hester++and+%28%22diary%22+OR+%22journal%22+OR+%22notebook%22%29
+//	c := colly.NewCollector(
+//		colly.AllowedDomains(ALLOWED_DOMAINS...),
+//		colly.MaxDepth(1),
+//	)
 //
-// Good samples
-// https://researchworks.oclc.org/archivegrid/?q=%22Albert+Quincy+Porter%22
-// using person.name and `AND` :
-// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert++AND+person.name%3AQuincy&limit=100
-// also George Bowen, also Christian Abraham Fleetwood
-// https://researchworks.oclc.org/archivegrid/?p=1&q=event.name%3A%22american+civil+war%22
+//	c.Limit(&colly.LimitRule{
+//		DomainGlob:  "*",
+//		Parallelism: 1,
+//		Delay:       3 * time.Second,
+//	})
 //
-// https://researchworks.oclc.org/archivegrid/?q=person.name%3APorter+AND+person.name%3AAlbert+++AND+person.name%3AQuincy&limit=100
+//	c.OnRequest(func(request *colly.Request) {
+//		log.Printf("\nSTARTING NEW REQUEST TIME: %v\n", time.Now())
+//		log.Printf("\nscanArchiveGrid YOUR QUERY %s\n", mq)
+//		log.Printf("\nscanArchiveGrid REQUEST: %s\n\n", request.URL)
+//
+//	})
+//
+//	c.OnError(func(response *colly.Response, err error) {
+//		log.Printf("\nERROR: Time %v \tRESPONSE STATUS: %v\nERROR: %s", time.Now(), response.StatusCode, err)
+//
+//	})
+//
+//	c.OnResponse(func(response *colly.Response) {
+//		log.Printf("\nReceived response about request %s\n", response.Request.URL)
+//	})
+//
+//	c.OnHTML(AGDomPathsDefinition.Results, func(results *colly.HTMLElement) {
+//		resultsSize, err := totalPagesAtoi(results.ChildText(AGDomPathsDefinition.ResultsSizeMessage))
+//		if resultsSize == 0 || err != nil {
+//			mq.SetResultCount(0)
+//			mq.DebugNotes = QUERYDEBUG(NORESULTS)
+//
+//			log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsSize)
+//			//agrecord.MatchestCount = -1
+//			//agrecord.IsMatch = true
+//			//agrecord.DebugNotes = AGDEBUG(NORESULTS)
+//			//agRecords = append(agRecords, agrecord)
+//			return
+//		} else if resultsSize > TOOMANYRESULTSVALUE {
+//			log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsSize)
+//			// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
+//			mq.SetResultCount(0)
+//			mq.DebugNotes = QUERYDEBUG(TOOMANYRESULTS)
+//			//agrecord.MatchestCount = resultsSize
+//			//agrecord.IsMatch = false
+//			//agrecord.DebugNotes = AGDEBUG(TOOMANYRESULTS)
+//			//agRecords = append(agRecords, agrecord)
+//		} else {
+//			log.Printf("RESULT SIZE ok supposed to process the other OnHtml for AG DOM elements %d", resultsSize)
+//			mq.SetResultCount(resultsSize)
+//			mq.DebugNotes = QUERYDEBUG(ACCEPTABLERESULTS)
+//			//agrecord.MatchestCount = resultsSize
+//			//agrecord.set(title, author, archive, summary, contact)
+//			//agrecord.DebugNotes = AGDEBUG(ACCEPTABLERESULTS)
+//		}
+//	})
+//
+//	c.OnHTML(AGDomPathsDefinition.Record, func(rec *colly.HTMLElement) {
+//
+//		// exit this OnHtml if there is nothing to search for or sanity doesn't check
+//		switch {
+//		case mq.ResultSize < 1:
+//			return
+//		case mq.ResultSize > QUERY_LIMIT:
+//			//
+//		}
+//
+//		agrecord := NewArchiveGridRecord(m.Id, *mq)
+//		record := rec.ChildAttr(AGDomPathsDefinition.RecordCollectionDataPath, "value")
+//		title := rec.ChildText(AGDomPathsDefinition.Title)
+//		//title := rec.DOM.Find(AGDomPathsDefinition.Title).Text()
+//		//.ChildText(AGDomPathsDefinition.Title)
+//		author := rec.ChildText(AGDomPathsDefinition.Author)
+//		//.DOM.Find(AGDomPathsDefinition.Author).Text()
+//		archive := rec.ChildText(AGDomPathsDefinition.Archive)
+//		//.DOM.Find(AGDomPathsDefinition.Archive).Text()
+//		summary := rec.ChildText(AGDomPathsDefinition.Summary)
+//		//.DOM.Find(AGDomPathsDefinition.Summary).Text()
+//		link := rec.ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+//		//.DOM.Find(AGDomPathsDefinition.LinksContactInformation).Attr("href")
+//		//ChildAttr(AGDomPathsDefinition.LinksContactInformation, "href")
+//		contact := rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
+//		//.DOM.Find(AGDomPathsDefinition.ContactInformation).Attr("title")
+//		//rec.ChildAttr(AGDomPathsDefinition.ContactInformation, "title")
+//
+//		agrecord.Set(record, title, author, archive, summary, link, contact)
+//		//log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+//		//	record, title, author, archive, summary, contact, link)
+//
+//		if matches := agrecord.ContainsAnyFolded(phrases); matches > 0 || phrases == nil {
+//			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+//				record, title, author, archive, summary, contact, link)
+//			log.Printf("FILTERED IN matches = %d", matches)
+//			agrecord.DebugNotes = AGDEBUG(FOUNDANDVALIDATED)
+//			agrecord.IsMatch = true
+//			mq.Matches = matches
+//			agRecords = append(agRecords, agrecord)
+//		} else {
+//			log.Printf("FILTERED OUT matches = %d", matches)
+//		}
+//
+//	})
+//
+//	c.Visit(mq.String())
+//
+//	return agRecords
+//}

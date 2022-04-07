@@ -21,7 +21,7 @@ package archivegrid
 //	Id                       CatalogHash           `json:"id"`
 //	MusicianId               musician.MusicianHash `json:"musician_id"`
 //	Query                    MusicianQuery         `json:"musician_query"`
-//	ResultCount              int                   `json:"result_count"`
+//	MatchestCount              int                   `json:"result_count"`
 //	IsMatch                  bool                  `json:"is_match"`
 //	RecordCollectionDataPath string                `json:"record_collection_datapath"`
 //	Title                    string                `json:"record_title"`
@@ -59,7 +59,7 @@ package archivegrid
 //		cat.Id,
 //		cat.MusicianId,
 //		cat.Query,
-//		cat.ResultCount,
+//		cat.MatchestCount,
 //		cat.RecordCollectionDataPath,
 //		cat.Title,
 //		cat.Author,
@@ -83,7 +83,7 @@ package archivegrid
 //	archiveGridRecord = &Record{
 //		MusicianId:  musicianId,
 //		Query:       query,
-//		ResultCount: -1,
+//		MatchestCount: -1,
 //		//RecordCollectionDataPath:                           ArchiveGridRecordSTRINGNULL,
 //		//Title:                     AGRecordTitle,
 //		//Author:                    AGRecordAuthor,
@@ -100,7 +100,7 @@ package archivegrid
 //	cat.Id = ""
 //	cat.MusicianId = ""
 //	cat.Query = MusicianQuery{}
-//	cat.ResultCount = 0
+//	cat.MatchestCount = 0
 //	cat.IsMatch = false
 //	cat.RecordCollectionDataPath = ""
 //	cat.Title = ""

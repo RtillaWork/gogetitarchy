@@ -10,3 +10,5 @@ var ARCHIVE_GRID_URL_PATTERNS []string = []string{
 }
 
 type MusiciansData map[musician.MusicianHash][]*Record
+
+type FilteredMusiciansData map[musician.MusicianHash][]*Record
