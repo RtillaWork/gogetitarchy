@@ -6,13 +6,14 @@ import (
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
+	"os"
 )
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inRawFileNameDefault = "../inFile.txt"
 const InRawFileNameDefault = "../infantry_raw_in.txt"
 const FilterPhrasesFilenameDefault = "../phrases.csv"
-const OutMusiciansFilenameDefault = "../out_musicians_default"
+const OutMusiciansFilenameDefault = "../musiciansdefault"
 const OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
 const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
 const OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
@@ -31,8 +32,16 @@ func main() {
 	flag.Parse()
 	GoodSetPhrases := utils.ImportPhrases(*FilterPhrasesFilename)
 
-	//musicians := musician.ReadMusiciansNames(inRawFileNameDefault)
-	musicians := musician.ImportData(*InRawFilename, musician.BlockDelimDef)
+	//
+	var musicians musician.MusiciansMap
+	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
+
+		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef)
+	} else {
+		musicians = musician.ReadData(d)
+
+	}
+
 	musiciansdb := musician.NewMusiciansDb(musicians)
 	//if len(os.Args) == 2 {
 	musician.ExportJson(*musiciansdb.Musicians, *OutMusiciansFilename+*OutExtension)
@@ -42,6 +51,8 @@ func main() {
 	//	musician.ExportJson(musiciansdb.Musicians, "")
 	//	musician.ExportDataDict(musiciansdb.Dict, "")
 	//}
+
+	//
 
 	musiciansQueries := archivegrid.BuildQueries(musicians)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename)

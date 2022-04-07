@@ -1,9 +1,13 @@
 package archivegrid
 
 import (
+	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
+	"io"
 	"log"
 	"net/url"
 	"time"
@@ -31,13 +35,13 @@ type MusicianQueryHash hash.HashSum
 type MusiciansQueries map[musician.MusicianHash]*MusicianQuery
 
 type MusicianQuery struct {
-	Id MusicianQueryHash `json:"query_id"` // for now init to same as MusicianId one musician one query
-	//MusicianId HashSum  `json:"musician_id"`
-	Url        string     `json:"url"`
-	Timestamp  time.Time  `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
-	ResultSize int        `json:"result_size"` // should be initialized to a NEVERQUERIED value
-	Matches    int        `json:"Matches"`
-	DebugNotes QUERYDEBUG `json:"debug_notes"`
+	Id         MusicianQueryHash     `json:"query_id"` // for now init to same as MusicianId one musician one query
+	MusicianId musician.MusicianHash `json:"musician_id"`
+	Url        string                `json:"url"`
+	Timestamp  time.Time             `json:"timestamp"`   // should be initialized to a NEVERQUERIED value
+	ResultSize int                   `json:"result_size"` // should be initialized to a NEVERQUERIED value
+	Matches    int                   `json:"Matches"`
+	DebugNotes QUERYDEBUG            `json:"debug_notes"`
 }
 
 func (mq *MusicianQuery) String() string {
@@ -47,13 +51,14 @@ func (mq *MusicianQuery) String() string {
 func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *MusicianQuery) {
 	newMusicianQuery = new(MusicianQuery)
 	newMusicianQuery = &MusicianQuery{
-		Id: MusicianQueryHash(id),
-		//MusicianId: m.Id,
-		Url: url,
+		Id:         MusicianQueryHash(id),
+		MusicianId: id,
+		Url:        url,
 		// Timestamp should be initialized to a NEVERQUERIED value
 		ResultSize: -1, //should be initialized to a NEVERQUERIED value
 		Matches:    -1,
 	}
+	newMusicianQuery.Id = newMusicianQuery.Hash()
 
 	return newMusicianQuery
 
@@ -64,6 +69,21 @@ func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *M
 	//	// Timestamp should be initialized to a NEVERQUERIED value
 	//	ResultSize: -1, //should be initialized to a NEVERQUERIED value
 	//}
+}
+
+func (mq *MusicianQuery) ToJson() string {
+	jsoned, err := json.Marshal(*mq)
+	errors.FailOn(err, "Musician::ToJson json.Marshal")
+	return fmt.Sprintf("%s", string(jsoned))
+}
+
+func (mq *MusicianQuery) Hash() MusicianQueryHash {
+	hashfunc := md5.New()
+	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
+	data := mq.ToJson()
+	io.WriteString(hashfunc, data)
+	hashsum := hashfunc.Sum(nil)
+	return MusicianQueryHash(fmt.Sprintf("%x", hashsum))
 }
 
 func (mq *MusicianQuery) SetResultCount(count int) {

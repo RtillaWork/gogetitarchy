@@ -2,6 +2,7 @@ package musician
 
 import (
 	"bufio"
+	"encoding/json"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"log"
@@ -258,4 +259,19 @@ func ExtractFields(data []string) (fields map[string]string) {
 	}
 	// END NOTE DEBUG
 	return fields
+}
+
+// ReadData
+func ReadData(data []byte) (musicians MusiciansMap) {
+	musicians = make(MusiciansMap)
+
+	musicianslist := make([]Musician, 0)
+
+	err := json.Unmarshal(data, &musicianslist)
+	errors.FailOn(err, "ReadData Import Musicians")
+
+	for _, m := range musicianslist {
+		musicians[m.Id] = &m
+	}
+	return musicians
 }

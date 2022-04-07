@@ -24,10 +24,14 @@ func ExportJson(musicians MusiciansMap, filename string) {
 		//log.Println(m.ToCsv())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n=== BEGIN RECORD %d ==========", counter)
+		} else {
+			fmt.Fprintf(outfile, "[\n")
 		}
-		fmt.Fprintf(outfile, "\n\n%s", m.ToJson())
+		fmt.Fprintf(outfile, "%s,\n", m.ToJson())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n===END RECORD ==========")
+		} else {
+			fmt.Fprintf(outfile, "]")
 		}
 		counter++
 	}
@@ -74,11 +78,19 @@ func ExportDataDict(dict DataDict, filename string) {
 		//log.Println(m.ToCsv())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n== KEY %s [counter %d] ==============", k, counter)
+		} else {
+			fmt.Fprintf(outfile, "{\n")
 		}
 		fmt.Fprintf(outfile, "\n\n\n### KEY: %s  ### [%d]\n", k, counter)
 		fmt.Fprintf(outfile, "KEY: %s STATS ### [%d]\n", k, dict.KeyStats[k])
 		for _, v := range vs {
 			fmt.Fprintf(outfile, "VALUE: %s  ( VALUE STATS: [%d] \n", v, dict.ValuesStats[v])
+		}
+
+		if outfile == os.Stdout {
+			fmt.Fprintf(outfile, "\n== END KEY %s [counter %d] ==============", k, counter)
+		} else {
+			fmt.Fprintf(outfile, "}\n")
 		}
 
 		counter++
