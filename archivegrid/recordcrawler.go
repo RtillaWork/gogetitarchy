@@ -87,8 +87,13 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 
 	c.OnHTML(AGDomPathsDefinition.ResultsSize, func(elem *colly.HTMLElement) {
 		//resultsizehtml, e := results.DOM.Find("#resultsize").Html()
-		resultsizehtml := elem.Text
-		log.Printf("ResultSize elem.Text %s", resultsizehtml)
+		resultsizehtml, e := elem.DOM.Html()
+		if e != nil {
+			err = e
+			log.Printf("ERROR ResultSize elem.DOM.Html() ERROR %s, \nresultsizeHtml: %s\n", err, resultsizehtml)
+			return
+		}
+		log.Printf("ResultSizeelem.DOM.Html() %s", resultsizehtml)
 		utils.WaitForKeypress()
 
 		//if e != nil {

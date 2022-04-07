@@ -12,7 +12,7 @@ func ExportAllqueries(ms musician.MusiciansMap, mqs MusiciansQueries, filename s
 	var outfile *os.File
 	if filename == "" || !strings.HasSuffix(filename, ".csv") {
 		outfile = os.Stdout
-	} else if h, err := os.Open("OUT_QUERIES_" + filename); err != nil {
+	} else if h, err := os.OpenFile("OUT_QUERIES_"+filename, os.O_WRONLY, 0777); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
@@ -34,7 +34,7 @@ func ExportAllResponseData(ms musician.MusiciansMap, mrd MusiciansData, filename
 	var outfile *os.File
 	if filename == "" || !strings.HasSuffix(filename, ".csv") {
 		outfile = os.Stdout
-	} else if h, err := os.Open(filename); err != nil {
+	} else if h, err := os.OpenFile(filename, os.O_WRONLY, 0777); err != nil {
 		log.Printf("Eeeor opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {

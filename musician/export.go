@@ -2,7 +2,6 @@ package musician
 
 import (
 	"fmt"
-	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +12,7 @@ func ExportJson(musicians MusiciansMap, filename string) {
 	var outfile *os.File
 	if filename == "" {
 		outfile = os.Stdout
-	} else if h, err := os.Open("OUT_" + time.Now().String() + "_" + filename); err != nil {
+	} else if h, err := os.OpenFile("OUT_"+time.Now().String()+"_"+filename, os.O_WRONLY, 0777); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
@@ -33,7 +32,7 @@ func ExportJson(musicians MusiciansMap, filename string) {
 		counter++
 	}
 	log.Printf("\n\n\n Json records exported for musicians: %d\n\n", counter)
-	utils.WaitForKeypress()
+	//utils.WaitForKeypress()
 }
 
 func ExportCsv(musicians MusiciansMap, filename string) {
@@ -63,7 +62,7 @@ func ExportDataDict(dict DataDict, filename string) {
 	var outfile *os.File
 	if filename == "" {
 		outfile = os.Stdout
-	} else if h, err := os.Open("OUT_" + time.Now().String() + "_" + filename); err != nil {
+	} else if h, err := os.OpenFile("OUT_"+time.Now().String()+"_"+filename, os.O_WRONLY, 0777); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
@@ -85,7 +84,7 @@ func ExportDataDict(dict DataDict, filename string) {
 		counter++
 	}
 	log.Printf("\n\n\n Counted Number of Keys: %d\n\n", counter)
-	utils.WaitForKeypress()
+	//utils.WaitForKeypress()
 }
 
 // OLD

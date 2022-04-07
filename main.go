@@ -13,8 +13,10 @@ import (
 const InRawFileNameDefault = "../infantry_raw_in.txt"
 const FilterPhrasesFilenameDefault = "../phrases.csv"
 const OutMusiciansFilenameDefault = "../out_musicians_default"
-const OutMusiciansDbFilenameDefault = "../out_musiciansdb_default"
-const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DataDict"
+const OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
+const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
+const OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
+const OutResponseDataFilenameDefault = OutMusiciansFilenameDefault + "_RESPONSERECORDS_"
 const OutExtensionDefault = ".json" // or ".csv"
 
 func main() {
@@ -23,6 +25,8 @@ func main() {
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
 	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
+	OutMusiciansQueryFilename := flag.String("outQueries", OutMusiciansQueryFilenameDefault, "Output queries json")
+	OutResponseDataFilename := flag.String("outResponse", OutResponseDataFilenameDefault, "Output response data in json")
 	OutExtension := flag.String("outformat", OutExtensionDefault, "Output format json or csv(;). Default json")
 	flag.Parse()
 	GoodSetPhrases := utils.ImportPhrases(*FilterPhrasesFilename)
@@ -40,11 +44,11 @@ func main() {
 	//}
 
 	musiciansQueries := archivegrid.BuildQueries(musicians)
-	archivegrid.ExportAllqueries(musicians, musiciansQueries, "")
+	archivegrid.ExportAllqueries(musicians, musiciansQueries, OutMusiciansQueryFilenameDefault)
 
 	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 10, GoodSetPhrases)
 	if ok {
-		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, "")
+		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, OutResponseDataFilenameDefault)
 	} else {
 		log.Println("CrawlArchiveGrid returned not ok")
 	}
