@@ -237,15 +237,15 @@ func ExtractFields(data []string) (fields map[string]string) {
 			continue
 		case 1:
 			k = "MISC"
-			v += s[0] // Normalize(s[0])
+			v += utils.NormalizeValue(s[0]) //s[0]
 			// PREVIOUSLY k = strings.ToUpper(s[0])
 			// PREVIOUSLY v = s[0]
 		case 2:
-			k = strings.ToUpper(s[0])
-			v = s[1]
+			k = utils.NormalizeKey(s[0])   // strings.ToUpper(s[0])
+			v = utils.NormalizeValue(s[1]) // s[1]
 		default:
-			k = strings.ToUpper(s[0])
-			v = strings.Join(s[1:], block_FIELD_SEP)
+			k = utils.NormalizeKey((s[0])) // strings.ToUpper(s[0])
+			v = utils.NormalizeValue(strings.Join(s[1:], block_FIELD_SEP))
 		}
 
 		fields[k] = v

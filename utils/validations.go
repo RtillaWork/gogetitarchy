@@ -156,12 +156,29 @@ func ImportPhrases(filename string) (phrases []string) {
 
 // NormalizeStr converts a string to Uppercase and remove spaces around
 // returns the changed string and true if success, otherwise false if in our out string is invalid
-func NormalizeStr(in string) (out string, err error) {
+func NormalizeStr(in string) (out string) { //, err error) {
 	//if IsUnwantedInput(in, goodset, badset) {
 	//	return "", false
 	//}
-
 	out = strings.ToUpper(strings.TrimSpace(in))
-	return out, nil
+	return out
+
+}
+
+func NormalizeKey(in string) (out string) { //, err error) {
+	//if IsUnwantedInput(in, goodset, badset) {
+	//	return "", false
+	//}
+	out = NormalizeStr(in)
+	return out
+
+}
+
+func NormalizeValue(in string) (out string) { //, err error) {
+	//if IsUnwantedInput(in, goodset, badset) {
+	//	return "", false
+	//}
+	out = strings.ToLower(strings.TrimSpace(in))
+	return out
 
 }
