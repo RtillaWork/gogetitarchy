@@ -31,13 +31,16 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 	defer inFile.Close()
 
 	//
-	garbage1 := regexp.MustCompile(`[\d{1,2}/]{1,2}`) // remove 8/13   or ^L1/10/22, 1:38 PM
+	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+	validln := regexp.MustCompile(`\w+`)
 
 	s := bufio.NewScanner(inFile)
 	blklines := []string{}
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curtmp := utils.NormalizeStr(s.Text())
-		if curtmp == "" || len(curtmp) == 0 || garbage1.MatchString(curtmp) {
+		curtmp := strings.TrimSpace(s.Text())
+		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
+			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
 			continue
 		}
 		curln = curtmp
@@ -199,7 +202,7 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 		ok = true
 	default:
 		// Errors
-		log.Printf("####### WARNING UNDEFINED REGREX FOR names \n")
+		log.Printf("####### WARNING UNDEFINED REGREX FOR names: %#v \n", names)
 		log.Printf("REGEX s 0 %#v\n", s0)
 		log.Printf("REGEX s 1 %#v\n", s1)
 		log.Printf("REGEX s 2 %#v\n", s2)
