@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bufio"
-	"github.com/RtillaWork/gogetitarchy/musician"
 	"log"
 	"os"
 	"regexp"
@@ -182,11 +181,4 @@ func NormalizeValue(in string) (out string) { //, err error) {
 	out = strings.ToLower(strings.TrimSpace(in))
 	return out
 
-}
-
-// compare content and data verification helper funcs
-
-// CompareMusicians
-func CompareMusicians(mA *musician.MusiciansMap, mB *musician.MusiciansMap) (ok bool) {
-	return true
 }

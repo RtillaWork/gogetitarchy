@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/RtillaWork/gogetitarchy/musician"
+	"github.com/RtillaWork/gogetitarchy/testing"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
@@ -39,7 +40,7 @@ func main() {
 	//
 	var musicians musician.MusiciansMap
 	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef1)
+		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
 		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 	} else {
 		musicians = musician.ReadData(d)
@@ -49,13 +50,13 @@ func main() {
 
 	if *testMode {
 		var testmusiciansA, testmusiciansB musician.MusiciansMap
-		testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef1)
+		testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
 		if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
 			log.Printf("NO file %s to test against", *OutMusiciansFilename)
 		} else {
 			testmusiciansB = musician.ReadData(d)
 		}
-		utils.CompareMusicians(&testmusiciansA, &testmusiciansB)
+		testing.CompareMusicians(&testmusiciansA, &testmusiciansB)
 	}
 
 	//musiciansdb := musician.NewMusiciansDb(musicians)

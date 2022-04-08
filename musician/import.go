@@ -30,11 +30,18 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 	errors.FailOn(err, "opening inFile for reading...")
 	defer inFile.Close()
 
-	s := bufio.NewScanner(inFile)
+	//
+	garbage1 := regexp.MustCompile(`[\d{1,2}/]{1,2}`) // remove 8/13   or ^L1/10/22, 1:38 PM
 
+	s := bufio.NewScanner(inFile)
 	blklines := []string{}
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curln = s.Text()
+		curtmp := utils.NormalizeStr(s.Text())
+		if curtmp == "" || len(curtmp) == 0 || garbage1.MatchString(curtmp) {
+			continue
+		}
+		curln = curtmp
+
 		//// NOTE DEBUG
 		//log.Printf("for prevline %s\n", prevln)
 		//log.Printf("for curln %s\n", curln)
@@ -89,6 +96,7 @@ func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	//utils.WaitForKeypress()
 	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
+		log.Printf("### ERROR will return NOT OK ablock[0] %#v\n", ablock[0])
 		return amusician, false
 	}
 	//errors.Assert(ok, "\n\nSCANNING BAD line: %s ONLT FOUND NOTES, NO NAMES\n\n")
@@ -236,7 +244,9 @@ func ExtractFields(data []string) (fields map[string]string) {
 		} else if k != v {
 			v1, v2, ok := breakLineByFields(v, block_DATE_SEP)
 			if ok && v1 != v2 {
-				datecsv = fmt.Sprintf("%s:%s%s%s%s%s", k, v1, CSV_SEP, k, v2, CSV_SEP)
+				datecsv = fmt.Sprintf("%s:%s%s%s%s%s",
+					utils.NormalizeKey(k), utils.NormalizeValue(v1), CSV_SEP,
+					utils.NormalizeKey(k), utils.NormalizeValue(v2), CSV_SEP)
 			}
 
 		}
