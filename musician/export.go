@@ -13,7 +13,7 @@ func ExportJson(musicians MusiciansMap, filename string) {
 	if filename == "" {
 		outfile = os.Stdout
 		log.Printf("Opening file outfile=OS.STDOUT")
-	} else if h, err := os.OpenFile(filename, os.O_WRONLY, 0666); err != nil {
+	} else if h, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
@@ -69,7 +69,7 @@ func ExportDataDict(dict DataDict, filename string) {
 	var outfile *os.File
 	if filename == "" {
 		outfile = os.Stdout
-	} else if h, err := os.OpenFile(filename, os.O_WRONLY, 0666); err != nil {
+	} else if h, err := os.OpenFile(filename, os.O_CREATE, 0666); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {

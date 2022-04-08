@@ -32,17 +32,17 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 	blklines := []string{}
 	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
 		curln = s.Text()
-		// NOTE DEBUG
-		log.Printf("for prevline %s\n", prevln)
-		log.Printf("for curln %s\n", curln)
-		log.Printf("blklines %#v\n", blklines)
-		//log.Printf("initial %#v\n", initial)
-		// END NOTE DEBUG
+		//// NOTE DEBUG
+		//log.Printf("for prevline %s\n", prevln)
+		//log.Printf("for curln %s\n", curln)
+		//log.Printf("blklines %#v\n", blklines)
+		////log.Printf("initial %#v\n", initial)
+		//// END NOTE DEBUG
 
 		if initial && curln == delim {
 			initial = false
 			blklines[0] = prevln // prevlin == names
-			log.Printf("if initial blklines %#v\n", blklines)
+			//log.Printf("if initial blklines %#v\n", blklines)
 			continue // to skip the next coniditon during the transition from initial true to false
 		}
 
@@ -58,9 +58,9 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 			}
 			blklines = []string{}
-			log.Printf("if not initial   prevline %s\n", prevln)
-			log.Printf("if not initial   curln %s\n", curln)
-			log.Printf("if not initial  blklines %#v\n", blklines)
+			//log.Printf("if not initial   prevline %s\n", prevln)
+			//log.Printf("if not initial   curln %s\n", curln)
+			//log.Printf("if not initial  blklines %#v\n", blklines)
 			blklines = []string{prevln} // prevlin == names
 			//blklines[0] = prevln // prevlin == names
 			log.Printf("if not initial blklines after %#v\n", blklines)
@@ -211,9 +211,9 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 func ExtractFields(data []string) (fields map[string]string) {
 	fields = make(map[string]string)
 	//log.Printf("Raw Block Data i:{ %v }\n %s\n", data, data)
-	for i, d := range data {
+	for _, d := range data { // _=i
 		// NOTE DEBUG
-		log.Printf("### \n\nablock[%d] %v\n", i, d)
+		//log.Printf("### \n\nablock[%d] %v\n", i, d)
 		// NOTE END DEBUG
 
 		if utils.IsUnwantedInput(d, skipThese) {
@@ -253,11 +253,11 @@ func ExtractFields(data []string) (fields map[string]string) {
 		//log.Printf("BLOCK i: %v { %v }\n %s\n", i, fields, fields)
 	}
 	//utils.WaitForKeypress()
-	// NOTE DEBUG
-	for k, v := range fields {
-		log.Printf("BLOCK: k:  { %v } v:   %s\n", k, v)
-	}
-	// END NOTE DEBUG
+	//// NOTE DEBUG
+	//for k, v := range fields {
+	//	log.Printf("BLOCK: k:  { %v } v:   %s\n", k, v)
+	//}
+	//// END NOTE DEBUG
 	return fields
 }
 

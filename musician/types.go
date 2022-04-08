@@ -98,7 +98,7 @@ func init() {
 			"FIRSTNAME":  "NULL_FIRSTNAME",
 			"MIDDLENAME": "NULL_MIDDLENAME",
 			"LASTNAME":   "NULL_LASTNAME",
-			"MISC":       "NULL_MISC",
+			"MISC":       "NULL_MISC", // TODO RENAME TO MISCELLANEA because MISC might already be in the text
 			"DATEBEGIN":  "NULL_DATEBEGIN",
 			"DATEEND":    "NULL_DATEEND",
 			"DATEOTHER":  "NULL_DATEOTHER",
