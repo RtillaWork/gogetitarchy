@@ -64,7 +64,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 			//log.Printf("if not initial   curln %s\n", curln)
 			//log.Printf("if not initial  blklines %#v\n", blklines)
 			blklines = []string{prevln} // prevlin == names
-			//blklines[0] = prevln // prevlin == names
+			// TODO DELETEME blklines[0] = prevln // prevlin == names
 			log.Printf("if not initial blklines after %#v\n", blklines)
 		}
 		blklines = append(blklines, prevln)
@@ -82,7 +82,7 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 // it expects that block[0] is at least present with names
 func ReadMusicianData(ablock []string) (amusician *Musician, ok bool) {
 	errors.Assert(len(ablock) != 0, "ReadMusicianData []ablock is nil or empty\n")
-	log.Printf("### ablock[0] %#v\n", ablock[0])
+	//log.Printf("### ablock[0] %#v\n", ablock[0])
 	//utils.WaitForKeypress()
 	amusician, ok = NewMusicianFrom(ablock[0])
 	if !ok {
