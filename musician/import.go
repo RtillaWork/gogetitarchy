@@ -3,6 +3,7 @@ package musician
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"log"
@@ -216,6 +217,7 @@ func ExtractNamesNotesFrom(data string) (fname string, mname string, lname strin
 // ExtractFields tries to build Musician.Fields map from valid data in the previously read block []string
 func ExtractFields(data []string) (fields map[string]string) {
 	fields = make(map[string]string)
+	datecsv := ""
 	//log.Printf("Raw Block Data i:{ %v }\n %s\n", data, data)
 	for _, d := range data { // _=i
 		// NOTE DEBUG
@@ -227,36 +229,50 @@ func ExtractFields(data []string) (fields map[string]string) {
 			//log.Printf("DEBUG IS UNLIKELY VALID DATA")
 		}
 
-		s := strings.Split(strings.TrimSpace(d), block_FIELD_SEP)
-		// NOTE DEBUG
-		//log.Printf("### s[%d] %v\n", i, s)
-		// NOTE END DEBUG
-		if len(s) == 0 {
+		//
+		k, v, ok := breakLineByFields(d, block_FIELD_SEP)
+		if !ok {
 			continue
-		} else if len(s[0]) == 0 {
-			s = s[1:]
-		} else {
-			s = s[0:]
-		}
-		var k, v string
-		switch l := len(s); l {
-		case 0:
-			continue
-		case 1:
-			k = "MISCELLANEA"
-			v += utils.NormalizeValue(s[0]) //s[0]
-			// PREVIOUSLY k = strings.ToUpper(s[0])
-			// PREVIOUSLY v = s[0]
-		case 2:
-			k = utils.NormalizeKey(s[0])   // strings.ToUpper(s[0])
-			v = utils.NormalizeValue(s[1]) // s[1]
-		default:
-			k = utils.NormalizeKey((s[0])) // strings.ToUpper(s[0])
-			v = utils.NormalizeValue(strings.Join(s[1:], block_FIELD_SEP))
+		} else if k != v {
+			v1, v2, ok := breakLineByFields(v, block_DATE_SEP)
+			if ok && v1 != v2 {
+				datecsv = fmt.Sprintf("%s:%s%s%s%s%s", k, v1, CSV_SEP, k, v2, CSV_SEP)
+			}
+
 		}
 
+		//s := strings.Split(strings.TrimSpace(d), block_FIELD_SEP)
+		//// NOTE DEBUG
+		////log.Printf("### s[%d] %v\n", i, s)
+		//// NOTE END DEBUG
+		//if len(s) == 0 {
+		//	continue
+		//} else if len(s[0]) == 0 {
+		//	s = s[1:]
+		//} else {
+		//	s = s[0:]
+		//}
+		//var k, v string
+		//switch l := len(s); l {
+		//case 0:
+		//	continue
+		//case 1:
+		//	k = "MISCELLANEA"
+		//	v += utils.NormalizeValue(s[0]) //s[0]
+		//	// PREVIOUSLY k = strings.ToUpper(s[0])
+		//	// PREVIOUSLY v = s[0]
+		//case 2:
+		//	k = utils.NormalizeKey(s[0])   // strings.ToUpper(s[0])
+		//	v = utils.NormalizeValue(s[1]) // s[1]
+		//default:
+		//	k = utils.NormalizeKey((s[0])) // strings.ToUpper(s[0])
+		//	v = utils.NormalizeValue(strings.Join(s[1:], block_FIELD_SEP))
+		//}
+
 		fields[k] = v
+		fields["DATECSV"] = datecsv
 		//log.Printf("BLOCK i: %v { %v }\n %s\n", i, fields, fields)
+
 	}
 	//utils.WaitForKeypress()
 	//// NOTE DEBUG
@@ -265,6 +281,44 @@ func ExtractFields(data []string) (fields map[string]string) {
 	//}
 	//// END NOTE DEBUG
 	return fields
+}
+
+// Utility funcs
+
+// break raw line by meaninful field separators, successsively/recursively
+func breakLineByFields(d string, sep string) (key string, value string, ok bool) {
+	s := strings.Split(strings.TrimSpace(d), sep)
+	// NOTE DEBUG
+	//log.Printf("### s[%d] %v\n", i, s)
+	// NOTE END DEBUG
+	if len(s) == 0 {
+		return "", "", false
+	} else if len(s[0]) == 0 {
+		s = s[1:]
+	} else {
+		s = s[0:]
+	}
+	var k, v string
+	switch l := len(s); l {
+	case 0:
+		return "", "", false
+	case 1:
+		k = "MISCELLANEA"
+		v += (utils.NormalizeValue(s[0]) + block_FIELD_SEP) //s[0]
+		// PREVIOUSLY k = strings.ToUpper(s[0])
+		// PREVIOUSLY v = s[0]
+	case 2:
+		k = utils.NormalizeKey(s[0])   // strings.ToUpper(s[0])
+		v = utils.NormalizeValue(s[1]) // s[1]
+	default:
+		k = utils.NormalizeKey((s[0]))                         // strings.ToUpper(s[0])
+		v = utils.NormalizeValue(strings.Join(s[1:], CSV_SEP)) //  block_FIELD_SEP
+	}
+
+	key = k
+	value = v
+	ok = true
+	return key, value, ok
 }
 
 // ReadData

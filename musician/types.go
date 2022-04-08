@@ -24,6 +24,7 @@ const INITIALS_SEP = ". " // I.N.I.T._NAMES
 const NOTES_SEP_OPEN = "("
 const NOTES_SEP_CLOSE = ")"
 const FIELDS_SEP = ",: -"
+const CSV_SEP = ";"
 
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
