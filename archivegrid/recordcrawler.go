@@ -208,18 +208,28 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 // Helpers
 
 // like Atoi but cleanes the string out of any non digit characters like comma before the conversion
-func totalPagesAtoi(s string) (n int, err error) {
-	rexTotalPages := regexp.MustCompile(`Records a to b of t\d+`)
-	sint := rexTotalPages.FindString(s)
-	if s == "" || sint == "" {
-		return -1, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")
+func totalPagesAtoi(s string) (from int, to int, total int, err error) {
+	rexTotalPages := regexp.MustCompile(`Record.?\s+(\d+)\s+to\s+(\d+)\s+of\s+(\d+)`)
+	sint := rexTotalPages.FindStringSubmatch(s)
+	if s == "" || sint == nil {
+		return -1, -1, -1, errors.New("totalPagesAtoi got empty string probably because no css selector matched regexp or OnHtml")
+	} else if len(sint) != 4 {
+		log.Printf("totalPagesAtoi regexp returned unexpected number of elemnts")
+		return -1, -1, -1, errors.New("totalPagesAtoi regexp returned unexpected number of elemnts")
 	} else {
-		n, err = strconv.Atoi(sint)
+		from, err = strconv.Atoi(sint[1])
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		to, err = strconv.Atoi(sint[2])
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		total, err = strconv.Atoi(sint[3])
 		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
 
-		sint = ""
-		return n, err
+		//errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+
+		sint = nil
+		return from, to, total, err
 	}
+
 }
 
 func FilteredMusiciansDataBuilder(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {
