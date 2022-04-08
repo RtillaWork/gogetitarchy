@@ -95,14 +95,14 @@ func init() {
 		Notes:     "NULL_NOTES",
 		Encounter: 0,
 		Fields: map[string]string{
-			"FIRSTNAME":  "NULL_FIRSTNAME",
-			"MIDDLENAME": "NULL_MIDDLENAME",
-			"LASTNAME":   "NULL_LASTNAME",
-			"MISC":       "NULL_MISC", // TODO RENAME TO MISCELLANEA because MISC might already be in the text
-			"DATEBEGIN":  "NULL_DATEBEGIN",
-			"DATEEND":    "NULL_DATEEND",
-			"DATEOTHER":  "NULL_DATEOTHER",
-			"DATECSV":    "NULL_DATEBCSV", //"xxxx;yyyy;....zzzz"
+			"FIRSTNAME":   "NULL_FIRSTNAME",
+			"MIDDLENAME":  "NULL_MIDDLENAME",
+			"LASTNAME":    "NULL_LASTNAME",
+			"MISCELLANEA": "NULL_MISCELLANEA", // TODO RENAME TO MISCELLANEA because MISC might already be in the text
+			"DATEBEGIN":   "NULL_DATEBEGIN",
+			"DATEEND":     "NULL_DATEEND",
+			"DATEOTHER":   "NULL_DATEOTHER",
+			"DATECSV":     "NULL_DATEBCSV", //"xxxx;yyyy;....zzzz"
 
 		}, //map[string]string{},
 		Tags: []string{},

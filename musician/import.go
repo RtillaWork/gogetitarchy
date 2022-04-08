@@ -243,7 +243,7 @@ func ExtractFields(data []string) (fields map[string]string) {
 		case 0:
 			continue
 		case 1:
-			k = "MISC"
+			k = "MISCELLANEA"
 			v += utils.NormalizeValue(s[0]) //s[0]
 			// PREVIOUSLY k = strings.ToUpper(s[0])
 			// PREVIOUSLY v = s[0]

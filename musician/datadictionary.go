@@ -20,14 +20,14 @@ func init() {
 		LastModified: time.Now(),
 
 		Fields: map[string][]string{
-			"FIRSTNAMES":  []string{},
-			"MIDDLENAMES": []string{},
-			"LASTNAMES":   []string{},
-			"MISCS":       []string{},
-			"DATESBEGIN":  []string{},
-			"DATESEND":    []string{},
-			"DATESOTHER":  []string{},
-			"DATESCSV":    []string{},
+			"FIRSTNAMES":   []string{},
+			"MIDDLENAMES":  []string{},
+			"LASTNAMES":    []string{},
+			"MISCELLANEAS": []string{},
+			"DATESBEGIN":   []string{},
+			"DATESEND":     []string{},
+			"DATESOTHER":   []string{},
+			"DATESCSV":     []string{},
 		},
 
 		KeyStats:    make(map[string]int),
@@ -62,24 +62,18 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 	// ...then collect all keys and values
 	for _, mv := range musiciansmap {
 		//// fname, mname, lname
-		fname := strings.ToUpper(strings.TrimSpace(mv.FName))
-		mname := strings.ToUpper(strings.TrimSpace(mv.MName))
-		lname := strings.ToUpper(strings.TrimSpace(mv.LName))
+		fname := utils.NormalizeKey(mv.FName)
+		mname := utils.NormalizeKey(mv.MName)
+		lname := utils.NormalizeKey(mv.LName)
 
-		if fname != Defaults.FName {
+		// commented out, we want to count the unassigned names too
+		//if fname != Defaults.FName {
+		firstnames[fname]++
+		// if mname != Defaults.MName {
+		middlenames[mname]++
+		// if lname != Defaults.LName {
+		lastnames[lname]++
 
-			firstnames[fname]++
-		}
-
-		if mname != Defaults.FName {
-
-			middlenames[mname]++
-		}
-
-		if lname != Defaults.FName {
-
-			lastnames[lname]++
-		}
 		////Fields[key]value
 		for key, val := range mv.Fields {
 			k := utils.NormalizeKey(key)
@@ -106,7 +100,7 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 	for key, _ := range keys {
 		for val, keyofv := range valueskey {
 			if key == keyofv {
-				TheDataDict.Fields[keyofv] = append(TheDataDict.Fields[keyofv], val)
+				TheDataDict.Fields[key] = append(TheDataDict.Fields[key], val)
 			}
 		}
 	}
