@@ -211,9 +211,12 @@ var AGDomPathsDefinition = AGDomPaths{
 	ContactInformation:       "div.record_links > a[title]",       // a  ANDALSO title   "div.record_links > a[title]"
 	Results:                  "div.results",
 	ResultsNotEmpty:          "div.results div.searchresult",
-	ResultsEmpty:             "div.results div.alertresult",
-	ResultsSize:              "main .container .row .col-md-12 h2", //Child("span") // main .container .row .col-md-12 h2 #resultsize // "main h2 > span[id=resultsize]", // "main > h2", // "main h2 > span#resultsize"
-	ResultsSizeMessage:       "div.navtable > div.navrow > div.navrowright > span",
-	ResultsNext:              ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
+	ResultsEmpty:             "div.results div.alertresult", // div.alert "No ArchiveGrid collection descriptions match this search:"
+	ResultsSize:              ".results .navtable .navrow .navrowright",
+	// span here has class, content is regex
+	//// Warning goquery doesn't seem to read span content, switching to "Records a to b of t"
+	//// from "main .container .row .col-md-12 h2", //Child("span") // main .container .row .col-md-12 h2 #resultsize // "main h2 > span[id=resultsize]", // "main > h2", // "main h2 > span#resultsize"
+	ResultsSizeMessage: "div.navtable > div.navrow > div.navrowright > span",
+	ResultsNext:        ".results .navtable .navrow a[title=\"View the Next page of results\"]", // get the href
 
 }

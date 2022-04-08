@@ -54,6 +54,9 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 
 // Get query's specific parameters particularily result size
 func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
+	resultsEmpty := false
+	resultsNotEmpty := false
+	// assert at the end of func resultsEmpty != resultsNotEmpty, orelse Fail
 	resultsize = -1
 	c := colly.NewCollector(
 		colly.AllowedDomains(ALLOWED_DOMAINS...),
@@ -83,6 +86,23 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 
 	c.OnResponse(func(response *colly.Response) {
 		log.Printf("\nScanQueryResultSize Received response about request %s\n", response.Request.URL)
+	})
+
+	c.OnHTML(AGDomPathsDefinition.ResultsEmpty, func(elem *colly.HTMLElement) {
+		if elem != nil {
+			resultsEmpty = true
+		}
+		log.Printf("ResultsEmpty hit resultsEmpty = %T, elem = %s\n", resultsEmpty, elem.Name)
+		//utils.WaitForKeypress()
+
+	})
+
+	c.OnHTML(AGDomPathsDefinition.ResultsNotEmpty, func(elem *colly.HTMLElement) {
+		if elem != nil {
+			resultsNotEmpty = true
+		}
+		log.Printf("ResultsEmpty hit resultsNotEmpty = %T, elem = %s\n", resultsNotEmpty, elem.Name)
+		//utils.WaitForKeypress()
 	})
 
 	c.OnHTML(AGDomPathsDefinition.ResultsSize, func(elem *colly.HTMLElement) {
@@ -189,7 +209,7 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 
 // like Atoi but cleanes the string out of any non digit characters like comma before the conversion
 func totalPagesAtoi(s string) (n int, err error) {
-	rexTotalPages := regexp.MustCompile(`\d+`)
+	rexTotalPages := regexp.MustCompile(`Records a to b of t\d+`)
 	sint := rexTotalPages.FindString(s)
 	if s == "" || sint == "" {
 		return -1, errors.New("totalPagesAtoi got empty string probably because no css selector matched OnHtml")

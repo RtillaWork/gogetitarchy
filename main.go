@@ -13,7 +13,7 @@ import (
 //const inRawFileNameDefault = "../inFile.txt"
 const InRawFileNameDefault = "../infantry_raw_in.txt"
 const FilterPhrasesFilenameDefault = "../phrases.csv"
-const OutMusiciansFilenameDefault = "../musiciansdefault"
+const OutMusiciansFilenameDefault = "~/_ARCHIVEGRID/musiciansdefault"
 const OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
 const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
 const OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
@@ -35,28 +35,22 @@ func main() {
 	//
 	var musicians musician.MusiciansMap
 	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-
 		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef)
+		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 	} else {
 		musicians = musician.ReadData(d)
-
+		log.Printf("Musicians file %s found, imported %d musicians\n", *OutMusiciansFilename, len(musicians))
+		utils.WaitForKeypress()
 	}
 
 	musiciansdb := musician.NewMusiciansDb(musicians)
-	//if len(os.Args) == 2 {
-	musician.ExportJson(*musiciansdb.Musicians, *OutMusiciansFilename+*OutExtension)
 	musician.ExportDataDict(*musiciansdb.Dict, *OutTheDataDictFilename+*OutExtension)
-	//} else {
-	//
-	//	musician.ExportJson(musiciansdb.Musicians, "")
-	//	musician.ExportDataDict(musiciansdb.Dict, "")
-	//}
 
 	//
-
 	musiciansQueries := archivegrid.BuildQueries(musicians)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename)
 
+	//
 	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 10, GoodSetPhrases)
 	if ok {
 		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename)
