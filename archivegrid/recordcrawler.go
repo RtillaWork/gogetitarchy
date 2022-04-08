@@ -119,7 +119,7 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 		//if e != nil {
 		//	err = e
 		//} else {
-		resultsize, err = totalPagesAtoi(resultsizehtml)
+		_, _, resultsize, err = totalPagesAtoi(resultsizehtml)
 		//}
 	})
 	c.Visit(mq.String())
