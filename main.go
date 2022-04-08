@@ -7,18 +7,19 @@ import (
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
+	"time"
 )
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inRawFileNameDefault = "../inFile.txt"
-const InRawFileNameDefault = "../infantry_raw_in.txt"
-const FilterPhrasesFilenameDefault = "../phrases.csv"
-const OutMusiciansFilenameDefault = "~/_ARCHIVEGRID/musiciansdefault"
-const OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
-const OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
-const OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
-const OutResponseDataFilenameDefault = OutMusiciansFilenameDefault + "_RESPONSERECORDS_"
-const OutExtensionDefault = ".json" // or ".csv"
+var InRawFileNameDefault = "../infantry_raw_in.txt"
+var FilterPhrasesFilenameDefault = "../phrases.csv"
+var OutMusiciansFilenameDefault = "~/_ARCHIVEGRID/musiciansdefault" + time.Now().String()
+var OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
+var OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
+var OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
+var OutResponseDataFilenameDefault = OutMusiciansFilenameDefault + "_RESPONSERECORDS_"
+var OutExtensionDefault = ".json" // or ".csv"
 
 func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")

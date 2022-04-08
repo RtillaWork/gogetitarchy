@@ -2,21 +2,24 @@ package musician
 
 import (
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
 	"strings"
-	"time"
 )
 
 func ExportJson(musicians MusiciansMap, filename string) {
 	var outfile *os.File
 	if filename == "" {
 		outfile = os.Stdout
-	} else if h, err := os.OpenFile("OUT_"+time.Now().String()+"_"+filename, os.O_WRONLY, 0777); err != nil {
+		log.Printf("Opening file outfile=OS.STDOUT")
+	} else if h, err := os.OpenFile(filename, os.O_WRONLY, 0666); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
+		log.Printf("Opening file OUT_time.now_+%s", filename)
 		outfile = h
+		utils.WaitForKeypress()
 	}
 	counter := 1
 	for _, m := range musicians {
@@ -66,7 +69,7 @@ func ExportDataDict(dict DataDict, filename string) {
 	var outfile *os.File
 	if filename == "" {
 		outfile = os.Stdout
-	} else if h, err := os.OpenFile("OUT_"+time.Now().String()+"_"+filename, os.O_WRONLY, 0777); err != nil {
+	} else if h, err := os.OpenFile(filename, os.O_WRONLY, 0666); err != nil {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
