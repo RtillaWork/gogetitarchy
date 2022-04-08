@@ -25,26 +25,26 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 			size, lenms, lenmqs)
 		utils.WaitForKeypress()
 
-		for mhash, mq := range mqs {
+		for _, mq := range mqs { // _ = mhash
 			if size == 0 {
 				break
 			}
 			mq.SetResultCountFunc(ScanQueryResultSize)
 
-			if mq.ResultSize > 0 {
-				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
-				recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
-				errors2.FailOn(err, "Crawling query\n"+mq.String())
-				musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
-			} else {
-				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count <= 0 %d\n For query %s \n SKIPPING...\n", mq.ResultSize, mq)
-
-			}
-
-			utils.WaitForKeypress()
-			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
-			//time.Sleep(delay)
-			//log.Printf("DELAY %d", delay)
+			//if mq.ResultSize > 0 {
+			//	log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
+			//	recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
+			//	errors2.FailOn(err, "Crawling query\n"+mq.String())
+			//	musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
+			//} else {
+			//	log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count <= 0 %d\n For query %s \n SKIPPING...\n", mq.ResultSize, mq)
+			//
+			//}
+			//
+			//utils.WaitForKeypress()
+			////delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
+			////time.Sleep(delay)
+			////log.Printf("DELAY %d", delay)
 			size--
 		}
 
@@ -92,7 +92,7 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 		if elem != nil {
 			resultsEmpty = true
 		}
-		log.Printf("ResultsEmpty hit resultsEmpty = %T, elem = %s\n", resultsEmpty, elem.Name)
+		log.Printf("ResultsEmpty hit resultsEmpty = %v, elem = %s\n", resultsEmpty, elem.Name)
 		//utils.WaitForKeypress()
 
 	})
@@ -101,7 +101,7 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 		if elem != nil {
 			resultsNotEmpty = true
 		}
-		log.Printf("ResultsEmpty hit resultsNotEmpty = %T, elem = %s\n", resultsNotEmpty, elem.Name)
+		log.Printf("ResultsEmpty hit resultsNotEmpty = %v, elem = %s\n", resultsNotEmpty, elem.Name)
 		//utils.WaitForKeypress()
 	})
 
@@ -112,15 +112,22 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 			err = e
 			log.Printf("ERROR ResultSize elem.DOM.Html() ERROR %s, \nresultsizeHtml: %s\n", err, resultsizehtml)
 			return
+		} else if resultsEmpty == resultsNotEmpty {
+			err = errors.New("Undefined error while getting total size; assertion resultEmpty!=resultNotempty fails")
+			log.Printf("Undefined error while getting total size; assertion resultEmpty!=resultNotempty fails")
+			return
+		} else if resultsEmpty {
+			resultsize = 0
+			err = nil
+		} else {
+			from, to, total, e := totalPagesAtoi(resultsizehtml)
+			errors2.FailOn(e, "ERR totalPagesAtoi(resultsizehtml)")
+			resultsize = total
+			err = e
+			log.Printf("RESULTS FROM %d TO %d TOTALSIZE %d\nResultSizeelem.DOM.Html() %s", from, to, total, resultsizehtml)
+			utils.WaitForKeypress()
 		}
-		log.Printf("ResultSizeelem.DOM.Html() %s", resultsizehtml)
-		utils.WaitForKeypress()
 
-		//if e != nil {
-		//	err = e
-		//} else {
-		_, _, resultsize, err = totalPagesAtoi(resultsizehtml)
-		//}
 	})
 	c.Visit(mq.String())
 
