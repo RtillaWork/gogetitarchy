@@ -21,22 +21,36 @@ func ExportJson(musicians MusiciansMap, filename string) {
 		outfile = h
 		utils.WaitForKeypress()
 	}
+
+	//
+	if outfile == os.Stdout {
+		fmt.Fprintf(outfile, "\n=== BEGIN ALL RECORDS  ==========")
+	} else {
+		fmt.Fprintf(outfile, "[\n")
+	}
 	counter := 1
 	for _, m := range musicians {
 		//log.Printf("{KEY: %s ,,,, VALUE: {FIRST: %s  L: %s   MIDDLE:  %s   NOTES: %s  }", k, m.FName, m.LName, m.MName, m.Notes)
 		//log.Println(m.ToCsv())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n=== BEGIN RECORD %d ==========", counter)
-		} else {
-			fmt.Fprintf(outfile, "[\n")
 		}
+		//else {
+		//	fmt.Fprintf(outfile, "[\n")
+		//}
 		fmt.Fprintf(outfile, "%s,\n", m.ToJson())
 		if outfile == os.Stdout {
 			fmt.Fprintf(outfile, "\n===END RECORD ==========")
-		} else {
-			fmt.Fprintf(outfile, "]")
 		}
+		//else {
+		//	fmt.Fprintf(outfile, "]")
+		//}
 		counter++
+	}
+	if outfile == os.Stdout {
+		fmt.Fprintf(outfile, "\n===END ALL RECORDS ==========")
+	} else {
+		fmt.Fprintf(outfile, "]")
 	}
 	log.Printf("\n\n\n Json records exported for musicians: %d\n\n", counter)
 	//utils.WaitForKeypress()
