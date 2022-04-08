@@ -21,6 +21,7 @@ var skipThese = []string{BlockDelimDef, "MEMORIAL", ""}
 // ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it reads the musician block content (partially unstructured)
 func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
+	totalcount := 0
 	musicians = make(MusiciansMap)
 
 	inFile, err := os.Open(inFileName)
@@ -50,10 +51,11 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 			amusician, ok := ReadMusicianData(blklines)
 			if ok {
 				musicians[amusician.Id] = amusician
-				log.Printf("ENTRY ADDED to RawMusicians \n")
+				totalcount++
+				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n", totalcount, amusician.ToJson())
 
 			} else {
-				log.Printf("ENTRY IGNORED UNDERTERMINATE REASON \n")
+				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
 				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
 
 			}
@@ -70,6 +72,8 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 
 	}
 
+	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+	utils.WaitForKeypress()
 	return musicians
 
 }
