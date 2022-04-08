@@ -6,13 +6,14 @@ import (
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
+	"time"
 )
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inRawFileNameDefault = "../inFile.txt"
 var InRawFileNameDefault = "../infantry_raw_in.txt"
 var FilterPhrasesFilenameDefault = "../phrases.csv"
-var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" //+ time.Now().String()
+var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" + string(time.Now().Unix())
 var OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
 var OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
 var OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"

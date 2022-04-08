@@ -17,7 +17,7 @@ func ExportJson(musicians MusiciansMap, filename string) {
 		log.Printf("Error opening file: %s \n%v\n", outfile, err)
 		outfile = os.Stdout
 	} else {
-		log.Printf("Opening file OUT_time.now_+%s", filename)
+		log.Printf("Opening file %s", filename)
 		outfile = h
 		utils.WaitForKeypress()
 	}
