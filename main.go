@@ -39,7 +39,7 @@ func main() {
 	//
 	var musicians musician.MusiciansMap
 	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef)
+		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef1)
 		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 	} else {
 		musicians = musician.ReadData(d)
@@ -49,7 +49,7 @@ func main() {
 
 	if *testMode {
 		var testmusiciansA, testmusiciansB musician.MusiciansMap
-		testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef)
+		testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef1)
 		if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
 			log.Printf("NO file %s to test against", *OutMusiciansFilename)
 		} else {

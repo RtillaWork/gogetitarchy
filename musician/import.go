@@ -11,16 +11,17 @@ import (
 	"strings"
 )
 
-// BlockDelimDef Some interesting block elements contain `:` as fields separators
-const BlockDelimDef = "Civil War (Union)" // must be the second line, following the soldier's name
+// BlockDelimDef1 Some interesting block elements contain `:` as fields separators
+const BlockDelimDef1 = "Civil War (Union)"       // must be the second line, following the soldier's name
+const BlockDelimDef2 = "Civil War (Confederate)" // must be the second line, following the soldier's name
 const block_FIELD_SEP = ":"
 const block_DATE_SEP = "-"
 
-var skipThese = []string{BlockDelimDef, "MEMORIAL", ""}
+var skipThese = []string{BlockDelimDef1, BlockDelimDef2, "MEMORIAL", ""}
 
 // ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it reads the musician block content (partially unstructured)
-func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
+func ImportData(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
 	totalcount := 0
 	musicians = make(MusiciansMap)
 
@@ -40,14 +41,14 @@ func ImportData(inFileName string, delim string) (musicians MusiciansMap) {
 		////log.Printf("initial %#v\n", initial)
 		//// END NOTE DEBUG
 
-		if initial && curln == delim {
+		if initial && (curln == delim1 || curln == delim2) {
 			initial = false
 			blklines[0] = prevln // prevlin == names
 			//log.Printf("if initial blklines %#v\n", blklines)
 			continue // to skip the next coniditon during the transition from initial true to false
 		}
 
-		if !initial && curln == delim {
+		if !initial && (curln == delim1 || curln == delim2) {
 			amusician, ok := ReadMusicianData(blklines)
 			if ok {
 				musicians[amusician.Id] = amusician
