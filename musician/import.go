@@ -53,11 +53,12 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 			if ok {
 				musicians[amusician.Id] = amusician
 				totalcount++
-				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n", totalcount, amusician.ToJson())
+				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
 
 			} else {
 				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
 				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+				utils.WaitForKeypress()
 
 			}
 			blklines = []string{}
