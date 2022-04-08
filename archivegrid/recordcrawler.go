@@ -215,28 +215,38 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 // Helpers
 
 // like Atoi but cleanes the string out of any non digit characters like comma before the conversion
+// experiemnt https://go.dev/play/p/e0KPLWZvNtX
 func totalPagesAtoi(s string) (from int, to int, total int, err error) {
-	rexTotalPages := regexp.MustCompile(`Record.?\s+(\d+)\s+to\s+(\d+)\s+of\s+(\d+)`)
+	rexTotalPages := regexp.MustCompile(`Record.?\s+(\d+),?(\d*)\s+to\s+(\d+),?(\d*)\s+of\s+(\d+),?(\d*)`)
 	sint := rexTotalPages.FindStringSubmatch(s)
 	if s == "" || sint == nil {
 		return -1, -1, -1, errors.New("totalPagesAtoi got empty string probably because no css selector matched regexp or OnHtml")
-	} else if len(sint) != 4 {
+	} else if len(sint) != 7 {
 		log.Printf("totalPagesAtoi regexp returned unexpected number of elemnts")
 		return -1, -1, -1, errors.New("totalPagesAtoi regexp returned unexpected number of elemnts")
 	} else {
-		from, err = strconv.Atoi(sint[1])
-		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-		to, err = strconv.Atoi(sint[2])
-		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
-		total, err = strconv.Atoi(sint[3])
-		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		from1, err := strconv.Atoi(sint[1])
+		from2, err := strconv.Atoi(sint[2])
 
-		//errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		to1, err := strconv.Atoi(sint[3])
+		to2, err := strconv.Atoi(sint[4])
+
+		total1, err := strconv.Atoi(sint[5])
+		total2, err := strconv.Atoi(sint[6])
+
+		log.Printf("DEBUGfrom1from2: %d %d | to1to2: %d %d | total1total2: %d %d \n", from1, from2, to1, to2, total1, total2)
+
+		from, err = strconv.Atoi(sint[1] + sint[2])
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		to, err = strconv.Atoi(sint[3] + sint[4])
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
+		total, err = strconv.Atoi(sint[5] + sint[6])
+		errors2.FailOn(err, "INFO totalPagesAtoi EXTRACTING RESULTS SIZE FROM SPAN")
 
 		sint = nil
+		// TODO assert from <= to <= total
 		return from, to, total, err
 	}
-
 }
 
 func FilteredMusiciansDataBuilder(m *musician.Musician, mq *MusicianQuery, phrases []string) (agRecords []*Record) {

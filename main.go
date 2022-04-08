@@ -52,7 +52,7 @@ func main() {
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename)
 
 	//
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 10, GoodSetPhrases)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3, GoodSetPhrases)
 	if ok {
 		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename)
 	} else {
