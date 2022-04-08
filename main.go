@@ -6,6 +6,7 @@ import (
 	"github.com/RtillaWork/gogetitarchy/utils"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -13,7 +14,7 @@ import (
 //const inRawFileNameDefault = "../inFile.txt"
 var InRawFileNameDefault = "../infantry_raw_in.txt"
 var FilterPhrasesFilenameDefault = "../phrases.csv"
-var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" + string(time.Now().Unix())
+var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" + strconv.FormatInt(time.Now().Unix(), 10)
 var OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
 var OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
 var OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
