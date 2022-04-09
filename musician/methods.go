@@ -11,29 +11,28 @@ import (
 	"strings"
 )
 
-func NewMusicianFrom(data string) (newMusician *Musician, ok bool) {
-	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(data)
+func NewMusicianFrom(rawname string) (newMusician *Musician, ok bool) {
+	fname, mname, lname, notes, ok := ExtractNamesNotesFrom(rawname)
 	if !ok {
 		//errors.Assert(ok, "NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS")
 		log.Printf("NewMusicianFrom try to ExtractNames( FAILED FOR UNKNOWN REASONS\n")
 		return &Defaults, false
 	}
 
-	newMusician = New(fname, mname, lname, notes, 1)
+	newMusician = New(rawname, fname, mname, lname, notes)
 	newMusician.AddFields(nil)
 	return newMusician, true
 }
 
-func New(fname, mname, lname, notes string, encounter uint8) (newMusician *Musician) {
+func New(rawname, fname, mname, lname, notes string) (newMusician *Musician) {
 	newMusician = new(Musician)
 	*newMusician = Defaults
+	newMusician.RawName = rawname
 	newMusician.FName = fname
 	newMusician.MName = mname
 	newMusician.LName = lname
 	newMusician.Notes = notes
-	newMusician.Encounter = encounter
 	newMusician.Id = newMusician.Hash()
-
 	return newMusician
 }
 

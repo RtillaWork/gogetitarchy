@@ -32,6 +32,7 @@ var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.U
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	Id         MusicianHash      `json:"id"`
+	RawName    string            `json:"raw_name"`
 	FName      string            `json:"first_name"`
 	LName      string            `json:"last_name"`
 	MName      string            `json:"middle_name"`
@@ -90,12 +91,14 @@ const (
 
 func init() {
 	Defaults = Musician{
-		Id:        MusicianHash(""),
-		FName:     "NULL_FIRSTNAME",
-		MName:     "NULL_MIDDLENAME",
-		LName:     "NULL_LASTNAME",
-		Notes:     "NULL_NOTES",
-		Encounter: 0,
+		Id:         MusicianHash(""),
+		RawName:    "NULL_RAWNAME",
+		FName:      "NULL_FIRSTNAME",
+		MName:      "NULL_MIDDLENAME",
+		LName:      "NULL_LASTNAME",
+		Notes:      "NULL_NOTES",
+		Confidence: -100,
+		Encounter:  0,
 		Fields: map[string]string{
 			"FIRSTNAME":   "NULL_FIRSTNAME",
 			"MIDDLENAME":  "NULL_MIDDLENAME",
