@@ -154,72 +154,59 @@ func ImportByTriggerDelim(musicians MusiciansMap, inFileName string, delim1 stri
 
 // ImportFullBlockByTriggerDelim imports more block data associated with a rawname header and a delim
 // this func still ignores mal formed or inconsistent chunks of data
-func ImportFullBlockByTriggerDelim(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+func ImportFullBlockByTriggerDelim(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
 	totalcount := 0
-	musicians = make(MusiciansMap)
-
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	defer inFile.Close()
 
 	//
 	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
 	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
-	validln := regexp.MustCompile(`\w+`)
+	//validln := regexp.MustCompile(`\w+`)
 
-	s := bufio.NewScanner(inFile)
-	blklines := []string{}
-	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curtmp := strings.TrimSpace(s.Text())
-		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
-			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
-			continue
-		}
-		curln = curtmp
+	for _, amusician := range musicians {
+		inFile, err := os.Open(inFileName)
+		errors.FailOn(err, "opening inFile for reading...")
+		s := bufio.NewScanner(inFile)
 
-		//// NOTE DEBUG
-		//log.Printf("for prevline %s\n", prevln)
-		//log.Printf("for curln %s\n", curln)
-		//log.Printf("blklines %#v\n", blklines)
-		////log.Printf("initial %#v\n", initial)
-		//// END NOTE DEBUG
+		blklines := []string{}
+		for inblockcount, curln, prevln, nameln := 0, "", "", amusician.RawName; s.Scan(); prevln = curln {
+			curln := strings.TrimSpace(s.Text())
+			//// NOTE DEBUG
+			//log.Printf("for prevline %s\n", prevln)
+			//log.Printf("for curln %s\n", curln)
+			//log.Printf("blklines %#v\n", blklines)
+			////log.Printf("initial %#v\n", initial)
+			//// END NOTE DEBUG
 
-		if initial && (curln == delim1 || curln == delim2) {
-			initial = false
-			blklines[0] = prevln // prevlin == names
-			//log.Printf("if initial blklines %#v\n", blklines)
-			continue // to skip the next coniditon during the transition from initial true to false
-		}
+			if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
+				inblockcount++
+				// prevlin == names
+				log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+			}
 
-		if !initial && (curln == delim1 || curln == delim2) {
-			amusician, ok := ReadMusicianData(blklines)
-			if ok {
-				musicians[amusician.Id] = amusician
+			if prevln == nameln && (curln == delim1 || curln == delim2) {
+				inblockcount = 1
+				blklines[0] = prevln // prevlin == names
+				//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+			}
+
+			if inblockcount == 1 {
+				blklines = append(blklines, prevln)
+			}
+
+			if inblockcount == 1 && (curln == delim1 || curln == delim2) {
+				amusiciansfields := ExtractFields(blklines)
+				amusician.AddFields(amusiciansfields)
 				totalcount++
 				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
-
-			} else {
-				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
-				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
-				utils.WaitForKeypress()
-
 			}
-			blklines = []string{}
-			//log.Printf("if not initial   prevline %s\n", prevln)
-			//log.Printf("if not initial   curln %s\n", curln)
-			//log.Printf("if not initial  blklines %#v\n", blklines)
-			blklines = []string{prevln} // prevlin == names
-			// TODO DELETEME blklines[0] = prevln // prevlin == names
-			log.Printf("if not initial blklines after %#v\n", blklines)
-		}
-		blklines = append(blklines, prevln)
-		//utils.WaitForKeypress()
 
+		}
+		inFile.Close()
 	}
 
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
-	return musicians
+	return
 
 }
 
