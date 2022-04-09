@@ -20,18 +20,18 @@ func NewMusicianFrom(rawname string) (newMusician *Musician, ok bool) {
 	}
 
 	newMusician = New(rawname, fname, mname, lname, notes)
-	newMusician.AddFields(nil)
+	newMusician.AddToFields(nil)
 	return newMusician, true
 }
 
 func New(rawname, fname, mname, lname, notes string) (newMusician *Musician) {
 	newMusician = new(Musician)
 	*newMusician = Defaults
-	newMusician.RawName = rawname
-	newMusician.FName = fname
-	newMusician.MName = mname
-	newMusician.LName = lname
-	newMusician.Notes = notes
+	newMusician.RawName = utils.NormalizeField(rawname)
+	newMusician.FName = utils.NormalizeField(fname)
+	newMusician.MName = utils.NormalizeField(mname)
+	newMusician.LName = utils.NormalizeField(lname)
+	newMusician.Notes = utils.NormalizeField(notes)
 	newMusician.Id = newMusician.Hash()
 	return newMusician
 }
@@ -155,7 +155,7 @@ func (m *Musician) GetDates(interval uint8) []string {
 	return []string{}
 }
 
-func (m *Musician) AddFields(fields map[string]string) {
+func (m *Musician) AddToFields(fields map[string]string) {
 	if fields == nil {
 		m.Fields["FIRSTNAME"] = utils.NormalizeValue(m.FName)
 		m.Fields["MIDDLENAME"] = utils.NormalizeValue(m.FName)
@@ -194,3 +194,20 @@ func NewMusiciansDb(musicians MusiciansMap) (musiciansdb *MusiciansDb) {
 }
 
 // MusiciansDb utilities to create Dict and stats
+
+// Utilities: Contains series of func
+
+//
+func (ms MusiciansMap) CountRawName(mayberawname string) (count int, ok bool) {
+	if len(ms) == 0 {
+		return 0, false
+	}
+	count = 0
+	maybename := utils.NormalizeField(mayberawname)
+	for _, m := range ms {
+		if maybename == m.RawName {
+			count++
+		}
+	}
+	return count, true
+}

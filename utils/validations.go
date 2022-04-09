@@ -305,5 +305,12 @@ func NormalizeValue(in string) (out string) { //, err error) {
 	//}
 	out = strings.ToLower(strings.TrimSpace(in))
 	return out
+}
 
+func NormalizeField(in string) (out string) { //, err error) {
+	//if IsUnwantedInput(in, goodset, badset) {
+	//	return "", false
+	//}
+	out = strings.ToTitle(strings.TrimSpace(in))
+	return out
 }
