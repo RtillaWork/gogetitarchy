@@ -31,14 +31,15 @@ var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.U
 
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
-	Id        MusicianHash      `json:"id"`
-	FName     string            `json:"first_name"`
-	LName     string            `json:"last_name"`
-	MName     string            `json:"middle_name"`
-	Notes     string            `json:"notes"`
-	Encounter uint8             `json:"encounter"`
-	Fields    map[string]string `json:"fields"`
-	Tags      []string          `json:"tags"`
+	Id         MusicianHash      `json:"id"`
+	FName      string            `json:"first_name"`
+	LName      string            `json:"last_name"`
+	MName      string            `json:"middle_name"`
+	Notes      string            `json:"notes"`
+	Confidence int               `json:"confidence"`
+	Encounter  uint8             `json:"encounter"`
+	Fields     map[string]string `json:"fields"`
+	Tags       []string          `json:"tags"`
 
 	// FIELDS:
 	// FNAME, MNAME, LNAME, MISCS, DATEBEGIN, DATEEND, DATEOTHER, DATES
