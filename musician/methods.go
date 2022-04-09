@@ -198,9 +198,9 @@ func NewMusiciansDb(musicians MusiciansMap) (musiciansdb *MusiciansDb) {
 // Utilities: Contains series of func
 
 //
-func (ms MusiciansMap) CountRawName(mayberawname string) (count int, ok bool) {
+func (ms MusiciansMap) CountRawName(mayberawname string) (count int) {
 	if len(ms) == 0 {
-		return 0, false
+		return -1
 	}
 	count = 0
 	maybename := utils.NormalizeField(mayberawname)
@@ -209,5 +209,5 @@ func (ms MusiciansMap) CountRawName(mayberawname string) (count int, ok bool) {
 			count++
 		}
 	}
-	return count, true
+	return count
 }
