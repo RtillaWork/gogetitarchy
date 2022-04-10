@@ -165,18 +165,22 @@ func ImportPhrases(filename string) (phrases []string) {
 
 // IsANamesLine
 // L, F  || F M L || F M. L || F L || F "M" L (NOTES)
-func IsANamesLine(data string) (fname string, mname string, lname string, notes string, ok bool) {
+func IsANamesLine(data string) (ok bool) {
+	//	(fname string, mname string, lname string, notes string, ok bool)
 
 	if len(data) == 0 {
 		//errors.Assert(len(data) != 0, "ExtractNamesNotesFrom data is empty")
 		log.Printf("ExtractNamesNotesFrom data is empty. returning defaults and false\n")
-		return "NULL_FNAME", "NULL_MNAME", "NULL_LNAME", "NULL_NOTES", false
+		//return "NULL_FNAME", "NULL_MNAME", "NULL_LNAME", "NULL_NOTES", false
+		return false
 	}
 
-	fname, mname, lname, notes, ok = "NULL_FNAME", "NULL_MNAME", "NULL_LNAME", "NULL_NOTES", false
+	//fname, mname, lname, notes, ok = "NULL_FNAME", "NULL_MNAME", "NULL_LNAME", "NULL_NOTES", false
+	ok = false
 
 	// split names away from notes through `(`, if exists
-	names, notes := "", "NULL_NOTES"
+	//names, notes := "", "NULL_NOTES"
+	names := ""
 	switch s := strings.Split(strings.TrimSpace(data), xNOTES_SEP_OPEN); len(s) {
 	case 0:
 		errors.Assert(false, "ExtractFrom switch Split error data likely nil/empty")
@@ -188,7 +192,7 @@ func IsANamesLine(data string) (fname string, mname string, lname string, notes 
 		}
 	case 2:
 		names = strings.TrimSpace(s[0])
-		notes = strings.TrimSpace(strings.Trim(s[1], xNOTES_SEP_OPEN+xNOTES_SEP_CLOSE))
+		//notes = strings.TrimSpace(strings.Trim(s[1], xNOTES_SEP_OPEN+xNOTES_SEP_CLOSE))
 	default:
 		errors.Assert(false, "ExtractFrom data Split returned too many fields separated by `(`")
 	}
@@ -213,44 +217,44 @@ func IsANamesLine(data string) (fname string, mname string, lname string, notes 
 	s7 := r7.FindAllStringSubmatch(names, -1)
 	switch {
 	case len(s0) > 0 && len(s0[0]) == 2:
-		lname = s0[0][1]
-		mname = "NULL_MNAME"
-		fname = "NULL_FNAME"
+		//lname = s0[0][1]
+		//mname = "NULL_MNAME"
+		//fname = "NULL_FNAME"
 		ok = true
 	case len(s1) > 0 && len(s1[0]) == 3:
-		lname = s1[0][1]
-		mname = "NULL_MNAME"
-		fname = s1[0][2]
+		//lname = s1[0][1]
+		//mname = "NULL_MNAME"
+		//fname = s1[0][2]
 		ok = true
 	case len(s2) > 0 && len(s2[0]) == 3:
-		lname = s2[0][2]
-		mname = "NULL_MNAME"
-		fname = s2[0][1]
+		//lname = s2[0][2]
+		//mname = "NULL_MNAME"
+		//fname = s2[0][1]
 		ok = true
 	case len(s3) > 0 && len(s3[0]) == 4:
-		lname = s3[0][3]
-		mname = s3[0][2]
-		fname = s3[0][1]
+		//lname = s3[0][3]
+		//mname = s3[0][2]
+		//fname = s3[0][1]
 		ok = true
 	case len(s4) > 0 && len(s4[0]) == 4:
-		lname = s4[0][3]
-		mname = s4[0][2]
-		fname = s4[0][1]
+		//lname = s4[0][3]
+		//mname = s4[0][2]
+		//fname = s4[0][1]
 		ok = true
 	case len(s5) > 0 && len(s5[0]) == 4:
-		lname = s5[0][3]
-		mname = s5[0][2]
-		fname = s5[0][1]
+		//lname = s5[0][3]
+		//mname = s5[0][2]
+		//fname = s5[0][1]
 		ok = true
 	case len(s6) > 0 && len(s6[0]) == 4:
-		lname = s6[0][1]
-		mname = s6[0][3]
-		fname = s6[0][2]
+		//lname = s6[0][1]
+		//mname = s6[0][3]
+		//fname = s6[0][2]
 		ok = true
 	case len(s7) > 0 && len(s7[0]) == 2:
-		lname = s7[0][1]
-		mname = "NULL_MNAME"
-		fname = "NULL_FNAME"
+		//lname = s7[0][1]
+		//mname = "NULL_MNAME"
+		//fname = "NULL_FNAME"
 		ok = true
 	default:
 		// Errors
@@ -262,19 +266,15 @@ func IsANamesLine(data string) (fname string, mname string, lname string, notes 
 		log.Printf("REGEX s 4 %#v\n", s4)
 		log.Printf("REGEX s 5 %#v\n", s5)
 		log.Printf("REGEX s 6 %#v\n", s6)
-		errors.Assert(false, " sANamesLine  UNDEFINED REGREX FOR names")
-		lname = "NULL_LNAME"
-		mname = "NULL_MNAME"
-		fname = "NULL_FNAME"
+		//errors.Assert(false, " sANamesLine  UNDEFINED REGREX FOR names")
+		//lname = "NULL_LNAME"
+		//mname = "NULL_MNAME"
+		//fname = "NULL_FNAME"
 		ok = false
 	}
 
-	//if len(lname) > 1 {
-	//	ok = true
-	//} else {
-	//	ok = false
-	//}
-	return fname, mname, lname, notes, ok
+	//return fname, mname, lname, notes, ok
+	return ok
 }
 
 // Utilities to make data valid

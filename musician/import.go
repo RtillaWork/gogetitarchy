@@ -91,10 +91,10 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 
 }
 
-// ImportByTriggerDelim pass 1
-// ImportByTriggerDelim builds a MusiciansMap from a textfile where names section precedes a delimiter
-// it only collects and desctructure the names section, optionally with notes
-func ImportByTriggerDelim(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
+// ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
+// it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
+// creates musicians with .Confidence 100
+func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
 	totalcount := 0
 
 	inFile, err := os.Open(inFileName)
@@ -145,16 +145,15 @@ func ImportByTriggerDelim(musicians MusiciansMap, inFileName string, delim1 stri
 		//utils.WaitForKeypress()
 
 	}
-
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
 	return
-
 }
 
-// ImportFullBlockByTriggerDelim imports more block data associated with a rawname header and a delim
-// this func still ignores mal formed or inconsistent chunks of data
-func ImportFullBlockByTriggerDelim(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
+// ImportFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
+// this func still ignores unstructured or inconsistent chunks of data
+// reads from musicians with .Confidence 100
+func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
 	totalcount := 0
 
 	//
@@ -163,6 +162,11 @@ func ImportFullBlockByTriggerDelim(musicians MusiciansMap, inFileName string, de
 	//validln := regexp.MustCompile(`\w+`)
 
 	for _, amusician := range musicians {
+		if amusician.Confidence != 100 {
+			log.Printf("Skipping musician because .Confidence != 100\n")
+			continue
+		}
+
 		inFile, err := os.Open(inFileName)
 		errors.FailOn(err, "opening inFile for reading...")
 		s := bufio.NewScanner(inFile)
@@ -203,14 +207,13 @@ func ImportFullBlockByTriggerDelim(musicians MusiciansMap, inFileName string, de
 		}
 		inFile.Close()
 	}
-
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
 	return
-
 }
 
-// ImportUnstructuredNames tries to collect the musician names content (partially unstructured)
+// ImportUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
+// creates musicians with .Confidence 50
 func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
 	totalcount := 0
 
@@ -218,27 +221,26 @@ func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 	errors.FailOn(err, "opening inFile for reading...")
 	s := bufio.NewScanner(inFile)
 
-	//
-	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
-	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
 	//validln := regexp.MustCompile(`\w+`)
 
-	nameln := amusician.RawName
-	blklines := []string{}
-	for backwardblockcount, maybedata, curln, prevln := 0, false, "", ""; s.Scan(); prevln = curln {
+	for blklines, rewindblklines, maybedata, curln, prevln := []string{}, false, false, "", ""; s.Scan(); prevln = curln {
 		curln := strings.TrimSpace(s.Text())
-		if (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 { // skip the case of well formed musician block
+
+		// skip the case of well formed musician block, open block
+		if !maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
 			// log.Printf("skipping %s | %s and adding block ahead for possible data", prevln, curln)
 			curln = strings.TrimSpace(s.Text())
+			blklines = []string{}
 			maybedata = true
 			continue
 		}
-		if maybedata {
-			blklines = append(blklines, prevln)
-		}
 
-		if (curln == delim1 || curln == delim2) && prevln == nameln { // skip the case of well formed musician block
-			// log.Printf("skipping %s | %s", prevln, curln)
+		// skip the case of well formed musician block, close block
+		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
+			// log.Printf("skipping %s | %s and closed previous block, no data expected", prevln, curln)
+			curln = strings.TrimSpace(s.Text())
+			blklines = []string{}
+			maybedata = false
 			continue
 		}
 
@@ -249,18 +251,88 @@ func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 		////log.Printf("initial %#v\n", initial)
 		//// END NOTE DEBUG
 
+		// otherwise append lines to blklines
+		if maybedata {
+			blklines = append(blklines, prevln)
+		}
+
 		// here maybe the of a name separated from delim1|delim2 by text/garbage
 		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) == 0 {
+			blklines = append(blklines, prevln)
+			curln = strings.TrimSpace(s.Text())
 			maybedata = false
-			backwardblockcount = 1 //
+			rewindblklines = true //
 			//
 			//blklines[0] = prevln // prevlin == names
 			////log.Printf("if initial blklines %#v\n", blklines)
 			//continue // to skip the next coniditon during the transition from initial true to false
 		}
 
-		if backwardblockcount = 1 {
+		if rewindblklines {
+			for i := 0; i < len(blklines); i++ {
+				_, _, _, _, ok := ExtractNamesNotesFrom(blklines[i])
+				if ok {
+					amusician, _ := NewMusicianFrom(blklines[i])
+					amusician.Confidence = 50
+					blklines = blklines[i+1:]
+					amusician.AddToFields(ExtractFields(blklines))
+					totalcount++
+					log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+					break
+				} else {
+					log.Printf("ENTRY %v IGNORED AS NON NAMES LINE \n", blklines[i])
+				}
 
+			}
+			blklines = []string{}
+			rewindblklines = false
+		}
+		//utils.WaitForKeypress()
+
+	}
+	log.Printf("\nTotalCount %d = NEW musicians.len %d", totalcount, len(musicians))
+	utils.WaitForKeypress()
+	inFile.Close()
+	return
+}
+
+// ImportFieldsForUnstructuredNames pass 4; reads the musician block content (partially unstructured)
+// reads musicians with .Confidence 50
+func ImportFieldsForUnstructuredNames(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+	totalcount := 0
+	musicians = make(MusiciansMap)
+
+	inFile, err := os.Open(inFileName)
+	errors.FailOn(err, "opening inFile for reading...")
+	defer inFile.Close()
+
+	//
+	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+	validln := regexp.MustCompile(`\w+`)
+
+	s := bufio.NewScanner(inFile)
+	blklines := []string{}
+	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+		curtmp := strings.TrimSpace(s.Text())
+		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
+			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
+			continue
+		}
+		curln = curtmp
+
+		//// NOTE DEBUG
+		//log.Printf("for prevline %s\n", prevln)
+		//log.Printf("for curln %s\n", curln)
+		//log.Printf("blklines %#v\n", blklines)
+		////log.Printf("initial %#v\n", initial)
+		//// END NOTE DEBUG
+
+		if initial && (curln == delim1 || curln == delim2) {
+			initial = false
+			blklines[0] = prevln // prevlin == names
+			//log.Printf("if initial blklines %#v\n", blklines)
+			continue // to skip the next coniditon during the transition from initial true to false
 		}
 
 		if !initial && (curln == delim1 || curln == delim2) {
@@ -291,9 +363,7 @@ func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
-	inFile.Close()
-
-	return
+	return musicians
 
 }
 
