@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"time"
 )
 
 func NewMusicianFrom(rawname string) (newMusician *Musician, ok bool) {
@@ -32,6 +33,7 @@ func New(rawname, fname, mname, lname, notes string) (newMusician *Musician) {
 	newMusician.MName = utils.NormalizeField(mname)
 	newMusician.LName = utils.NormalizeField(lname)
 	newMusician.Notes = utils.NormalizeField(notes)
+	newMusician.TimeCreated = time.Now().UnixNano()
 	newMusician.Id = newMusician.Hash()
 	log.Printf("FROM NEW %#v musician\n", newMusician)
 	return newMusician
