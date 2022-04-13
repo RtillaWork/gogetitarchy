@@ -42,6 +42,7 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 // ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
 // creates musicians with .Confidence 100
+// this is working but too complex / OLD
 func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
@@ -50,28 +51,18 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 	defer inFile.Close()
 
 	s := bufio.NewScanner(inFile)
-	nameln := ""
-	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curln := strings.TrimSpace(s.Text())
-
+	for curln, prevln := "", ""; s.Scan(); prevln = curln {
+		curln = strings.TrimSpace(s.Text())
 		//// NOTE DEBUG
 		log.Printf("for prevline %s\n", prevln)
 		log.Printf("for curln %s\n", curln)
-		log.Printf("for nameln %s\n", nameln)
-		//log.Printf("for curln %s\n", curln)
+		//log.Printf("for nameln %s\n", nameln)
 		//log.Printf("blklines %#v\n", blklines)
 		//log.Printf("initial %#v\n", initial)
 		//// END NOTE DEBUG
 
-		if initial && (curln == delim1 || curln == delim2) {
-			initial = false
-			nameln = prevln // prevlin == names
-			log.Printf("if initial curln %#v, prevln  %#v, \n", curln, prevln)
-			continue // to skip the next coniditon during the transition from initial true to false
-		}
-
-		if !initial && (curln == delim1 || curln == delim2) {
-			amusician, ok := NewMusicianFrom(nameln)
+		if curln == delim1 || curln == delim2 {
+			amusician, ok := NewMusicianFrom(prevln)
 			if ok {
 				amusician.Confidence = 100
 				musicians[amusician.Id] = amusician
@@ -79,24 +70,18 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
 
 			} else {
-				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
-				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+				log.Printf("ENTRY nameln==prevlin %#v IGNORED UNDERTERMINATE REASON \n", prevln)
+				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } \n\n", curln)
 				utils.WaitForKeypress()
-
 			}
-			nameln = ""
-			//log.Printf("if not initial   prevline %s\n", prevln)
-			//log.Printf("if not initial   curln %s\n", curln)
-			//log.Printf("if not initial  blklines %#v\n", blklines)
-			nameln = prevln // prevlin == names
-			log.Printf("if not initial nameln after %#v\n", nameln)
 		}
-		nameln = curln
+		//log.Printf("for prevline %s\n", prevln)
+		//log.Printf("for curln %s\n", curln)
 		//utils.WaitForKeypress()
 
 	}
-	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
-	utils.WaitForKeypress()
+	//log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+	//utils.WaitForKeypress()
 	return totalcount
 }
 
@@ -863,6 +848,68 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //	utils.WaitForKeypress()
 //	return musicians
 //
+//}
+
+//ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
+//it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
+//creates musicians with .Confidence 100
+//this is working but too complex / OLD
+//func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+//	totalcount := 0
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	defer inFile.Close()
+//
+//	s := bufio.NewScanner(inFile)
+//	nameln := ""
+//	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+//		curln := strings.TrimSpace(s.Text())
+//
+//		//// NOTE DEBUG
+//		log.Printf("for prevline %s\n", prevln)
+//		log.Printf("for curln %s\n", curln)
+//		log.Printf("for nameln %s\n", nameln)
+//		//log.Printf("blklines %#v\n", blklines)
+//		//log.Printf("initial %#v\n", initial)
+//		//// END NOTE DEBUG
+//
+//		if initial && (curln == delim1 || curln == delim2) {
+//			initial = false
+//			nameln = prevln // prevlin == names
+//			log.Printf("if initial curln %#v, prevln  %#v, \n", curln, prevln)
+//			continue // to skip the next coniditon during the transition from initial true to false
+//		}
+//
+//		if !initial && (curln == delim1 || curln == delim2) {
+//			amusician, ok := NewMusicianFrom(nameln)
+//			if ok {
+//				amusician.Confidence = 100
+//				musicians[amusician.Id] = amusician
+//				totalcount++
+//				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+//
+//			} else {
+//				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
+//				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+//				utils.WaitForKeypress()
+//
+//			}
+//			nameln = ""
+//			//log.Printf("if not initial   prevline %s\n", prevln)
+//			//log.Printf("if not initial   curln %s\n", curln)
+//			//log.Printf("if not initial  blklines %#v\n", blklines)
+//			nameln = prevln // prevlin == names
+//			log.Printf("if not initial nameln after %#v\n", nameln)
+//		}
+//
+//		nameln = curln
+//		//utils.WaitForKeypress()
+//
+//	}
+//	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+//	utils.WaitForKeypress()
+//	return totalcount
 //}
 
 ////////// END OLD
