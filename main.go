@@ -40,7 +40,7 @@ func main() {
 	//
 	var musicians musician.MusiciansMap
 	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-		musicians = musician.ImportData(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
+		musicians = musician.Import(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
 		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 	} else {
 		musicians = musician.ReadData(d)

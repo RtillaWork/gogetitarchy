@@ -22,70 +22,18 @@ var skipThese = []string{BlockDelimDef1, BlockDelimDef2, "MEMORIAL", ""}
 
 // ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it reads the musician block content (partially unstructured)
-func ImportData(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
-	totalcount := 0
+func Import(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+
 	musicians = make(MusiciansMap)
 
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	defer inFile.Close()
-
-	//
-	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
-	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
-	validln := regexp.MustCompile(`\w+`)
-
-	s := bufio.NewScanner(inFile)
-	blklines := []string{}
-	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curtmp := strings.TrimSpace(s.Text())
-		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
-			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
-			continue
-		}
-		curln = curtmp
-
-		//// NOTE DEBUG
-		//log.Printf("for prevline %s\n", prevln)
-		//log.Printf("for curln %s\n", curln)
-		//log.Printf("blklines %#v\n", blklines)
-		////log.Printf("initial %#v\n", initial)
-		//// END NOTE DEBUG
-
-		if initial && (curln == delim1 || curln == delim2) {
-			initial = false
-			blklines[0] = prevln // prevlin == names
-			//log.Printf("if initial blklines %#v\n", blklines)
-			continue // to skip the next coniditon during the transition from initial true to false
-		}
-
-		if !initial && (curln == delim1 || curln == delim2) {
-			amusician, ok := ReadMusicianData(blklines)
-			if ok {
-				musicians[amusician.Id] = amusician
-				totalcount++
-				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
-
-			} else {
-				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
-				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
-				utils.WaitForKeypress()
-
-			}
-			blklines = []string{}
-			//log.Printf("if not initial   prevline %s\n", prevln)
-			//log.Printf("if not initial   curln %s\n", curln)
-			//log.Printf("if not initial  blklines %#v\n", blklines)
-			blklines = []string{prevln} // prevlin == names
-			// TODO DELETEME blklines[0] = prevln // prevlin == names
-			log.Printf("if not initial blklines after %#v\n", blklines)
-		}
-		blklines = append(blklines, prevln)
-		//utils.WaitForKeypress()
-
-	}
-
-	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+	count := ImportStructuredNames(musicians, inFileName, delim1, delim2)
+	log.Printf("\nImportStructuredNames TotalCount %d = musicians.len %d", count, len(musicians))
+	utils.WaitForKeypress()
+	ImportFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
+	log.Printf("\nImportFieldsForStructuredNames TotalCount %d = musicians.len %d", count, len(musicians))
+	utils.WaitForKeypress()
+	ImportUnstructuredNames(musicians, inFileName, delim1, delim2)
+	log.Printf("\nImportUnstructuredNames TotalCount %d = musicians.len %d", count, len(musicians))
 	utils.WaitForKeypress()
 	return musicians
 
@@ -94,7 +42,7 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 // ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
 // creates musicians with .Confidence 100
-func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
+func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
 	inFile, err := os.Open(inFileName)
@@ -147,13 +95,13 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 	}
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
-	return
+	return totalcount
 }
 
 // ImportFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
 // this func still ignores unstructured or inconsistent chunks of data
 // reads from musicians with .Confidence 100
-func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
+func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
 	//
@@ -209,12 +157,12 @@ func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 	}
 	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
-	return
+	return totalcount
 }
 
 // ImportUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
 // creates musicians with .Confidence 50
-func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) {
+func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
 	inFile, err := os.Open(inFileName)
@@ -293,7 +241,7 @@ func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 	log.Printf("\nTotalCount %d = NEW musicians.len %d", totalcount, len(musicians))
 	utils.WaitForKeypress()
 	inFile.Close()
-	return
+	return totalcount
 }
 
 // ImportFieldsForUnstructuredNames pass 4; reads the musician block content (partially unstructured)
@@ -627,6 +575,78 @@ func ReadData(data []byte) (musicians MusiciansMap) {
 
 // WORKING OLD
 
+// ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
+// it reads the musician block content (partially unstructured)
+func ImportData(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+	totalcount := 0
+	musicians = make(MusiciansMap)
+
+	inFile, err := os.Open(inFileName)
+	errors.FailOn(err, "opening inFile for reading...")
+	defer inFile.Close()
+
+	//
+	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+	validln := regexp.MustCompile(`\w+`)
+
+	s := bufio.NewScanner(inFile)
+	blklines := []string{}
+	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+		curtmp := strings.TrimSpace(s.Text())
+		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
+			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
+			continue
+		}
+		curln = curtmp
+
+		//// NOTE DEBUG
+		//log.Printf("for prevline %s\n", prevln)
+		//log.Printf("for curln %s\n", curln)
+		//log.Printf("blklines %#v\n", blklines)
+		////log.Printf("initial %#v\n", initial)
+		//// END NOTE DEBUG
+
+		if initial && (curln == delim1 || curln == delim2) {
+			initial = false
+			blklines[0] = prevln // prevlin == names
+			//log.Printf("if initial blklines %#v\n", blklines)
+			continue // to skip the next coniditon during the transition from initial true to false
+		}
+
+		if !initial && (curln == delim1 || curln == delim2) {
+			amusician, ok := ReadMusicianData(blklines)
+			if ok {
+				musicians[amusician.Id] = amusician
+				totalcount++
+				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+
+			} else {
+				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
+				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+				utils.WaitForKeypress()
+
+			}
+			blklines = []string{}
+			//log.Printf("if not initial   prevline %s\n", prevln)
+			//log.Printf("if not initial   curln %s\n", curln)
+			//log.Printf("if not initial  blklines %#v\n", blklines)
+			blklines = []string{prevln} // prevlin == names
+			// TODO DELETEME blklines[0] = prevln // prevlin == names
+			log.Printf("if not initial blklines after %#v\n", blklines)
+		}
+		blklines = append(blklines, prevln)
+		//utils.WaitForKeypress()
+
+	}
+
+	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+	utils.WaitForKeypress()
+	return musicians
+
+}
+
+// For reference, to delete after bugs cleared v
 //// ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
 //// it reads the musician block content (partially unstructured)
 //func ImportData(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
@@ -771,4 +791,76 @@ func ReadData(data []byte) (musicians MusiciansMap) {
 //	return musicians
 //
 //}
+
+//// ImportData builds a MusiciansMap from a textfile where names section precedes a delimiter
+//// it reads the musician block content (partially unstructured)
+//func ImportData(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+//	totalcount := 0
+//	musicians = make(MusiciansMap)
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	defer inFile.Close()
+//
+//	//
+//	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+//	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+//	validln := regexp.MustCompile(`\w+`)
+//
+//	s := bufio.NewScanner(inFile)
+//	blklines := []string{}
+//	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+//		curtmp := strings.TrimSpace(s.Text())
+//		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
+//			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
+//			continue
+//		}
+//		curln = curtmp
+//
+//		//// NOTE DEBUG
+//		//log.Printf("for prevline %s\n", prevln)
+//		//log.Printf("for curln %s\n", curln)
+//		//log.Printf("blklines %#v\n", blklines)
+//		////log.Printf("initial %#v\n", initial)
+//		//// END NOTE DEBUG
+//
+//		if initial && (curln == delim1 || curln == delim2) {
+//			initial = false
+//			blklines[0] = prevln // prevlin == names
+//			//log.Printf("if initial blklines %#v\n", blklines)
+//			continue // to skip the next coniditon during the transition from initial true to false
+//		}
+//
+//		if !initial && (curln == delim1 || curln == delim2) {
+//			amusician, ok := ReadMusicianData(blklines)
+//			if ok {
+//				musicians[amusician.Id] = amusician
+//				totalcount++
+//				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+//
+//			} else {
+//				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
+//				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+//				utils.WaitForKeypress()
+//
+//			}
+//			blklines = []string{}
+//			//log.Printf("if not initial   prevline %s\n", prevln)
+//			//log.Printf("if not initial   curln %s\n", curln)
+//			//log.Printf("if not initial  blklines %#v\n", blklines)
+//			blklines = []string{prevln} // prevlin == names
+//			// TODO DELETEME blklines[0] = prevln // prevlin == names
+//			log.Printf("if not initial blklines after %#v\n", blklines)
+//		}
+//		blklines = append(blklines, prevln)
+//		//utils.WaitForKeypress()
+//
+//	}
+//
+//	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+//	utils.WaitForKeypress()
+//	return musicians
+//
+//}
+
 ////////// END OLD
