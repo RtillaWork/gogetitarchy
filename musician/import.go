@@ -55,16 +55,18 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 		curln := strings.TrimSpace(s.Text())
 
 		//// NOTE DEBUG
-		//log.Printf("for prevline %s\n", prevln)
+		log.Printf("for prevline %s\n", prevln)
+		log.Printf("for curln %s\n", curln)
+		log.Printf("for nameln %s\n", nameln)
 		//log.Printf("for curln %s\n", curln)
 		//log.Printf("blklines %#v\n", blklines)
-		////log.Printf("initial %#v\n", initial)
+		//log.Printf("initial %#v\n", initial)
 		//// END NOTE DEBUG
 
 		if initial && (curln == delim1 || curln == delim2) {
 			initial = false
 			nameln = prevln // prevlin == names
-			//log.Printf("if initial blklines %#v\n", blklines)
+			log.Printf("if initial curln %#v, prevln  %#v, \n", curln, prevln)
 			continue // to skip the next coniditon during the transition from initial true to false
 		}
 
@@ -89,7 +91,7 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 			nameln = prevln // prevlin == names
 			log.Printf("if not initial nameln after %#v\n", nameln)
 		}
-		nameln = prevln
+		nameln = curln
 		//utils.WaitForKeypress()
 
 	}

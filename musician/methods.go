@@ -33,6 +33,7 @@ func New(rawname, fname, mname, lname, notes string) (newMusician *Musician) {
 	newMusician.LName = utils.NormalizeField(lname)
 	newMusician.Notes = utils.NormalizeField(notes)
 	newMusician.Id = newMusician.Hash()
+	log.Printf("FROM NEW %#v musician\n", newMusician)
 	return newMusician
 }
 

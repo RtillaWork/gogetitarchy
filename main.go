@@ -13,7 +13,7 @@ import (
 
 // archy INPHRASES IMPORTRAWMUSICIANS EXPORTJSONORCSVMUSICIANS
 //const inRawFileNameDefault = "../inFile.txt"
-var InRawFileNameDefault = "../infanntry_RAW3_in_nospaces.txt" // "../infantry_raw_in.txt"
+var InRawFileNameDefault = "../infantry_RAW3_in_nospaces.txt" // "../infantry_raw_in.txt"
 var OutRawRebuiltfilenameDefault = OutMusiciansFilenameDefault + "_OUT_RAW_REBUILT.txt"
 var FilterPhrasesFilenameDefault = "../phrases.csv"
 var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" + strconv.FormatInt(time.Now().Unix(), 10)
