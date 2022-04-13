@@ -933,4 +933,67 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //	return totalcount
 //}
 
+//// importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
+//// this func still ignores unstructured or inconsistent chunks of data
+//// reads from musicians with .Confidence 100
+//func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+//	totalfound, totalvalid, totalskipped := 0, 0, 0
+//
+//	//
+//	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+//	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+//	//validln := regexp.MustCompile(`\w+`)
+//
+//	for _, amusician := range musicians {
+//		if amusician.Confidence != 100 {
+//			log.Printf("Skipping musician because .Confidence != 100\n")
+//			continue
+//		}
+//
+//		inFile, err := os.Open(inFileName)
+//		errors.FailOn(err, "opening inFile for reading...")
+//		s := bufio.NewScanner(inFile)
+//
+//		blklines := []string{}
+//		for inblockcount, curln, prevln, nameln := 0, "", "", amusician.RawName; s.Scan(); prevln = curln {
+//			curln = strings.TrimSpace(s.Text())
+//			//// NOTE DEBUG
+//			log.Printf("for prevline %s\n", prevln)
+//			log.Printf("for curln %s\n", curln)
+//			log.Printf("blklines %#v\n", blklines)
+//			log.Printf("inblockcount %#v\n", inblockcount)
+//			utils.WaitForKeypress()
+//			//// END NOTE DEBUG
+//
+//			// Assert inblockcount < 2
+//			if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
+//				inblockcount++
+//				// prevlin == names
+//				log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+//			}
+//
+//			if prevln == nameln && (curln == delim1 || curln == delim2) {
+//				inblockcount = 1
+//				blklines[0] = prevln // prevlin == names
+//				//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+//			}
+//
+//			if inblockcount == 1 {
+//				blklines = append(blklines, prevln)
+//			}
+//
+//			if inblockcount == 1 && (curln == delim1 || curln == delim2) {
+//				amusiciansfields := ExtractFields(blklines)
+//				amusician.AddToFields(amusiciansfields)
+//				totalvalid++
+//				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+//			}
+//
+//		}
+//		inFile.Close()
+//	}
+//	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
+//	utils.WaitForKeypress()
+//	return totalvalid
+//}
 ////////// END OLD
