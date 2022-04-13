@@ -43,7 +43,7 @@ func (m *Musician) PrimaryKey() string {
 
 func (m *Musician) String() string {
 	first, _, middle, _, last, _ := m.FullNameTuple()
-	return fmt.Sprintf("%s_%s_%s_%s_%d", m.Id, first, middle, last, m.Encounter)
+	return fmt.Sprintf("%s_%s_%s_%s_%d", m.Id, first, middle, last, m.TimeCreated)
 }
 
 func (m *Musician) ToCsv() string {
@@ -51,7 +51,7 @@ func (m *Musician) ToCsv() string {
 	id := m.Id
 	// TODO enumrate .Fields by going through DataDictionary and...
 	// TODO ... accumulate key-value orelse key-NOVALUE
-	return fmt.Sprintf("%q; %q; %q; %q; %q, %q", id, first, middle, last, m.Notes, m.Encounter)
+	return fmt.Sprintf("%q; %q; %q; %q; %q, %q", id, first, middle, last, m.Notes, m.TimeCreated)
 }
 
 func (m *Musician) ToJson() string {
