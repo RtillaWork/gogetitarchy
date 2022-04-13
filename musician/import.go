@@ -26,21 +26,20 @@ var skipThese = []string{BlockDelimDef1, BlockDelimDef2, "MEMORIAL", ""}
 func Import(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
 
 	musicians = make(MusiciansMap)
-
-	ImportStructuredNames(musicians, inFileName, delim1, delim2)
-	ImportFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
-
-	ImportUnstructuredNames(musicians, inFileName, delim1, delim2)
+	importStructuredNames(musicians, inFileName, delim1, delim2)
+	countHomonyms(musicians)
+	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
+	importUnstructuredNames(musicians, inFileName, delim1, delim2)
 
 	return musicians
 
 }
 
-// ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
+// importStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
 // creates musicians with .Confidence 100
 // this is working but too complex / OLD
-func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped, totalrehashed := 0, 0, 0, 0
 
 	inFile, err := os.Open(inFileName)
@@ -92,10 +91,23 @@ func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 	return totalfound
 }
 
-// ImportFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
+// countHomonyms updates the number of times this names combination happens again
+func countHomonyms(musicians MusiciansMap) {
+	rawnames := map[string]int{}
+	for _, m := range musicians {
+		rawnames[m.RawName]++
+	}
+	for _, m := range musicians {
+		m.Encounters = rawnames[m.RawName]
+	}
+
+	rawnames = nil
+}
+
+// importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
 // this func still ignores unstructured or inconsistent chunks of data
 // reads from musicians with .Confidence 100
-func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped := 0, 0, 0
 
 	//
@@ -124,6 +136,7 @@ func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 			utils.WaitForKeypress()
 			//// END NOTE DEBUG
 
+			// Assert inblockcount < 2
 			if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
 				inblockcount++
 				// prevlin == names
@@ -155,9 +168,9 @@ func ImportFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 	return totalvalid
 }
 
-// ImportUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
+// importUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
 // creates musicians with .Confidence 50
-func ImportUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
 	inFile, err := os.Open(inFileName)
@@ -858,11 +871,11 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //
 //}
 
-//ImportStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
+//importStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 //it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
 //creates musicians with .Confidence 100
 //this is working but too complex / OLD
-//func ImportStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+//func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 //	totalcount := 0
 //
 //	inFile, err := os.Open(inFileName)

@@ -38,7 +38,8 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	MName       string            `json:"middle_name"`
 	Notes       string            `json:"notes"`
 	Confidence  int               `json:"confidence"`
-	TimeCreated int64             `json:"encounter"`
+	TimeCreated int64             `json:"time_created"`
+	Encounters  int               `json:"encounter"` // if a musician is created .Encounters == 1; inc. on names repeat
 	Fields      map[string]string `json:"fields"`
 	Tags        []string          `json:"tags"`
 
@@ -98,7 +99,8 @@ func init() {
 		LName:       "NULL_LASTNAME",
 		Notes:       "NULL_NOTES",
 		Confidence:  -100,
-		TimeCreated: 0,
+		Encounters:  0,  //
+		TimeCreated: -1, //  < 0   =>  this data hasn't been set yet
 		Fields: map[string]string{
 			"FIRSTNAME":   "NULL_FIRSTNAME",
 			"MIDDLENAME":  "NULL_MIDDLENAME",
