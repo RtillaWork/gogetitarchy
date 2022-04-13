@@ -40,11 +40,13 @@ func main() {
 	//
 	var musicians musician.MusiciansMap
 	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
+		log.Printf("Musicians file %s not found, importing...\n", *OutMusiciansFilename)
 		musicians = musician.Import(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
 		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 	} else {
+		log.Printf("Musicians file %s found, reading...\n", *OutMusiciansFilename)
 		musicians = musician.ReadData(d)
-		log.Printf("Musicians file %s found, imported %d musicians\n", *OutMusiciansFilename, len(musicians))
+		log.Printf("Musicians file %s found, read %d musicians\n", *OutMusiciansFilename, len(musicians))
 		utils.WaitForKeypress()
 	}
 
