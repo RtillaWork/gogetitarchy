@@ -2,6 +2,7 @@ package musician
 
 import (
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
+	"math"
 	"time"
 )
 
@@ -37,7 +38,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LName       string            `json:"last_name"`
 	MName       string            `json:"middle_name"`
 	Notes       string            `json:"notes"`
-	Confidence  int               `json:"confidence"`
+	State       int               `json:"confidence"`
 	TimeCreated int64             `json:"time_created"`
 	Encounters  int               `json:"encounter"` // if a musician is created .Encounters == 1; inc. on names repeat
 	Fields      map[string]string `json:"fields"`
@@ -98,9 +99,9 @@ func init() {
 		MName:       "NULL_MIDDLENAME",
 		LName:       "NULL_LASTNAME",
 		Notes:       "NULL_NOTES",
-		Confidence:  -100,
-		Encounters:  0,  //
-		TimeCreated: -1, //  < 0   =>  this data hasn't been set yet
+		State:       math.MinInt,
+		Encounters:  0,             //
+		TimeCreated: math.MinInt64, //  < 0   =>  this data hasn't been set yet
 		Fields: map[string]string{
 			"FIRSTNAME":   "NULL_FIRSTNAME",
 			"MIDDLENAME":  "NULL_MIDDLENAME",

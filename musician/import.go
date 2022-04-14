@@ -27,8 +27,8 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 
 	musicians = make(MusiciansMap)
 	importStructuredNames(musicians, inFileName, delim1, delim2)
-	countHomonyms(musicians)
-	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
+	h := countHomonyms(musicians)
+	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2, h)
 	importUnstructuredNames(musicians, inFileName, delim1, delim2)
 
 	return musicians
@@ -37,7 +37,7 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 
 // importStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 // it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
-// creates musicians with .Confidence 100
+// creates musicians with .State 100
 // this is working but too complex / OLD
 func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped, totalrehashed := 0, 0, 0, 0
@@ -68,7 +68,7 @@ func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 					log.Printf("Repeat names for Musician ENTRY count %d rehashed\n", totalrehashed)
 					//utils.WaitForKeypress()
 				}
-				amusician.Confidence = 100
+				//amusician.State = 100 moved this to countHomonyms
 				musicians[amusician.Id] = amusician
 				totalvalid++
 				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
@@ -92,22 +92,24 @@ func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 }
 
 // countHomonyms updates the number of times this names combination happens again
-func countHomonyms(musicians MusiciansMap) {
-	rawnames := map[string]int{}
+func countHomonyms(musicians MusiciansMap) (rawNames map[string]int) {
+	rawNames = map[string]int{}
 	for _, m := range musicians {
-		rawnames[m.RawName]++
+		rawNames[m.RawName]++
 	}
 	for _, m := range musicians {
-		m.Encounters = rawnames[m.RawName]
+		m.Encounters = rawNames[m.RawName]
+		m.State = m.Encounters
 	}
 
-	rawnames = nil
+	return rawNames
 }
 
 // importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
 // this func still ignores unstructured or inconsistent chunks of data
-// reads from musicians with .Confidence 100
-func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+// reads from musicians with .State > 100
+func importFieldsForStructuredNames(
+	musicians MusiciansMap, inFileName string, delim1 string, delim2 string, rawNames map[string]int) (count int) {
 	totalfound, totalvalid, totalskipped := 0, 0, 0
 
 	//
@@ -116,17 +118,21 @@ func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 	//validln := regexp.MustCompile(`\w+`)
 
 	for _, amusician := range musicians {
-		if amusician.Confidence != 100 {
-			log.Printf("Skipping musician because .Confidence != 100\n")
+		if amusician.State == 0 {
+			log.Printf("Skipping musician because .State == 0 \n")
 			continue
 		}
-
+		rawNames[amusician.RawName]--
+		if rawNames[amusician.RawName] == 0 {
+			log.Printf("Last iteration for %#v based on rawNames[amusician.RawName]==0", amusician.RawName)
+		}
+		errors.Assert(rawNames[amusician.RawName] >= 0, "rawNames[amusician.RawName] negative value")
 		inFile, err := os.Open(inFileName)
 		errors.FailOn(err, "opening inFile for reading...")
 		s := bufio.NewScanner(inFile)
 
 		blklines := []string{}
-		for inblockcount, curln, prevln, nameln := 0, "", "", amusician.RawName; s.Scan(); prevln = curln {
+		for inblockcount, curln, prevln, nameln := -rawNames[amusician.RawName], "", "", amusician.RawName; s.Scan(); prevln = curln {
 			curln = strings.TrimSpace(s.Text())
 			//// NOTE DEBUG
 			log.Printf("for prevline %s\n", prevln)
@@ -144,7 +150,8 @@ func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 			}
 
 			if prevln == nameln && (curln == delim1 || curln == delim2) {
-				inblockcount = 1
+				//inblockcount = 1  replaced by v
+				inblockcount++
 				blklines[0] = prevln // prevlin == names
 				//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
 			}
@@ -169,7 +176,7 @@ func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, d
 }
 
 // importUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
-// creates musicians with .Confidence 50
+// creates musicians with .State 50
 func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalcount := 0
 
@@ -229,7 +236,7 @@ func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 				_, _, _, _, ok := ExtractNamesNotesFrom(blklines[i])
 				if ok {
 					amusician, _ := NewMusicianFrom(blklines[i])
-					amusician.Confidence = 50
+					amusician.State = 50
 					blklines = blklines[i+1:]
 					amusician.AddToFields(ExtractFields(blklines))
 					totalcount++
@@ -253,7 +260,7 @@ func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 s
 }
 
 // ImportFieldsForUnstructuredNames pass 4; reads the musician block content (partially unstructured)
-// reads musicians with .Confidence 50
+// reads musicians with .State 50
 func ImportFieldsForUnstructuredNames(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
 	totalcount := 0
 	musicians = make(MusiciansMap)
@@ -873,7 +880,7 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 
 //importStructuredNames pass 1; builds a MusiciansMap from a textfile where names section precedes a delimiter
 //it only collects and desctructure the names section preceding delim1|delim2, optionally with notes
-//creates musicians with .Confidence 100
+//creates musicians with .State 100
 //this is working but too complex / OLD
 //func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 //	totalcount := 0
@@ -905,7 +912,7 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //		if !initial && (curln == delim1 || curln == delim2) {
 //			amusician, ok := NewMusicianFrom(nameln)
 //			if ok {
-//				amusician.Confidence = 100
+//				amusician.State = 100
 //				musicians[amusician.Id] = amusician
 //				totalcount++
 //				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
@@ -935,7 +942,7 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 
 //// importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
 //// this func still ignores unstructured or inconsistent chunks of data
-//// reads from musicians with .Confidence 100
+//// reads from musicians with .State 100
 //func importFieldsForStructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 //	totalfound, totalvalid, totalskipped := 0, 0, 0
 //
@@ -945,8 +952,8 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //	//validln := regexp.MustCompile(`\w+`)
 //
 //	for _, amusician := range musicians {
-//		if amusician.Confidence != 100 {
-//			log.Printf("Skipping musician because .Confidence != 100\n")
+//		if amusician.State != 100 {
+//			log.Printf("Skipping musician because .State != 100\n")
 //			continue
 //		}
 //
