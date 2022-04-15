@@ -30,6 +30,14 @@ const CSV_SEP = ";"
 // an impossible time for the Domain, to signify a null
 var TIME_NULL time.Time = time.Date(2022, time.March, 01, 00, 00, 00, 00, time.UTC)
 
+type State int
+
+const (
+	UNDEFINED = math.MinInt
+	NOTASSIGNED
+	//ASSIGNED
+)
+
 type Musician struct { // nils, 0s are not valid to represent missing information
 	// TODO assertion: creating a Musician -> no field is nil
 	Id          MusicianHash      `json:"id"`
@@ -38,7 +46,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LName       string            `json:"last_name"`
 	MName       string            `json:"middle_name"`
 	Notes       string            `json:"notes"`
-	State       int               `json:"confidence"`
+	State       State             `json:"confidence"`
 	TimeCreated int64             `json:"time_created"`
 	Encounters  int               `json:"encounter"` // if a musician is created .Encounters == 1; inc. on names repeat
 	Fields      map[string]string `json:"fields"`
@@ -99,7 +107,7 @@ func init() {
 		MName:       "NULL_MIDDLENAME",
 		LName:       "NULL_LASTNAME",
 		Notes:       "NULL_NOTES",
-		State:       math.MinInt,
+		State:       State(UNDEFINED),
 		Encounters:  0,             //
 		TimeCreated: math.MinInt64, //  < 0   =>  this data hasn't been set yet
 		Fields: map[string]string{

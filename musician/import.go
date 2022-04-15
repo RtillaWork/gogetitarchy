@@ -29,7 +29,10 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 	importStructuredNames(musicians, inFileName, delim1, delim2)
 	h := countHomonyms(musicians)
 	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2, h)
-	importUnstructuredNames(musicians, inFileName, delim1, delim2)
+
+	//for _, m := range musicians {
+	//
+	//}
 
 	return musicians
 
@@ -99,7 +102,7 @@ func countHomonyms(musicians MusiciansMap) (rawNames map[string]int) {
 	}
 	for _, m := range musicians {
 		m.Encounters = rawNames[m.RawName]
-		m.State = m.Encounters
+		m.State = State(m.Encounters)
 	}
 
 	return rawNames
@@ -118,7 +121,7 @@ func importFieldsForStructuredNames(
 	//validln := regexp.MustCompile(`\w+`)
 
 	for _, amusician := range musicians {
-		if amusician.State == 0 {
+		if amusician.State < 0 {
 			log.Printf("Skipping musician because .State == 0 \n")
 			continue
 		}
@@ -163,6 +166,7 @@ func importFieldsForStructuredNames(
 			if inblockcount == 1 && (curln == delim1 || curln == delim2) {
 				amusiciansfields := ExtractFields(blklines)
 				amusician.AddToFields(amusiciansfields)
+				amusician.State = State(NOTASSIGNED)
 				totalvalid++
 				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
 			}
@@ -170,6 +174,7 @@ func importFieldsForStructuredNames(
 		}
 		inFile.Close()
 	}
+
 	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
 	utils.WaitForKeypress()
 	return totalvalid
