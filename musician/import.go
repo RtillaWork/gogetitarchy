@@ -139,7 +139,7 @@ func importFieldsForStructuredNames(
 			log.Printf("for curln %s\n", curln)
 			log.Printf("blklines %#v\n", blklines)
 			log.Printf("inblockcount %#v\n", inblockcount)
-			utils.WaitForKeypress()
+			//utils.WaitForKeypress()
 			//// END NOTE DEBUG
 
 			// Assert inblockcount < 2
@@ -173,161 +173,6 @@ func importFieldsForStructuredNames(
 	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
 	utils.WaitForKeypress()
 	return totalvalid
-}
-
-// importUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
-// creates musicians with .State 50
-func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
-	totalcount := 0
-
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	s := bufio.NewScanner(inFile)
-
-	//validln := regexp.MustCompile(`\w+`)
-
-	for blklines, rewindblklines, maybedata, curln, prevln := []string{}, false, false, "", ""; s.Scan(); prevln = curln {
-		curln := strings.TrimSpace(s.Text())
-
-		// skip the case of well formed musician block, open block
-		if !maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
-			// log.Printf("skipping %s | %s and adding block ahead for possible data", prevln, curln)
-			curln = strings.TrimSpace(s.Text())
-			blklines = []string{}
-			maybedata = true
-			continue
-		}
-
-		// skip the case of well formed musician block, close block
-		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
-			// log.Printf("skipping %s | %s and closed previous block, no data expected", prevln, curln)
-			curln = strings.TrimSpace(s.Text())
-			blklines = []string{}
-			maybedata = false
-			continue
-		}
-
-		//// NOTE DEBUG
-		//log.Printf("for prevline %s\n", prevln)
-		//log.Printf("for curln %s\n", curln)
-		//log.Printf("blklines %#v\n", blklines)
-		////log.Printf("initial %#v\n", initial)
-		//// END NOTE DEBUG
-
-		// otherwise append lines to blklines
-		if maybedata {
-			blklines = append(blklines, prevln)
-		}
-
-		// here maybe the of a name separated from delim1|delim2 by text/garbage
-		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) == 0 {
-			blklines = append(blklines, prevln)
-			curln = strings.TrimSpace(s.Text())
-			maybedata = false
-			rewindblklines = true //
-			//
-			//blklines[0] = prevln // prevlin == names
-			////log.Printf("if initial blklines %#v\n", blklines)
-			//continue // to skip the next coniditon during the transition from initial true to false
-		}
-
-		if rewindblklines {
-			for i := 0; i < len(blklines); i++ {
-				_, _, _, _, ok := ExtractNamesNotesFrom(blklines[i])
-				if ok {
-					amusician, _ := NewMusicianFrom(blklines[i])
-					amusician.State = 50
-					blklines = blklines[i+1:]
-					amusician.AddToFields(ExtractFields(blklines))
-					totalcount++
-					log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
-					break
-				} else {
-					log.Printf("ENTRY %v IGNORED AS NON NAMES LINE \n", blklines[i])
-				}
-
-			}
-			blklines = []string{}
-			rewindblklines = false
-		}
-		//utils.WaitForKeypress()
-
-	}
-	log.Printf("\nTotalCount %d = NEW musicians.len %d", totalcount, len(musicians))
-	utils.WaitForKeypress()
-	inFile.Close()
-	return totalcount
-}
-
-// ImportFieldsForUnstructuredNames pass 4; reads the musician block content (partially unstructured)
-// reads musicians with .State 50
-func ImportFieldsForUnstructuredNames(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
-	totalcount := 0
-	musicians = make(MusiciansMap)
-
-	inFile, err := os.Open(inFileName)
-	errors.FailOn(err, "opening inFile for reading...")
-	defer inFile.Close()
-
-	//
-	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
-	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
-	validln := regexp.MustCompile(`\w+`)
-
-	s := bufio.NewScanner(inFile)
-	blklines := []string{}
-	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
-		curtmp := strings.TrimSpace(s.Text())
-		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
-			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
-			continue
-		}
-		curln = curtmp
-
-		//// NOTE DEBUG
-		//log.Printf("for prevline %s\n", prevln)
-		//log.Printf("for curln %s\n", curln)
-		//log.Printf("blklines %#v\n", blklines)
-		////log.Printf("initial %#v\n", initial)
-		//// END NOTE DEBUG
-
-		if initial && (curln == delim1 || curln == delim2) {
-			initial = false
-			blklines[0] = prevln // prevlin == names
-			//log.Printf("if initial blklines %#v\n", blklines)
-			continue // to skip the next coniditon during the transition from initial true to false
-		}
-
-		if !initial && (curln == delim1 || curln == delim2) {
-			amusician, ok := ReadMusicianData(blklines)
-			if ok {
-				musicians[amusician.Id] = amusician
-				totalcount++
-				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
-
-			} else {
-				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
-				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
-				utils.WaitForKeypress()
-
-			}
-			blklines = []string{}
-			//log.Printf("if not initial   prevline %s\n", prevln)
-			//log.Printf("if not initial   curln %s\n", curln)
-			//log.Printf("if not initial  blklines %#v\n", blklines)
-			blklines = []string{prevln} // prevlin == names
-			// TODO DELETEME blklines[0] = prevln // prevlin == names
-			log.Printf("if not initial blklines after %#v\n", blklines)
-		}
-		blklines = append(blklines, prevln)
-		//utils.WaitForKeypress()
-
-	}
-
-	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
-	utils.WaitForKeypress()
-	return musicians
-
 }
 
 // ReadMusicianData creates a Musician struct data from a partially unstructured block of []string
@@ -1004,3 +849,163 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //	return totalvalid
 //}
 ////////// END OLD
+
+/////////////////// DEPRECATED
+//
+//
+//// importUnstructuredNames pass 3; tries to collect the musician names content (partially unstructured)
+//// creates musicians with .State 50
+//func importUnstructuredNames(musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+//	totalcount := 0
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	s := bufio.NewScanner(inFile)
+//
+//	//validln := regexp.MustCompile(`\w+`)
+//
+//	for blklines, rewindblklines, maybedata, curln, prevln := []string{}, false, false, "", ""; s.Scan(); prevln = curln {
+//		curln := strings.TrimSpace(s.Text())
+//
+//		// skip the case of well formed musician block, open block
+//		if !maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
+//			// log.Printf("skipping %s | %s and adding block ahead for possible data", prevln, curln)
+//			curln = strings.TrimSpace(s.Text())
+//			blklines = []string{}
+//			maybedata = true
+//			continue
+//		}
+//
+//		// skip the case of well formed musician block, close block
+//		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) > 0 {
+//			// log.Printf("skipping %s | %s and closed previous block, no data expected", prevln, curln)
+//			curln = strings.TrimSpace(s.Text())
+//			blklines = []string{}
+//			maybedata = false
+//			continue
+//		}
+//
+//		//// NOTE DEBUG
+//		//log.Printf("for prevline %s\n", prevln)
+//		//log.Printf("for curln %s\n", curln)
+//		//log.Printf("blklines %#v\n", blklines)
+//		////log.Printf("initial %#v\n", initial)
+//		//// END NOTE DEBUG
+//
+//		// otherwise append lines to blklines
+//		if maybedata {
+//			blklines = append(blklines, prevln)
+//		}
+//
+//		// here maybe the of a name separated from delim1|delim2 by text/garbage
+//		if maybedata && (curln == delim1 || curln == delim2) && musicians.CountRawName(prevln) == 0 {
+//			blklines = append(blklines, prevln)
+//			curln = strings.TrimSpace(s.Text())
+//			maybedata = false
+//			rewindblklines = true //
+//			//
+//			//blklines[0] = prevln // prevlin == names
+//			////log.Printf("if initial blklines %#v\n", blklines)
+//			//continue // to skip the next coniditon during the transition from initial true to false
+//		}
+//
+//		if rewindblklines {
+//			for i := 0; i < len(blklines); i++ {
+//				_, _, _, _, ok := ExtractNamesNotesFrom(blklines[i])
+//				if ok {
+//					amusician, _ := NewMusicianFrom(blklines[i])
+//					amusician.State = 50
+//					blklines = blklines[i+1:]
+//					amusician.AddToFields(ExtractFields(blklines))
+//					totalcount++
+//					log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+//					break
+//				} else {
+//					log.Printf("ENTRY %v IGNORED AS NON NAMES LINE \n", blklines[i])
+//				}
+//
+//			}
+//			blklines = []string{}
+//			rewindblklines = false
+//		}
+//		//utils.WaitForKeypress()
+//
+//	}
+//	log.Printf("\nTotalCount %d = NEW musicians.len %d", totalcount, len(musicians))
+//	utils.WaitForKeypress()
+//	inFile.Close()
+//	return totalcount
+//}
+//
+//// ImportFieldsForUnstructuredNames pass 4; reads the musician block content (partially unstructured)
+//// reads musicians with .State 50
+//func ImportFieldsForUnstructuredNames(inFileName string, delim1 string, delim2 string) (musicians MusiciansMap) {
+//	totalcount := 0
+//	musicians = make(MusiciansMap)
+//
+//	inFile, err := os.Open(inFileName)
+//	errors.FailOn(err, "opening inFile for reading...")
+//	defer inFile.Close()
+//
+//	//
+//	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
+//	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
+//	validln := regexp.MustCompile(`\w+`)
+//
+//	s := bufio.NewScanner(inFile)
+//	blklines := []string{}
+//	for initial, curln, prevln := true, "", ""; s.Scan(); prevln = curln {
+//		curtmp := strings.TrimSpace(s.Text())
+//		if curtmp == "" || len(curtmp) == 0 || !validln.MatchString(curtmp) {
+//			log.Printf("GARBAGE GARBAGE GARBAGE: %#v\n", curtmp)
+//			continue
+//		}
+//		curln = curtmp
+//
+//		//// NOTE DEBUG
+//		//log.Printf("for prevline %s\n", prevln)
+//		//log.Printf("for curln %s\n", curln)
+//		//log.Printf("blklines %#v\n", blklines)
+//		////log.Printf("initial %#v\n", initial)
+//		//// END NOTE DEBUG
+//
+//		if initial && (curln == delim1 || curln == delim2) {
+//			initial = false
+//			blklines[0] = prevln // prevlin == names
+//			//log.Printf("if initial blklines %#v\n", blklines)
+//			continue // to skip the next coniditon during the transition from initial true to false
+//		}
+//
+//		if !initial && (curln == delim1 || curln == delim2) {
+//			amusician, ok := ReadMusicianData(blklines)
+//			if ok {
+//				musicians[amusician.Id] = amusician
+//				totalcount++
+//				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalcount, amusician.ToJson())
+//
+//			} else {
+//				log.Printf("ENTRY %v IGNORED UNDERTERMINATE REASON \n", amusician.ToJson())
+//				log.Printf("\n = = ERROR READING FOR FILE: line:{ %v } prevline:{ %v}\n\n", curln, prevln)
+//				utils.WaitForKeypress()
+//
+//			}
+//			blklines = []string{}
+//			//log.Printf("if not initial   prevline %s\n", prevln)
+//			//log.Printf("if not initial   curln %s\n", curln)
+//			//log.Printf("if not initial  blklines %#v\n", blklines)
+//			blklines = []string{prevln} // prevlin == names
+//			// TODO DELETEME blklines[0] = prevln // prevlin == names
+//			log.Printf("if not initial blklines after %#v\n", blklines)
+//		}
+//		blklines = append(blklines, prevln)
+//		//utils.WaitForKeypress()
+//
+//	}
+//
+//	log.Printf("\nTotalCount %d = musicians.len %d", totalcount, len(musicians))
+//	utils.WaitForKeypress()
+//	return musicians
+//
+//}
+
+/////////////// END DEPRECATED
