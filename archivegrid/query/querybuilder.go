@@ -1,9 +1,10 @@
-package archivegrid
+package query
 
 import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/archivegrid"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
@@ -31,10 +32,10 @@ const QUERY_LIMIT = 100
 
 type MusicianQueryHash hash.HashSum
 
-//type MusiciansQueries map[utils.HashSum]*MusicianQuery
-type MusiciansQueries map[musician.MusicianHash]*MusicianQuery
+//type MusiciansQueries map[utils.HashSum]*Query
+type MusiciansQueries map[musician.MusicianHash]*Query
 
-type MusicianQuery struct {
+type Query struct {
 	Id         MusicianQueryHash     `json:"query_id"` // for now init to same as MusicianId one musician one query
 	MusicianId musician.MusicianHash `json:"musician_id"`
 	Url        string                `json:"url"`
@@ -44,13 +45,13 @@ type MusicianQuery struct {
 	DebugNotes QUERYDEBUG            `json:"debug_notes"`
 }
 
-func (mq *MusicianQuery) String() string {
+func (mq *Query) String() string {
 	return string(mq.Url)
 }
 
-func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *MusicianQuery) {
-	newMusicianQuery = new(MusicianQuery)
-	newMusicianQuery = &MusicianQuery{
+func NewQuery(id musician.MusicianHash, url string) (newMusicianQuery *Query) {
+	newMusicianQuery = new(Query)
+	newMusicianQuery = &Query{
 		Id:         MusicianQueryHash(id),
 		MusicianId: id,
 		Url:        url,
@@ -62,7 +63,7 @@ func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *M
 
 	return newMusicianQuery
 
-	//return &MusicianQuery{
+	//return &Query{
 	//	Id: id,
 	//	//MusicianId: m.Id,
 	//	Url: url,
@@ -71,13 +72,13 @@ func NewMusicianQuery(id musician.MusicianHash, url string) (newMusicianQuery *M
 	//}
 }
 
-func (mq *MusicianQuery) ToJson() string {
+func (mq *Query) ToJson() string {
 	jsoned, err := json.Marshal(*mq)
 	errors.FailOn(err, "Musician::ToJson json.Marshal")
 	return fmt.Sprintf("%s", string(jsoned))
 }
 
-func (mq *MusicianQuery) Hash() MusicianQueryHash {
+func (mq *Query) Hash() MusicianQueryHash {
 	hashfunc := md5.New()
 	// NOTE: assume Musician::String() is unique. Needs assertion, or else expand the Sum() contents
 	data := mq.ToJson()
@@ -86,13 +87,13 @@ func (mq *MusicianQuery) Hash() MusicianQueryHash {
 	return MusicianQueryHash(fmt.Sprintf("%x", hashsum))
 }
 
-func (mq *MusicianQuery) SetResultCount(count int) {
+func (mq *Query) SetResultCount(count int) {
 	mq.Timestamp = time.Now()
 	mq.ResultSize = count
 }
 
-func (mq *MusicianQuery) SetResultCountFunc(f func(query MusicianQuery) (int, error)) {
-	resultsize, err := ScanQueryResultSize(*mq)
+func (mq *Query) SetResultCountFunc(f func(query Query) (int, error)) {
+	resultsize, err := archivegrid.ScanQueryResultSize(*mq)
 	if err != nil {
 		mq.SetResultCount(-1)
 		mq.DebugNotes = QUERYDEBUG(ERROR)
@@ -107,7 +108,7 @@ func (mq *MusicianQuery) SetResultCountFunc(f func(query MusicianQuery) (int, er
 		log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsize)
 
 		return
-	} else if resultsize > TOOMANYRESULTSVALUE {
+	} else if resultsize > archivegrid.TOOMANYRESULTSVALUE {
 		log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsize)
 		// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 		mq.SetResultCount(0)
@@ -120,7 +121,7 @@ func (mq *MusicianQuery) SetResultCountFunc(f func(query MusicianQuery) (int, er
 	}
 }
 
-func (mq *MusicianQuery) Destroy() {
+func (mq *Query) Destroy() {
 	mq.Id = ""
 	//mq.MusicianId
 	mq.Url = ""
@@ -141,13 +142,13 @@ func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
 	return mq
 }
 
-func buildQuery(m *musician.Musician, template string, variation musician.NamesVariation) *MusicianQuery {
+func buildQuery(m *musician.Musician, template string, variation musician.NamesVariation) *Query {
 	querydata := url.QueryEscape(m.QueryFragment(variation))
 	fullquery := fmt.Sprintf(template, querydata)
 
-	return NewMusicianQuery(m.Id, fullquery)
+	return NewQuery(m.Id, fullquery)
 
-	//return MusicianQuery{
+	//return Query{
 	//	Id: m.Id,
 	//	//MusicianId: m.Id,
 	//	Url: fullquery,
@@ -156,7 +157,7 @@ func buildQuery(m *musician.Musician, template string, variation musician.NamesV
 	//}
 }
 
-//func BuildQuery(m Musician, template string) MusicianQuery {
+//func BuildQuery(m Musician, template string) Query {
 //	query := url.QueryEscape(fmt.Sprintf(ARCHIVE_GRID_URL_TEMPLATE[0], m.FullName()))
 //	queries := []string{query}
 //	return MusicianQueries{m.id: queries}

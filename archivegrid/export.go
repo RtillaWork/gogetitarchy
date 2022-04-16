@@ -2,12 +2,13 @@ package archivegrid
 
 import (
 	"fmt"
+	"github.com/RtillaWork/gogetitarchy/archivegrid/query"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"log"
 	"os"
 )
 
-func ExportAllqueries(ms musician.MusiciansMap, mqs MusiciansQueries, filename string) {
+func ExportAllqueries(ms musician.MusiciansMap, mqs query.MusiciansQueries, filename string) {
 	var outfile *os.File
 
 	if filename == "" {
