@@ -35,7 +35,8 @@ type State int
 const (
 	UNDEFINED = math.MinInt
 	NOTASSIGNED
-	//ASSIGNED
+	ASSIGNED
+	COPIED
 )
 
 type Musician struct { // nils, 0s are not valid to represent missing information

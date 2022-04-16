@@ -27,12 +27,7 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 
 	musicians = make(MusiciansMap)
 	importStructuredNames(musicians, inFileName, delim1, delim2)
-	h := countHomonyms(musicians)
-	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2, h)
-
-	//for _, m := range musicians {
-	//
-	//}
+	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
 
 	return musicians
 
@@ -71,7 +66,7 @@ func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 					log.Printf("Repeat names for Musician ENTRY count %d rehashed\n", totalrehashed)
 					//utils.WaitForKeypress()
 				}
-				//amusician.State = 100 moved this to countHomonyms
+				//amusician.State = 100 moved this to musiciansStats
 				musicians[amusician.Id] = amusician
 				totalvalid++
 				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
@@ -94,85 +89,106 @@ func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 	return totalfound
 }
 
-// countHomonyms updates the number of times this names combination happens again
-func countHomonyms(musicians MusiciansMap) (rawNames map[string]int) {
-	rawNames = map[string]int{}
+// musiciansStats updates the number of times this names combination happens again
+func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int, map[int]int) {
+
+	// rawnames stats
+	rawnames := map[string]int{}
 	for _, m := range musicians {
-		rawNames[m.RawName]++
+		rawnames[m.RawName]++
 	}
+	log.Printf("rawnames: %#v\n", rawnames)
+	utils.WaitForKeypress()
+	//
 	for _, m := range musicians {
-		m.Encounters = rawNames[m.RawName]
+		m.Encounters = rawnames[m.RawName]
 		m.State = State(m.Encounters)
 	}
 
-	return rawNames
+	// state stats
+	states := map[State]int{}
+	for _, m := range musicians {
+		states[m.State]++
+	}
+	log.Printf("States: %#v\n", states)
+	utils.WaitForKeypress()
+	// encounters stats
+	encounters := map[int]int{}
+	for _, m := range musicians {
+		encounters[m.Encounters]++
+	}
+	log.Printf("States: %#v\n", encounters)
+	utils.WaitForKeypress()
+
+	return rawnames, states, encounters
 }
 
 // importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
 // this func still ignores unstructured or inconsistent chunks of data
 // reads from musicians with .State > 100
 func importFieldsForStructuredNames(
-	musicians MusiciansMap, inFileName string, delim1 string, delim2 string, rawNames map[string]int) (count int) {
+	musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped := 0, 0, 0
 
+	rawnames, states, _ := musiciansStats(musicians)
+
 	//
-	//garbage1 := regexp.MustCompile(`\d{1,2}/\d{1,2`)                           // remove 8/13
-	//garbage2 := regexp.MustCompile(`\d+/\d+/\d+,\s+\d{1,2}:\d{1,2}\s+[AM|PM]`) //   or ^L1/10/22, 1:38 PM
-	//validln := regexp.MustCompile(`\w+`)
+	for state, _ := range states {
+		log.Printf("Processing musicians with %d States (name repeats, defaults first as .Encounters)\n", state)
+		utils.WaitForKeypress()
+		for _, amusician := range musicians {
+			if amusician.State != state {
+				continue
+			}
+			for encounter := amusician.Encounters; encounter > 0; encounter-- {
 
-	for _, amusician := range musicians {
-		if amusician.State < 0 {
-			log.Printf("Skipping musician because .State == 0 \n")
-			continue
+				inFile, err := os.Open(inFileName)
+				errors.FailOn(err, "opening inFile for reading...")
+				s := bufio.NewScanner(inFile)
+				blklines := []string{}
+
+				for inblockcount, curln, prevln, nameln := encounter, "", "", amusician.RawName; s.Scan(); prevln = curln {
+					curln = strings.TrimSpace(s.Text())
+					//// NOTE DEBUG
+					log.Printf("for prevline %s\n", prevln)
+					log.Printf("for curln %s\n", curln)
+					log.Printf("blklines %#v\n", blklines)
+					log.Printf("inblockcount %#v\n", inblockcount)
+					//utils.WaitForKeypress()
+					//// END NOTE DEBUG
+
+					// Assert inblockcount < 2
+					if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
+						inblockcount++
+						// prevlin == names
+						log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+					}
+
+					if inblockcount > 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
+						//inblockcount = 1  replaced by v
+						inblockcount--
+						blklines[0] = prevln // prevlin == names
+						//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+					}
+
+					if inblockcount == 0 {
+						blklines = append(blklines, prevln)
+					}
+
+					if inblockcount == 0 && (curln == delim1 || curln == delim2) {
+						amusiciansfields := ExtractFields(blklines)
+						amusician.AddToFields(amusiciansfields)
+						amusician.State = State(COPIED)
+						totalvalid++
+						log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+					}
+
+				}
+
+				inFile.Close()
+			}
+
 		}
-		rawNames[amusician.RawName]--
-		if rawNames[amusician.RawName] == 0 {
-			log.Printf("Last iteration for %#v based on rawNames[amusician.RawName]==0", amusician.RawName)
-		}
-		errors.Assert(rawNames[amusician.RawName] >= 0, "rawNames[amusician.RawName] negative value")
-		inFile, err := os.Open(inFileName)
-		errors.FailOn(err, "opening inFile for reading...")
-		s := bufio.NewScanner(inFile)
-
-		blklines := []string{}
-		for inblockcount, curln, prevln, nameln := -rawNames[amusician.RawName], "", "", amusician.RawName; s.Scan(); prevln = curln {
-			curln = strings.TrimSpace(s.Text())
-			//// NOTE DEBUG
-			log.Printf("for prevline %s\n", prevln)
-			log.Printf("for curln %s\n", curln)
-			log.Printf("blklines %#v\n", blklines)
-			log.Printf("inblockcount %#v\n", inblockcount)
-			//utils.WaitForKeypress()
-			//// END NOTE DEBUG
-
-			// Assert inblockcount < 2
-			if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
-				inblockcount++
-				// prevlin == names
-				log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
-			}
-
-			if prevln == nameln && (curln == delim1 || curln == delim2) {
-				//inblockcount = 1  replaced by v
-				inblockcount++
-				blklines[0] = prevln // prevlin == names
-				//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
-			}
-
-			if inblockcount == 1 {
-				blklines = append(blklines, prevln)
-			}
-
-			if inblockcount == 1 && (curln == delim1 || curln == delim2) {
-				amusiciansfields := ExtractFields(blklines)
-				amusician.AddToFields(amusiciansfields)
-				amusician.State = State(NOTASSIGNED)
-				totalvalid++
-				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
-			}
-
-		}
-		inFile.Close()
 	}
 
 	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
@@ -1012,5 +1028,62 @@ func ImportData(inFileName string, delim1 string, delim2 string) (musicians Musi
 //	return musicians
 //
 //}
+
+////
+//for _, amusician := range musicians {
+//if amusician.State < 0 {
+//log.Printf("Skipping musician because .State == 0 \n")
+//continue
+//}
+//rawnames[amusician.RawName]--
+//if rawnames[amusician.RawName] == 0 {
+//log.Printf("Last iteration for %#v based on rawNames[amusician.RawName]==0", amusician.RawName)
+//}
+//errors.Assert(rawnames[amusician.RawName] >= 0, "rawNames[amusician.RawName] negative value")
+//inFile, err := os.Open(inFileName)
+//errors.FailOn(err, "opening inFile for reading...")
+//s := bufio.NewScanner(inFile)
+//
+//blklines := []string{}
+//for inblockcount, curln, prevln, nameln := -rawnames[amusician.RawName], "", "", amusician.RawName; s.Scan(); prevln = curln {
+//curln = strings.TrimSpace(s.Text())
+////// NOTE DEBUG
+//log.Printf("for prevline %s\n", prevln)
+//log.Printf("for curln %s\n", curln)
+//log.Printf("blklines %#v\n", blklines)
+//log.Printf("inblockcount %#v\n", inblockcount)
+////utils.WaitForKeypress()
+////// END NOTE DEBUG
+//
+//// Assert inblockcount < 2
+//if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
+//inblockcount++
+//// prevlin == names
+//log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+//}
+//
+//if prevln == nameln && (curln == delim1 || curln == delim2) {
+////inblockcount = 1  replaced by v
+//inblockcount++
+//blklines[0] = prevln // prevlin == names
+////log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+//}
+//
+//if inblockcount == 1 {
+//blklines = append(blklines, prevln)
+//}
+//
+//if inblockcount == 1 && (curln == delim1 || curln == delim2) {
+//amusiciansfields := ExtractFields(blklines)
+//amusician.AddToFields(amusiciansfields)
+//amusician.State = State(NOTASSIGNED)
+//totalvalid++
+//log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+//}
+//
+//}
+//inFile.Close()
+//}
+//
 
 /////////////// END DEPRECATED
