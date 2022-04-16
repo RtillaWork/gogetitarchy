@@ -25,26 +25,26 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 			size, lenms, lenmqs)
 		utils.WaitForKeypress()
 
-		for _, mq := range mqs { // _ = mhash
+		for mhash, mq := range mqs { // _ = mhash
 			if size == 0 {
 				break
 			}
 			mq.SetResultCountFunc(ScanQueryResultSize)
 
-			//if mq.ResultSize > 0 {
-			//	log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
-			//	recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
-			//	errors2.FailOn(err, "Crawling query\n"+mq.String())
-			//	musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
-			//} else {
-			//	log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count <= 0 %d\n For query %s \n SKIPPING...\n", mq.ResultSize, mq)
-			//
-			//}
-			//
-			//utils.WaitForKeypress()
-			////delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
-			////time.Sleep(delay)
-			////log.Printf("DELAY %d", delay)
+			if mq.ResultSize > 0 {
+				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
+				recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
+				errors2.FailOn(err, "Crawling query\n"+mq.String())
+				musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
+			} else {
+				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count <= 0 %d\n For query %s \n SKIPPING...\n", mq.ResultSize, mq)
+
+			}
+
+			utils.WaitForKeypress()
+			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
+			//time.Sleep(delay)
+			//log.Printf("DELAY %d", delay)
 			size--
 		}
 

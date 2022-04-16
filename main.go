@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/RtillaWork/gogetitarchy/archivegrid"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/testing"
 	"github.com/RtillaWork/gogetitarchy/utils"
@@ -27,17 +28,19 @@ var testModeDefault = false
 
 func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")
-	//FilterPhrasesFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in GoodSetPhrases in csv format")
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
 	InMusiciansFilename := flag.String("InMusicians", InMusiciansFilenameDefault, "In Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
 	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
-	//OutMusiciansQueryFilename := flag.String("outQueries", OutMusiciansQueryFilenameDefault, "Output queries json")
-	//OutResponseDataFilename := flag.String("outResponse", OutResponseDataFilenameDefault, "Output response data in json")
+	OutMusiciansQueryFilename := flag.String("outQueries", OutMusiciansQueryFilenameDefault, "Output queries json")
+	OutResponseDataFilename := flag.String("outResponse", OutResponseDataFilenameDefault, "Output response data in json")
 	OutExtension := flag.String("outformat", OutExtensionDefault, "Output format json or csv(;). Default json")
 	testMode := flag.Bool("testMode", testModeDefault, "compare computed with saved (default true)")
+	FilterKeywordsFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in GoodSetKeywords in csv format")
+
 	flag.Parse()
-	//GoodSetPhrases := utils.ImportPhrases(*FilterPhrasesFilename)
+
+	GoodSetKeywords := utils.ImportPhrases(*FilterKeywordsFilename)
 
 	//
 	var musicians musician.MusiciansMap
@@ -73,17 +76,17 @@ func main() {
 
 	//musiciansdb := musician.NewMusiciansDb(musicians)
 	musician.ExportDataDict(musician.TheDataDict, *OutTheDataDictFilename+*OutExtension)
+
 	//
-	////
-	//musiciansQueries := archivegrid.BuildQueries(musicians)
-	//archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename)
+	musiciansQueries := archivegrid.BuildQueries(musicians)
+	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename+*OutExtension)
+
 	//
-	////
-	//musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3, GoodSetPhrases)
-	//if ok {
-	//	archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename)
-	//} else {
-	//	log.Println("CrawlArchiveGrid returned not ok")
-	//}
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3, GoodSetKeywords)
+	if ok {
+		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename+*OutExtension)
+	} else {
+		log.Println("CrawlArchiveGrid returned not ok")
+	}
 
 }
