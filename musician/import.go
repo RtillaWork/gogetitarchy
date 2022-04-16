@@ -145,7 +145,7 @@ func importFieldsForStructuredNames(
 					log.Printf("ALREADY PROCESSED")
 					continue
 				}
-				//log.Printf("===> FOUND with %q nameln==RawName NON COPIED YETs\n", rawname)
+				log.Printf("===> FOUND with %q nameln with %d encounter of  %d encounters s\n", rawname, encounter, encounters)
 				amusician.Encounter = encounter
 
 				inFile, err := os.Open(inFileName)
@@ -155,11 +155,12 @@ func importFieldsForStructuredNames(
 				for inblockcount, curln, prevln, nameln := encounter, "", "", amusician.RawName; s.Scan(); prevln = curln {
 					curln = strings.TrimSpace(s.Text())
 					////// NOTE DEBUG
+					//log.Printf("\n\nfor nameln %s\n", nameln)
 					//log.Printf("for prevline %s\n", prevln)
 					//log.Printf("for curln %s\n", curln)
 					//log.Printf("blklines %#v\n", blklines)
-					//log.Printf("inblockcount %#v\n", inblockcount)
-					////utils.WaitForKeypress()
+					//log.Printf("inblockcount %#v\n\n", inblockcount)
+					//utils.WaitForKeypress()
 					////// END NOTE DEBUG
 
 					//// Assert inblockcount >= 0
@@ -170,19 +171,18 @@ func importFieldsForStructuredNames(
 					//	utils.WaitForKeypress()
 					//}
 
-					if inblockcount > 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
+					if inblockcount > 0 && utils.NormalizeField(prevln) == nameln && (curln == delim1 || curln == delim2) {
 						//inblockcount = 1  replaced by v
 						inblockcount--
-						blklines[0] = prevln // prevlin == names
-						log.Printf("SKIPPIN SKIPPING SKIPPING SKIPPING for RAWNAME %q ENCOUNTER %d INBLOCKCOUNT %#v\n", rawname, encounter, inblockcount)
-						utils.WaitForKeypress()
+						//blklines[0] = prevln // prevlin == names
+						blklines = []string{prevln}
+						//log.Printf("SKIPPIN SKIPPING SKIPPING SKIPPING for RAWNAME %q ENCOUNTER %d INBLOCKCOUNT %#v\n", rawname, encounter, inblockcount)
+						//utils.WaitForKeypress()
 						continue
 					}
 
 					if inblockcount == 0 {
 						blklines = append(blklines, prevln)
-						log.Printf("AAAAAAAAAAAAAAAAADDDING Musician %s entry blklines %#v\n", rawname, blklines)
-
 					}
 
 					if inblockcount == 0 && (curln == delim1 || curln == delim2) {
@@ -191,7 +191,7 @@ func importFieldsForStructuredNames(
 						amusician.State = State(COPIED)
 						totalvalid++
 						log.Printf("!!!!!Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
-						utils.WaitForKeypress()
+						//utils.WaitForKeypress()
 						break
 					}
 				}
