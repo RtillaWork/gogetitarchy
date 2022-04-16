@@ -101,8 +101,8 @@ func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int) {
 	utils.WaitForKeypress()
 	//
 	for _, m := range musicians {
-		//m.Encounters = rawnames[m.RawName]
-		m.Encounters = -1
+		//m.Encounter = rawnames[m.RawName]
+		m.Encounter = -1
 		m.State = State(rawnames[m.RawName])
 	}
 
@@ -116,7 +116,7 @@ func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int) {
 	//// encounters stats
 	//encounters := map[int]int{}
 	//for _, m := range musicians {
-	//	encounters[m.Encounters]++
+	//	encounters[m.Encounter]++
 	//}
 	//log.Printf("States: %#v\n", encounters)
 	//utils.WaitForKeypress()
@@ -135,18 +135,18 @@ func importFieldsForStructuredNames(
 	//
 	for rawname, encounters := range rawnames {
 		for encounter := encounters; encounter > 0; encounter-- {
-			log.Printf("Looking for musicians with %q nameln with %d encounter of  %d encounters\n", rawname, encounter, encounters)
+			//log.Printf("????Looking for musicians with %q nameln with %d encounter of  %d encounters\n", rawname, encounter, encounters)
 			for _, amusician := range musicians {
 				if amusician.RawName != rawname {
-					log.Printf("SKIPED")
+					//log.Printf("SKIPED")
 					continue
 				}
 				if amusician.State == State(COPIED) {
 					log.Printf("ALREADY PROCESSED")
 					continue
 				}
-				log.Printf("FOUND a musicians with %q nameln==RawName NON COPIED YETs\n", rawname)
-				amusician.Encounters = encounter
+				//log.Printf("===> FOUND with %q nameln==RawName NON COPIED YETs\n", rawname)
+				amusician.Encounter = encounter
 
 				inFile, err := os.Open(inFileName)
 				errors.FailOn(err, "opening inFile for reading...")
@@ -174,11 +174,15 @@ func importFieldsForStructuredNames(
 						//inblockcount = 1  replaced by v
 						inblockcount--
 						blklines[0] = prevln // prevlin == names
-						//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+						log.Printf("SKIPPIN SKIPPING SKIPPING SKIPPING for RAWNAME %q ENCOUNTER %d INBLOCKCOUNT %#v\n", rawname, encounter, inblockcount)
+						utils.WaitForKeypress()
+						continue
 					}
 
 					if inblockcount == 0 {
 						blklines = append(blklines, prevln)
+						log.Printf("AAAAAAAAAAAAAAAAADDDING Musician %s entry blklines %#v\n", rawname, blklines)
+
 					}
 
 					if inblockcount == 0 && (curln == delim1 || curln == delim2) {
@@ -186,7 +190,8 @@ func importFieldsForStructuredNames(
 						amusician.AddToFields(amusiciansfields)
 						amusician.State = State(COPIED)
 						totalvalid++
-						log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+						log.Printf("!!!!!Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+						utils.WaitForKeypress()
 						break
 					}
 				}
@@ -222,13 +227,13 @@ func importFieldsForStructuredNames(
 //
 //	//
 //	for state, _ := range states {
-//		log.Printf("Processing musicians with %d States (name repeats, defaults first as .Encounters)\n", state)
+//		log.Printf("Processing musicians with %d States (name repeats, defaults first as .Encounter)\n", state)
 //		utils.WaitForKeypress()
 //		for _, amusician := range musicians {
 //			if amusician.State != state {
 //				continue
 //			}
-//			for encounter := amusician.Encounters; encounter > 0; encounter-- {
+//			for encounter := amusician.Encounter; encounter > 0; encounter-- {
 //				inFile, err := os.Open(inFileName)
 //				errors.FailOn(err, "opening inFile for reading...")
 //				s := bufio.NewScanner(inFile)
