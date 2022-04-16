@@ -1,10 +1,9 @@
-package query
+package archivegrid
 
 import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/RtillaWork/gogetitarchy/archivegrid"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils/errors"
 	"github.com/RtillaWork/gogetitarchy/utils/hash"
@@ -93,7 +92,7 @@ func (mq *Query) SetResultCount(count int) {
 }
 
 func (mq *Query) SetResultCountFunc(f func(query Query) (int, error)) {
-	resultsize, err := archivegrid.ScanQueryResultSize(*mq)
+	resultsize, err := ScanQueryResultSize(*mq)
 	if err != nil {
 		mq.SetResultCount(-1)
 		mq.DebugNotes = QUERYDEBUG(ERROR)
@@ -108,7 +107,7 @@ func (mq *Query) SetResultCountFunc(f func(query Query) (int, error)) {
 		log.Printf("RESULT SIZE resultsSize == 0 || err != nil %d", resultsize)
 
 		return
-	} else if resultsize > archivegrid.TOOMANYRESULTSVALUE {
+	} else if resultsize > TOOMANYRESULTSVALUE {
 		log.Printf("RESULT SIZE resultsSize > TOOMANYRESULTSVALUE %d", resultsize)
 		// too many to process for now, take note and pass, set ResultSize false as flag nor record as non nilfor now
 		mq.SetResultCount(0)

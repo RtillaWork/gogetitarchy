@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"github.com/RtillaWork/gogetitarchy/archivegrid"
-	"github.com/RtillaWork/gogetitarchy/archivegrid/query"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/testing"
 	"github.com/RtillaWork/gogetitarchy/utils"
@@ -79,7 +78,7 @@ func main() {
 	musician.ExportDataDict(musician.TheDataDict, *OutTheDataDictFilename+*OutExtension)
 
 	//
-	musiciansQueries := query.BuildQueries(musicians)
+	musiciansQueries := archivegrid.BuildQueries(musicians)
 	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3900, GoodSetKeywords)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename+*OutExtension)
 

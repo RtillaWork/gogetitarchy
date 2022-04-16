@@ -2,7 +2,6 @@ package archivegrid
 
 import (
 	"errors"
-	"github.com/RtillaWork/gogetitarchy/archivegrid/query"
 	"github.com/RtillaWork/gogetitarchy/musician"
 	"github.com/RtillaWork/gogetitarchy/utils"
 	errors2 "github.com/RtillaWork/gogetitarchy/utils/errors"
@@ -14,7 +13,7 @@ import (
 	"time"
 )
 
-func CrawlArchiveGrid(ms musician.MusiciansMap, mqs query.Queries, size int, keywords []string) (musiciansData MusiciansData, ok bool) {
+func CrawlArchiveGrid(ms musician.MusiciansMap, mqs Queries, size int, keywords []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
@@ -54,7 +53,7 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs query.Queries, size int, key
 }
 
 // Get query's specific parameters particularily result size
-func ScanQueryResultSize(mq query.Query) (resultsize int, err error) {
+func ScanQueryResultSize(mq Query) (resultsize int, err error) {
 	resultsEmpty := false
 	resultsNotEmpty := false
 	// assert at the end of func resultsEmpty != resultsNotEmpty, orelse Fail
@@ -136,7 +135,7 @@ func ScanQueryResultSize(mq query.Query) (resultsize int, err error) {
 
 }
 
-func ScanArchiveGrid(m *musician.Musician, mq *query.Query, phrases []string) (agRecords []*Record, err error) {
+func ScanArchiveGrid(m *musician.Musician, mq *Query, phrases []string) (agRecords []*Record, err error) {
 	//agRecord := NewRecord(m.Id, mq)
 	agRecords = []*Record{}
 
@@ -282,7 +281,7 @@ func totalPagesAtoi(s string) (from int, to int, total int, err error) {
 	}
 }
 
-func FilteredMusiciansDataBuilder(m *musician.Musician, mq *query.Query, phrases []string) (agRecords []*Record) {
+func FilteredMusiciansDataBuilder(m *musician.Musician, mq *Query, phrases []string) (agRecords []*Record) {
 	return nil
 }
 
@@ -307,7 +306,7 @@ func FilteredMusiciansDataBuilder(m *musician.Musician, mq *query.Query, phrases
 
 ////////////
 
-func ScanArchive(musiciansQueries query.Queries) {
+func ScanArchive(musiciansQueries Queries) {
 
 	//
 	var AGDomPathsDefinition = AGDomPaths{
