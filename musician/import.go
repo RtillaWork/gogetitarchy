@@ -130,39 +130,44 @@ func importFieldsForStructuredNames(
 	musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped := 0, 0, 0
 
-	rawnames, states, _ := musiciansStats(musicians)
-
+	rawnames, _, _ := musiciansStats(musicians)
 	//
-	for state, _ := range states {
-		log.Printf("Processing musicians with %d States (name repeats, defaults first as .Encounters)\n", state)
-		utils.WaitForKeypress()
-		for _, amusician := range musicians {
-			if amusician.State != state {
-				continue
-			}
-			for encounter := amusician.Encounters; encounter > 0; encounter-- {
+	for rawname, encounters := range rawnames {
+		for encounter := encounters; encounter > 0; encounter-- {
+			log.Printf("Looking for musicians with %q nameln with %d encounter of  %d encounters\n", rawname, encounter, encounters)
+			for _, amusician := range musicians {
+				if amusician.RawName != rawname {
+					log.Printf("SKIPED")
+					continue
+				}
+				if amusician.State == State(COPIED) {
+					log.Printf("ALREADY PROCESSED")
+					continue
+				}
+				log.Printf("FOUND a musicians with %q nameln==RawName NON COPIED YETs\n", rawname)
+				amusician.Encounters = encounter
 
 				inFile, err := os.Open(inFileName)
 				errors.FailOn(err, "opening inFile for reading...")
 				s := bufio.NewScanner(inFile)
 				blklines := []string{}
-
 				for inblockcount, curln, prevln, nameln := encounter, "", "", amusician.RawName; s.Scan(); prevln = curln {
 					curln = strings.TrimSpace(s.Text())
-					//// NOTE DEBUG
-					log.Printf("for prevline %s\n", prevln)
-					log.Printf("for curln %s\n", curln)
-					log.Printf("blklines %#v\n", blklines)
-					log.Printf("inblockcount %#v\n", inblockcount)
-					//utils.WaitForKeypress()
-					//// END NOTE DEBUG
+					////// NOTE DEBUG
+					//log.Printf("for prevline %s\n", prevln)
+					//log.Printf("for curln %s\n", curln)
+					//log.Printf("blklines %#v\n", blklines)
+					//log.Printf("inblockcount %#v\n", inblockcount)
+					////utils.WaitForKeypress()
+					////// END NOTE DEBUG
 
-					// Assert inblockcount < 2
-					if inblockcount == 1 && prevln == nameln && (curln == delim1 || curln == delim2) {
-						inblockcount++
-						// prevlin == names
-						log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
-					}
+					//// Assert inblockcount >= 0
+					//if inblockcount == 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
+					//	inblockcount--
+					//	// prevlin == names
+					//	log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+					//	utils.WaitForKeypress()
+					//}
 
 					if inblockcount > 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
 						//inblockcount = 1  replaced by v
@@ -181,20 +186,106 @@ func importFieldsForStructuredNames(
 						amusician.State = State(COPIED)
 						totalvalid++
 						log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+						break
 					}
-
 				}
-
 				inFile.Close()
 			}
-
 		}
 	}
 
+	// stats
+	for _, m := range musicians {
+		if m.State != State(COPIED) {
+			totalskipped++
+		}
+		if m.State == State(COPIED) {
+			totalfound++
+		}
+	}
+
+	//
 	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
 	utils.WaitForKeypress()
 	return totalvalid
 }
+
+//// importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
+//// this func still ignores unstructured or inconsistent chunks of data
+//// reads from musicians with .State > 100
+//func importFieldsForStructuredNames(
+//	musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
+//	totalfound, totalvalid, totalskipped := 0, 0, 0
+//
+//	rawnames, states, _ := musiciansStats(musicians)
+//
+//	//
+//	for state, _ := range states {
+//		log.Printf("Processing musicians with %d States (name repeats, defaults first as .Encounters)\n", state)
+//		utils.WaitForKeypress()
+//		for _, amusician := range musicians {
+//			if amusician.State != state {
+//				continue
+//			}
+//			for encounter := amusician.Encounters; encounter > 0; encounter-- {
+//				inFile, err := os.Open(inFileName)
+//				errors.FailOn(err, "opening inFile for reading...")
+//				s := bufio.NewScanner(inFile)
+//				blklines := []string{}
+//
+//				for inblockcount, curln, prevln, nameln := encounter, "", "", amusician.RawName; s.Scan(); prevln = curln {
+//					curln = strings.TrimSpace(s.Text())
+//					////// NOTE DEBUG
+//					//log.Printf("for prevline %s\n", prevln)
+//					//log.Printf("for curln %s\n", curln)
+//					//log.Printf("blklines %#v\n", blklines)
+//					//log.Printf("inblockcount %#v\n", inblockcount)
+//					////utils.WaitForKeypress()
+//					////// END NOTE DEBUG
+//
+//					//// Assert inblockcount >= 0
+//					//if inblockcount == 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
+//					//	inblockcount--
+//					//	// prevlin == names
+//					//	log.Printf("WARNING Found Musician %s entry  again, count: %d blklines %#v\n", prevln, inblockcount, blklines)
+//					//	utils.WaitForKeypress()
+//					//}
+//
+//					if inblockcount > 0 && prevln == nameln && (curln == delim1 || curln == delim2) {
+//						//inblockcount = 1  replaced by v
+//						inblockcount--
+//						blklines[0] = prevln // prevlin == names
+//						//log.Printf("Found Musician %s entry blklines %#v\n",prevln, blklines)
+//					}
+//
+//					if inblockcount == 0 {
+//						blklines = append(blklines, prevln)
+//					}
+//
+//					if inblockcount == 0 && (curln == delim1 || curln == delim2) {
+//						amusiciansfields := ExtractFields(blklines)
+//						amusician.AddToFields(amusiciansfields)
+//						amusician.State = State(COPIED)
+//						totalvalid++
+//						log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+//						break
+//					}
+//
+//				}
+//
+//				inFile.Close()
+//
+//			}
+//			if amusician.State != State(COPIED) {
+//				log.Printf("Musician ENTRY count %d ADDED to RawMusicians %v \n\n", totalvalid, amusician.ToJson())
+//			}
+//		}
+//	}
+//
+//	log.Printf("\nTotal Valid=  %d (musicians.len %d)", totalvalid, len(musicians), totalfound, totalskipped)
+//	utils.WaitForKeypress()
+//	return totalvalid
+//}
 
 // ReadMusicianData creates a Musician struct data from a partially unstructured block of []string
 // it expects that block[0] is at least present with names
