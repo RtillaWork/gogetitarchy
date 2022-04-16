@@ -82,7 +82,7 @@ func main() {
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename+*OutExtension)
 
 	//
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3, GoodSetKeywords)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 100, GoodSetKeywords)
 	if ok {
 		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename+*OutExtension)
 	} else {

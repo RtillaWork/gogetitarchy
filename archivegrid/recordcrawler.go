@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, phrases []string) (musiciansData MusiciansData, ok bool) {
+func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, keywords []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
@@ -33,7 +33,7 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 
 			if mq.ResultSize > 0 {
 				log.Printf("\nCrawlArchiveGrid DEBUG: QUERY result count %d\n For query %s \n QUERYINg...\n", mq.ResultSize, mq.String())
-				recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, phrases)
+				recordsresponse, err := ScanArchiveGrid(ms[mhash], mq, keywords)
 				errors2.FailOn(err, "Crawling query\n"+mq.String())
 				musiciansData[mhash] = append(musiciansData[mhash], recordsresponse...)
 			} else {
@@ -41,7 +41,7 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs MusiciansQueries, size int, 
 
 			}
 
-			utils.WaitForKeypress()
+			//utils.WaitForKeypress()
 			//delay := time.Duration(oneSecond * (rand.Int63n(3*oneSecond) + 1))
 			//time.Sleep(delay)
 			//log.Printf("DELAY %d", delay)
@@ -125,7 +125,7 @@ func ScanQueryResultSize(mq MusicianQuery) (resultsize int, err error) {
 			resultsize = total
 			err = e
 			log.Printf("RESULTS FROM %d TO %d TOTALSIZE %d\nResultSizeelem.DOM.Html() %s", from, to, total, resultsizehtml)
-			utils.WaitForKeypress()
+			//utils.WaitForKeypress()
 		}
 
 	})
@@ -208,6 +208,8 @@ func ScanArchiveGrid(m *musician.Musician, mq *MusicianQuery, phrases []string) 
 	})
 
 	c.Visit(mq.String())
+
+	log.Printf("agRecords length %d\n", len(agRecords))
 
 	return agRecords, err
 }
