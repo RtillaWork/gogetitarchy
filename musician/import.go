@@ -90,7 +90,7 @@ func importStructuredNames(musicians MusiciansMap, inFileName string, delim1 str
 }
 
 // musiciansStats updates the number of times this names combination happens again
-func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int, map[int]int) {
+func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int) {
 
 	// rawnames stats
 	rawnames := map[string]int{}
@@ -101,8 +101,9 @@ func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int, map[
 	utils.WaitForKeypress()
 	//
 	for _, m := range musicians {
-		m.Encounters = rawnames[m.RawName]
-		m.State = State(m.Encounters)
+		//m.Encounters = rawnames[m.RawName]
+		m.Encounters = -1
+		m.State = State(rawnames[m.RawName])
 	}
 
 	// state stats
@@ -112,15 +113,15 @@ func musiciansStats(musicians MusiciansMap) (map[string]int, map[State]int, map[
 	}
 	log.Printf("States: %#v\n", states)
 	utils.WaitForKeypress()
-	// encounters stats
-	encounters := map[int]int{}
-	for _, m := range musicians {
-		encounters[m.Encounters]++
-	}
-	log.Printf("States: %#v\n", encounters)
-	utils.WaitForKeypress()
+	//// encounters stats
+	//encounters := map[int]int{}
+	//for _, m := range musicians {
+	//	encounters[m.Encounters]++
+	//}
+	//log.Printf("States: %#v\n", encounters)
+	//utils.WaitForKeypress()
 
-	return rawnames, states, encounters
+	return rawnames, states
 }
 
 // importFieldsForStructuredNames pass 2; imports more block data associated with a rawname header and a delim
@@ -130,7 +131,7 @@ func importFieldsForStructuredNames(
 	musicians MusiciansMap, inFileName string, delim1 string, delim2 string) (count int) {
 	totalfound, totalvalid, totalskipped := 0, 0, 0
 
-	rawnames, _, _ := musiciansStats(musicians)
+	rawnames, _ := musiciansStats(musicians)
 	//
 	for rawname, encounters := range rawnames {
 		for encounter := encounters; encounter > 0; encounter-- {
