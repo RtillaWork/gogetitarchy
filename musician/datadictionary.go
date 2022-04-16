@@ -55,20 +55,42 @@ func (d *DataDict) Update(key string, value string) {
 
 // BuildTheDataDict build maps of lists of key-values apprearing in Musician struct fields
 func BuildTheDataDict(musiciansmap MusiciansMap) {
-	// collect all keys and values TheDataDict
+	// collect all keys  TheDataDict
+	for _, m := range musiciansmap {
+		for k, _ := range m.Fields {
+			TheDataDict.KeyStats[k]++
+		}
+	}
+	log.Printf("%#v", TheDataDict.KeyStats)
+	utils.WaitForKeypress()
+
+	// collect all values  TheDataDict
+	for _, m := range musiciansmap {
+		for _, v := range m.Fields {
+			TheDataDict.ValuesStats[v]++
+		}
+	}
+	log.Printf("%#v", TheDataDict.ValuesStats)
+	utils.WaitForKeypress()
+
+	// collect all keys for values TheDataDict
 	for _, m := range musiciansmap {
 		for k, v := range m.Fields {
 			log.Printf("KEY   %#v            VALUES  %#v\n", k, v)
-			TheDataDict.KeyStats[k]++
-			TheDataDict.ValuesStats[v]++
-			_, ok := TheDataDict.Fields[k]
-			if ok {
-				TheDataDict.Fields[k] = append(TheDataDict.Fields[k], v)
-			} else {
-				TheDataDict.Fields[k] = []string{v}
-			}
+			TheDataDict.ValuesKey[v] = k
 		}
 	}
+	log.Printf("%#v", TheDataDict.ValuesKey)
+	utils.WaitForKeypress()
+
+	//// collect all keys and values TheDataDict
+	//for _, m := range musiciansmap {
+	//	for k, v := range m.Fields {
+	//		TheDataDict.Fields[k] = append(TheDataDict.Fields[k], v)
+	//	}
+	//}
+	//log.Printf("%#v", TheDataDict.Fields)
+	//utils.WaitForKeypress()
 
 	// collect all rawnames TheDataDict
 	for _, m := range musiciansmap {
@@ -83,6 +105,8 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 			TheDataDict.Fields["RAWNAMES"] = []string{m.RawName}
 		}
 	}
+	log.Printf("%#v", TheDataDict.Fields["RAWNAMES"])
+	utils.WaitForKeypress()
 
 	// collect all FNames TheDataDict
 	for _, m := range musiciansmap {
@@ -98,6 +122,8 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 			}
 		}
 	}
+	log.Printf("%#v", TheDataDict.Fields["FIRSTNAMES"])
+	utils.WaitForKeypress()
 
 	// collect all MNames TheDataDict
 	for _, m := range musiciansmap {
@@ -113,6 +139,8 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 			}
 		}
 	}
+	log.Printf("%#v", TheDataDict.Fields["MIDDLENAMES"])
+	utils.WaitForKeypress()
 
 	// collect all LNames TheDataDict
 	for _, m := range musiciansmap {
@@ -128,6 +156,8 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 			}
 		}
 	}
+	log.Printf("%#v", TheDataDict.Fields["LASTNAMES"])
+	utils.WaitForKeypress()
 
 	TheDataDict.LastModified = time.Now()
 	TheDataDict.ToJson()
