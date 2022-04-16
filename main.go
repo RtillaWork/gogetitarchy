@@ -80,12 +80,20 @@ func main() {
 
 	//
 	musiciansQueries := query.BuildQueries(musicians)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 100, GoodSetKeywords)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename+*OutExtension)
 
-	//
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 100, GoodSetKeywords)
 	if ok {
 		archivegrid.ExportAllResponseData(musicians, musiciansResponseData, *OutResponseDataFilename+*OutExtension)
+		markedResponseData := archivegrid.MusiciansData{}
+		for mh, rs := range musiciansResponseData {
+			for _, r := range rs {
+				if r.IsMatch {
+					markedResponseData[mh] = append(markedResponseData[mh], r)
+				}
+			}
+		}
+		archivegrid.ExportAllResponseData(musicians, markedResponseData, "MARKEDDATA"+*OutResponseDataFilename+*OutExtension)
 	} else {
 		log.Println("CrawlArchiveGrid returned not ok")
 	}
