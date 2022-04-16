@@ -16,6 +16,8 @@ type DataDict struct {
 	KeyStats     map[string]int      `json:"keys_stats"`
 	ValuesStats  map[string]int      `json:"values_stats"`
 	ValuesKey    map[string]string   `json:"values_key"`
+	Keys         []string            `json:"keys"`
+	Values       []string            `json:"values"`
 }
 
 var TheDataDict DataDict
@@ -38,6 +40,8 @@ func init() {
 		KeyStats:    make(map[string]int),
 		ValuesStats: make(map[string]int),
 		ValuesKey:   make(map[string]string),
+		Keys:        make([]string, 0),
+		Values:      make([]string, 0),
 	}
 }
 
@@ -157,6 +161,20 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 		}
 	}
 	log.Printf("%#v", TheDataDict.Fields["LASTNAMES"])
+	utils.WaitForKeypress()
+
+	// collect all []keys  TheDataDict
+	for key, _ := range TheDataDict.KeyStats {
+		TheDataDict.Keys = append(TheDataDict.Keys, key)
+	}
+	log.Printf("%#v", TheDataDict.Keys)
+	utils.WaitForKeypress()
+
+	// collect all []values  TheDataDict
+	for val, _ := range TheDataDict.ValuesStats {
+		TheDataDict.Values = append(TheDataDict.Values, val)
+	}
+	log.Printf("%#v", TheDataDict.Values)
 	utils.WaitForKeypress()
 
 	TheDataDict.LastModified = time.Now()

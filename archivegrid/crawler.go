@@ -206,6 +206,36 @@ func ScanArchiveGrid(m *musician.Musician, mq *query.Query, phrases []string) (a
 			log.Printf("FILTERED OUT matches = %d", matches)
 		}
 
+		if matches := agrecord.ContainsAnyFolded(musician.TheDataDict.Fields["RAWNAMES"]); matches > 0 || phrases == nil {
+			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+				record, title, author, archive, summary, contact, link)
+			log.Printf("FILTERED IN matches = %d", matches)
+			agrecord.DebugNotes = AGDEBUG(FOUNDANDVALIDATED)
+			agrecord.IsMatch = true
+			mq.Matches = matches
+			agRecords = append(agRecords, agrecord)
+		}
+
+		if matches := agrecord.ContainsAnyFolded(musician.TheDataDict.Keys); matches > 0 || phrases == nil {
+			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+				record, title, author, archive, summary, contact, link)
+			log.Printf("FILTERED IN matches = %d", matches)
+			agrecord.DebugNotes = AGDEBUG(FOUNDANDVALIDATED)
+			agrecord.IsMatch = true
+			mq.Matches = matches
+			agRecords = append(agRecords, agrecord)
+		}
+
+		if matches := agrecord.ContainsAnyFolded(musician.TheDataDict.Values); matches > 0 || phrases == nil {
+			log.Printf("\n\n RECORDOBJECT: \nBEGINRECORD: %#v\nTITLE: %#v\nAUTHOR: %#v\nARCHIVE: %#v\nSUMMARY: %#v\nCONTACT: %#v\nLINK: %#v\nENDRECORD\n\n",
+				record, title, author, archive, summary, contact, link)
+			log.Printf("FILTERED IN matches = %d", matches)
+			agrecord.DebugNotes = AGDEBUG(FOUNDANDVALIDATED)
+			agrecord.IsMatch = true
+			mq.Matches = matches
+			agRecords = append(agRecords, agrecord)
+		}
+
 	})
 
 	c.Visit(mq.String())

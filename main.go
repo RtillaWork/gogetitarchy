@@ -80,7 +80,7 @@ func main() {
 
 	//
 	musiciansQueries := query.BuildQueries(musicians)
-	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 100, GoodSetKeywords)
+	musiciansResponseData, ok := archivegrid.CrawlArchiveGrid(musicians, musiciansQueries, 3900, GoodSetKeywords)
 	archivegrid.ExportAllqueries(musicians, musiciansQueries, *OutMusiciansQueryFilename+*OutExtension)
 
 	if ok {
