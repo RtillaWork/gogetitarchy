@@ -32,8 +32,8 @@ const QUERY_LIMIT = 100
 
 type MusicianQueryHash hash.HashSum
 
-//type MusiciansQueries map[utils.HashSum]*Query
-type MusiciansQueries map[musician.MusicianHash]*Query
+//type Queries map[utils.HashSum]*Query
+type Queries map[musician.MusicianHash]*Query
 
 type Query struct {
 	Id         MusicianQueryHash     `json:"query_id"` // for now init to same as MusicianId one musician one query
@@ -131,8 +131,8 @@ func (mq *Query) Destroy() {
 	return
 }
 
-func BuildQueries(ms musician.MusiciansMap) (mq MusiciansQueries) {
-	mq = MusiciansQueries{}
+func BuildQueries(ms musician.MusiciansMap) (mq Queries) {
+	mq = Queries{}
 
 	for _, m := range ms {
 		query := buildQuery(m, ARCHIVE_GRID_URL_TEMPLATE[0], musician.NamesVariation(musician.FULL))

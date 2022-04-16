@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func CrawlArchiveGrid(ms musician.MusiciansMap, mqs query.MusiciansQueries, size int, keywords []string) (musiciansData MusiciansData, ok bool) {
+func CrawlArchiveGrid(ms musician.MusiciansMap, mqs query.Queries, size int, keywords []string) (musiciansData MusiciansData, ok bool) {
 	const oneSecond = 1_000_000_000 // nanoseconds
 	musiciansData = MusiciansData{}
 
@@ -22,7 +22,7 @@ func CrawlArchiveGrid(ms musician.MusiciansMap, mqs query.MusiciansQueries, size
 		return nil, false
 		log.Println("CrawlArchiveGrid Parameter(s) Error. Returned prematurely")
 	} else {
-		log.Printf("Processing %d queries for a MusiciansMap size of %d and a MusiciansQueries size of %d",
+		log.Printf("Processing %d queries for a MusiciansMap size of %d and a Queries size of %d",
 			size, lenms, lenmqs)
 		utils.WaitForKeypress()
 
@@ -277,7 +277,7 @@ func FilteredMusiciansDataBuilder(m *musician.Musician, mq *query.Query, phrases
 
 ////////////
 
-func ScanArchive(musiciansQueries query.MusiciansQueries) {
+func ScanArchive(musiciansQueries query.Queries) {
 
 	//
 	var AGDomPathsDefinition = AGDomPaths{

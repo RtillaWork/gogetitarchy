@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func ExportAllqueries(ms musician.MusiciansMap, mqs query.MusiciansQueries, filename string) {
+func ExportAllqueries(ms musician.MusiciansMap, mqs query.Queries, filename string) {
 	var outfile *os.File
 
 	if filename == "" {
