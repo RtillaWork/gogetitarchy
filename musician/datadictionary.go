@@ -1,7 +1,11 @@
 package musician
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/RtillaWork/gogetitarchy/utils"
+	"github.com/RtillaWork/gogetitarchy/utils/errors"
+	"log"
 	"strings"
 	"time"
 )
@@ -76,26 +80,32 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 
 		////Fields[key]value
 		for key, val := range mv.Fields {
+			//log.Printf("KEY   %#v            VALUES  %#v\n", key, val)
 			k := utils.NormalizeKey(key)
 			v := utils.NormalizeValue(val)
 			keys[k]++
 			values[v]++
 			valueskey[v] = k
 		}
+		log.Printf("\n\nVALUESKEYS %#v\n\n", valueskey)
+		//utils.WaitForKeypress()
 	}
 
 	// then adds all unique keys and values to TheDataDict
 	for k, _ := range firstnames {
 		TheDataDict.Fields["FIRSTNAMES"] = append(TheDataDict.Fields["FIRSTNAMES"], k)
 	}
+	log.Printf("\n\nfirstnames %#v\n\n", TheDataDict.Fields["FIRSTNAMES"])
 
 	for k, _ := range middlenames {
 		TheDataDict.Fields["MIDDLENAMES"] = append(TheDataDict.Fields["MIDDLENAMES"], k)
 	}
+	log.Printf("\n\nmiddlenames %#v\n\n", TheDataDict.Fields["MIDDLENAMES"])
 
 	for k, _ := range lastnames {
 		TheDataDict.Fields["LASTNAMES"] = append(TheDataDict.Fields["LASTNAMES"], k)
 	}
+	log.Printf("\n\nlastnames %#v\n\n", TheDataDict.Fields["LASTNAMES"])
 
 	for key, _ := range keys {
 		for val, keyofv := range valueskey {
@@ -108,11 +118,18 @@ func BuildTheDataDict(musiciansmap MusiciansMap) {
 	TheDataDict.LastModified = time.Now()
 	TheDataDict.KeyStats = keys
 	TheDataDict.ValuesStats = values
-	//json.Marshal(TheDataDict)
+	json.Marshal(TheDataDict)
+	log.Printf("%#v", TheDataDict)
 	utils.WaitForKeypress()
 }
 
 //
 func UpdateTheDict(key string, value string) {
 	TheDataDict.Update(strings.ToUpper(key), strings.ToLower(value))
+}
+
+func (d *DataDict) ToJson() string {
+	jsoned, err := json.Marshal(*d)
+	errors.FailOn(err, "DataDict::ToJson json.Marshal")
+	return fmt.Sprintf("%s", string(jsoned))
 }

@@ -28,6 +28,7 @@ func Import(inFileName string, delim1 string, delim2 string) (musicians Musician
 	musicians = make(MusiciansMap)
 	importStructuredNames(musicians, inFileName, delim1, delim2)
 	importFieldsForStructuredNames(musicians, inFileName, delim1, delim2)
+	BuildTheDataDict(musicians)
 
 	return musicians
 

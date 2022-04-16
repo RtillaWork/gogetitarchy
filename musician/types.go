@@ -47,7 +47,7 @@ type Musician struct { // nils, 0s are not valid to represent missing informatio
 	LName       string            `json:"last_name"`
 	MName       string            `json:"middle_name"`
 	Notes       string            `json:"notes"`
-	State       State             `json:"confidence"`
+	State       State             `json:"state"`
 	TimeCreated int64             `json:"time_created"`
 	Encounter   int               `json:"encounter"` // if a musician is created .Encounter == 1; inc. on names repeat
 	Fields      map[string]string `json:"fields"`

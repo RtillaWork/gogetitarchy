@@ -17,6 +17,7 @@ var InRawFileNameDefault = "../infantry_RAW3_in_nospaces.txt" // "../infantry_ra
 var OutRawRebuiltfilenameDefault = OutMusiciansFilenameDefault + "_OUT_RAW_REBUILT.txt"
 var FilterPhrasesFilenameDefault = "../phrases.csv"
 var OutMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault" + strconv.FormatInt(time.Now().Unix(), 10)
+var InMusiciansFilenameDefault = "/home/webdev/_ARCHIVEGRID/musiciansdefault"
 var OutMusiciansDbFilenameDefault = OutMusiciansFilenameDefault + "_DB_"
 var OutTheDataDictFilenameDefault = OutMusiciansDbFilenameDefault + "_DATADICT_"
 var OutMusiciansQueryFilenameDefault = OutMusiciansFilenameDefault + "_QUERIES_"
@@ -28,8 +29,9 @@ func main() {
 	InRawFilename := flag.String("inRaw", InRawFileNameDefault, "Input Raw Musicians filename")
 	//FilterPhrasesFilename := flag.String("filterPhrases", FilterPhrasesFilenameDefault, "Input filter-in GoodSetPhrases in csv format")
 	OutMusiciansFilename := flag.String("outMusicians", OutMusiciansFilenameDefault, "Output Musicians filename")
+	InMusiciansFilename := flag.String("InMusicians", InMusiciansFilenameDefault, "In Musicians filename")
 	//OutMusiciansDbFilename := flag.String("outMusiciansDbFilename", OutMusiciansDbFilenameDefault, "Output MusiciansDb filename")
-	//OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
+	OutTheDataDictFilename := flag.String("outTheDatadict", OutTheDataDictFilenameDefault, "Output Data dictionary filename in json")
 	//OutMusiciansQueryFilename := flag.String("outQueries", OutMusiciansQueryFilenameDefault, "Output queries json")
 	//OutResponseDataFilename := flag.String("outResponse", OutResponseDataFilenameDefault, "Output response data in json")
 	OutExtension := flag.String("outformat", OutExtensionDefault, "Output format json or csv(;). Default json")
@@ -39,30 +41,38 @@ func main() {
 
 	//
 	var musicians musician.MusiciansMap
-	if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-		log.Printf("Musicians file %s not found, importing...\n", *OutMusiciansFilename)
-		musicians = musician.Import(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
-		musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
-	} else {
-		log.Printf("Musicians file %s found, reading...\n", *OutMusiciansFilename)
+	if d, err := os.ReadFile(*InMusiciansFilename + *OutExtension); err == nil {
+		log.Printf("Musicians file %s found, reading...\n", *InMusiciansFilename)
 		musicians = musician.ReadData(d)
-		log.Printf("Musicians file %s found, read %d musicians\n", *OutMusiciansFilename, len(musicians))
+		log.Printf("Musicians file %s found, read %d musicians\n", *InMusiciansFilename, len(musicians))
 		utils.WaitForKeypress()
 	}
-
-	if *testMode {
-		var testmusiciansA, testmusiciansB musician.MusiciansMap
-		testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
-		if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
-			log.Printf("NO file %s to test against", *OutMusiciansFilename)
+	if musicians == nil {
+		if d, err := os.ReadFile(*OutMusiciansFilename + *OutExtension); err != nil {
+			log.Printf("Musicians file %s not found, importing...\n", *OutMusiciansFilename)
+			musicians = musician.Import(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
+			musician.ExportJson(musicians, *OutMusiciansFilename+*OutExtension)
 		} else {
-			testmusiciansB = musician.ReadData(d)
+			log.Printf("Musicians file %s found, reading...\n", *OutMusiciansFilename)
+			musicians = musician.ReadData(d)
+			log.Printf("Musicians file %s found, read %d musicians\n", *OutMusiciansFilename, len(musicians))
+			utils.WaitForKeypress()
 		}
-		testing.CompareMusicians(&testmusiciansA, &testmusiciansB)
+
+		if *testMode {
+			var testmusiciansA, testmusiciansB musician.MusiciansMap
+			testmusiciansA = musician.ImportData(*InRawFilename, musician.BlockDelimDef1, musician.BlockDelimDef2)
+			if d, err := os.ReadFile(*OutMusiciansFilename); err != nil {
+				log.Printf("NO file %s to test against", *OutMusiciansFilename)
+			} else {
+				testmusiciansB = musician.ReadData(d)
+			}
+			testing.CompareMusicians(&testmusiciansA, &testmusiciansB)
+		}
 	}
 
 	//musiciansdb := musician.NewMusiciansDb(musicians)
-	//musician.ExportDataDict(*musiciansdb.Dict, *OutTheDataDictFilename+*OutExtension)
+	musician.ExportDataDict(musician.TheDataDict, *OutTheDataDictFilename+*OutExtension)
 	//
 	////
 	//musiciansQueries := archivegrid.BuildQueries(musicians)
